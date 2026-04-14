@@ -1,0 +1,689 @@
+"use client";
+
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
+import Link from "next/link";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Eye,
+  Search,
+  CheckCircle,
+  XCircle,
+  Clock,
+  RefreshCcw,
+  Check,
+  ChevronsUpDown,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+} from "lucide-react";
+import { Label } from "@/components/ui/label";
+import {
+  getPengajuanForReferensiPac,
+  getActivePacUsersForReferensi,
+} from "@/app/actions/pengajuan-berkas-actions";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+// ─── Utils ────────────────────────────────────────────────────────────────────
+
+const capitalizeName = (name: string) => {
+  if (!name) return "";
+  return name
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+};
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type PengajuanItem = {
+  id: string;
+  noSurat: string;
+  penerima: string;
+  tanggal: Date;
+  keperluan: string;
+  deskripsi: string | null;
+  status: string;
+  alasanPenolakan: string | null;
+  user?: { name: string; email: string } | null;
+  periodePac?: { nama: string } | null;
+};
+
+type PacUser = { id: string; name: string };
+
+// ─── Configs ──────────────────────────────────────────────────────────────────
+
+const statusConfig = {
+  PENDING: {
+    label: "Pending",
+    icon: Clock,
+    className: "bg-amber-100/80 text-amber-700 border-amber-200 hover:bg-amber-200/80",
+  },
+  DITERIMA: {
+    label: "Diterima",
+    icon: CheckCircle,
+    className: "bg-green-100/80 text-green-700 border-green-200 hover:bg-green-200/80",
+  },
+  DITOLAK: {
+    label: "Ditolak",
+    icon: XCircle,
+    className: "bg-red-100/80 text-red-700 border-red-200 hover:bg-red-200/80",
+  },
+};
+
+const penerimaConfig: Record<string, { label: string; className: string }> = {
+  IPNU: {
+    label: "IPNU",
+    className: "bg-emerald-100/80 text-emerald-700 border-emerald-200 hover:bg-emerald-200/80",
+  },
+  IPPNU: {
+    label: "IPPNU",
+    className: "bg-rose-100/80 text-rose-700 border-rose-200 hover:bg-rose-200/80",
+  },
+  BERSAMA: {
+    label: "BERSAMA",
+    className: "bg-indigo-100/80 text-indigo-700 border-indigo-200 hover:bg-indigo-200/80",
+  },
+};
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
+export function ReferensiPengajuanList({
+  pengajuanList: initialPengajuanList,
+  pacUsers: initialPacUsers = [],
+  totalPages: initialTotalPages,
+  currentPage: initialCurrentPage,
+  totalItems: initialTotalItems,
+}: {
+  pengajuanList: PengajuanItem[];
+  pacUsers?: PacUser[];
+  totalPages: number;
+  currentPage: number;
+  totalItems: number;
+}) {
+  // ── Data State ────────────────────────────────────────────────────────────
+  const [data, setData] = useState<PengajuanItem[]>(initialPengajuanList);
+  const [pacUsers, setPacUsers] = useState<PacUser[]>(initialPacUsers);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
+  const [currentPage, setCurrentPage] = useState(initialCurrentPage);
+  const [totalItems, setTotalItems] = useState(initialTotalItems);
+
+  // ── Filter State ──────────────────────────────────────────────────────────
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [penerimaFilter, setPenerimaFilter] = useState("ALL");
+  const [pacFilter, setPacFilter] = useState("ALL");
+
+  const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ── Sort State ────────────────────────────────────────────────────────────
+  type SortKey = "noSurat" | "tanggal" | "keperluan" | "penerima" | "status" | "pengaju";
+  type SortDir = "asc" | "desc";
+  const [sortKey, setSortKey] = useState<SortKey | null>("tanggal");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
+  const SortIcon = ({ col }: { col: SortKey }) => {
+    if (sortKey !== col)
+      return <ArrowUpDown className="ml-1.5 h-3.5 w-3.5 text-slate-400 inline-block" />;
+    return sortDir === "asc"
+      ? <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+      : <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />;
+  };
+
+  const sortedDisplayedItems = [...data].sort((a, b) => {
+    if (!sortKey) return 0;
+    let aVal: string | number;
+    let bVal: string | number;
+    if (sortKey === "tanggal") {
+      aVal = new Date(a.tanggal).getTime();
+      bVal = new Date(b.tanggal).getTime();
+    } else if (sortKey === "pengaju") {
+      aVal = (a.user?.name ?? "").toLowerCase();
+      bVal = (b.user?.name ?? "").toLowerCase();
+    } else {
+      aVal = ((a as any)[sortKey] ?? "").toString().toLowerCase();
+      bVal = ((b as any)[sortKey] ?? "").toString().toLowerCase();
+    }
+    if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
+    if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  // ── Fetch Data ────────────────────────────────────────────────────────────
+  const fetchData = useCallback(async (
+    query: string,
+    status: string,
+    penerima: string,
+    pac: string,
+    page: number,
+  ) => {
+    try {
+      const result = await getPengajuanForReferensiPac(
+        query, page, 10, status, penerima, pac,
+      );
+      setData(result.data as PengajuanItem[]);
+      setTotalPages(result.totalPages);
+      setTotalItems(result.total);
+    } catch {
+      toast.error("Gagal memuat data");
+    }
+  }, []);
+
+  // ── Load PAC users on mount ───────────────────────────────────────────────
+  useEffect(() => {
+    getActivePacUsersForReferensi().then(setPacUsers).catch(() => {});
+  }, []);
+
+  // ── Debounced filter effect ───────────────────────────────────────────────
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCurrentPage(1);
+      fetchData(searchTerm, statusFilter, penerimaFilter, pacFilter, 1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm, statusFilter, penerimaFilter, pacFilter, fetchData]);
+
+  // ── Realtime listener (same pattern as pengajuan-berkas-list) ────────────────
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent).detail as { type?: string; model?: string };
+      if (!detail || detail.type !== "mutation") return;
+      if (detail.model !== "PengajuanBerkas") return;
+      if (realtimeTimerRef.current) return;
+      realtimeTimerRef.current = setTimeout(() => {
+        realtimeTimerRef.current = null;
+        fetchData(searchTerm, statusFilter, penerimaFilter, pacFilter, currentPage);
+      }, 300);
+    };
+    window.addEventListener("laci-realtime", handler as EventListener);
+    return () => {
+      window.removeEventListener("laci-realtime", handler as EventListener);
+      if (realtimeTimerRef.current) {
+        clearTimeout(realtimeTimerRef.current);
+        realtimeTimerRef.current = null;
+      }
+    };
+  }, [searchTerm, statusFilter, penerimaFilter, pacFilter, currentPage, fetchData]);
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
+  const handleFilterChange = (key: string, value: string) => {
+    if (key === "status") setStatusFilter(value);
+    if (key === "penerima") setPenerimaFilter(value);
+    if (key === "pac") setPacFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    fetchData(searchTerm, statusFilter, penerimaFilter, pacFilter, page);
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("ALL");
+    setPenerimaFilter("ALL");
+    setPacFilter("ALL");
+    setCurrentPage(1);
+    fetchData("", "ALL", "ALL", "ALL", 1);
+  };
+
+  const hasFilters =
+    searchTerm !== "" ||
+    statusFilter !== "ALL" ||
+    penerimaFilter !== "ALL" ||
+    pacFilter !== "ALL";
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  return (
+    <div className="flex flex-col">
+      {/* Filter Section — sama persis dengan pengajuan-berkas-list */}
+      <div className="flex flex-col md:flex-row gap-4 mb-6 items-end">
+        {/* Search */}
+        <div className="flex-1 relative w-full">
+          <Label className="text-xs font-medium mb-1 block">Cari Surat</Label>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="No Surat, keperluan, atau pengaju..."
+              className="pl-9 w-full h-9 text-sm bg-white"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Status */}
+        <div className="w-full md:w-36">
+          <Label className="text-xs font-medium mb-1 block">Status</Label>
+          <Select value={statusFilter} onValueChange={(val) => handleFilterChange("status", val)}>
+            <SelectTrigger className="w-full h-9 text-sm bg-white">
+              <SelectValue placeholder="Semua" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Semua</SelectItem>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="DITERIMA">Diterima</SelectItem>
+              <SelectItem value="DITOLAK">Ditolak</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Penerima */}
+        <div className="w-full md:w-36">
+          <Label className="text-xs font-medium mb-1 block">Penerima</Label>
+          <Select value={penerimaFilter} onValueChange={(val) => handleFilterChange("penerima", val)}>
+            <SelectTrigger className="w-full h-9 text-sm bg-white">
+              <SelectValue placeholder="Semua" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Semua</SelectItem>
+              <SelectItem value="IPNU">IPNU</SelectItem>
+              <SelectItem value="IPPNU">IPPNU</SelectItem>
+              <SelectItem value="BERSAMA">BERSAMA</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Filter PAC — sama dengan pengajuan-pac cabang view */}
+        {pacUsers.length > 0 && (
+          <div className="w-full md:w-64">
+            <Label className="text-xs font-medium mb-1 block">Filter PAC</Label>
+            <UserFilterSelect
+              users={pacUsers}
+              selectedUserId={pacFilter}
+              onSelectUser={(val) => handleFilterChange("pac", val)}
+              placeholder="Semua PAC"
+            />
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="grid grid-cols-1 w-full md:flex md:w-auto md:items-center md:justify-end md:gap-4 lg:justify-start">
+          <Button
+            variant="outline"
+            className={cn(
+              "h-9 w-full md:w-auto px-4 text-sm bg-white border-slate-200 shadow-sm whitespace-nowrap transition-all duration-200",
+              hasFilters
+                ? "text-slate-900 border-slate-300 opacity-100"
+                : "text-slate-400 border-slate-200 opacity-50 cursor-not-allowed",
+            )}
+            onClick={handleClearFilters}
+            disabled={!hasFilters}
+          >
+            <RefreshCcw className="mr-2 h-3.5 w-3.5" />
+            Reset
+          </Button>
+        </div>
+      </div>
+
+      {/* Table Section */}
+      <div className="relative">
+        <div className="rounded-md border">
+          <div className="overflow-x-auto">
+            <Table className="w-full table-fixed [&_td]:py-2 [&_th]:py-2">
+              <TableHeader className="sticky top-0 bg-white z-10">
+                <TableRow>
+                  <TableHead className="w-[50px] bg-slate-50/40 text-center whitespace-nowrap">
+                    No
+                  </TableHead>
+                  <TableHead
+                    className="w-[180px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    onClick={() => handleSort("noSurat")}
+                  >
+                    <span className="inline-flex items-center">
+                      No Surat
+                      <SortIcon col="noSurat" />
+                    </span>
+                  </TableHead>
+                  <TableHead
+                    className="w-[160px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    onClick={() => handleSort("pengaju")}
+                  >
+                    <span className="inline-flex items-center">
+                      Pengaju
+                      <SortIcon col="pengaju" />
+                    </span>
+                  </TableHead>
+                  <TableHead
+                    className="w-[120px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    onClick={() => handleSort("penerima")}
+                  >
+                    <span className="inline-flex items-center">
+                      Penerima
+                      <SortIcon col="penerima" />
+                    </span>
+                  </TableHead>
+                  <TableHead
+                    className="w-[150px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    onClick={() => handleSort("tanggal")}
+                  >
+                    <span className="inline-flex items-center">
+                      Tanggal
+                      <SortIcon col="tanggal" />
+                    </span>
+                  </TableHead>
+                  <TableHead
+                    className="bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    onClick={() => handleSort("keperluan")}
+                  >
+                    <span className="inline-flex items-center">
+                      Keperluan
+                      <SortIcon col="keperluan" />
+                    </span>
+                  </TableHead>
+                  <TableHead
+                    className="w-[120px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    onClick={() => handleSort("status")}
+                  >
+                    <span className="inline-flex items-center">
+                      Status
+                      <SortIcon col="status" />
+                    </span>
+                  </TableHead>
+                  <TableHead className="w-[60px] text-right bg-slate-50/40 whitespace-nowrap">
+                    Aksi
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedDisplayedItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
+                      {searchTerm
+                        ? "Tidak ada pengajuan yang cocok dengan filter."
+                        : "Belum ada data pengajuan referensi."}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  sortedDisplayedItems.map((item, index) => {
+                    const StatusIcon =
+                      statusConfig[item.status as keyof typeof statusConfig]?.icon || Clock;
+                    return (
+                      <TableRow key={item.id}>
+                        <TableCell className="text-center text-muted-foreground font-medium">
+                          {(currentPage - 1) * 10 + index + 1}
+                        </TableCell>
+                        <TableCell className="font-medium whitespace-nowrap">
+                          {item.noSurat}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap pr-6">
+                          {item.user?.name ? capitalizeName(item.user.name) : "-"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "transition-colors",
+                              penerimaConfig[item.penerima as keyof typeof penerimaConfig]?.className,
+                            )}
+                          >
+                            {item.penerima}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap pr-8">
+                          {new Date(item.tanggal).toLocaleDateString("id-ID", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </TableCell>
+                        <TableCell className="max-w-[300px] truncate" title={item.keperluan}>
+                          {capitalizeName(item.keperluan)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "transition-colors",
+                              statusConfig[item.status as keyof typeof statusConfig]?.className,
+                            )}
+                          >
+                            <StatusIcon className="w-3 h-3 mr-1" />
+                            {statusConfig[item.status as keyof typeof statusConfig]?.label || item.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button size="icon" variant="outline" className="h-8 w-8" asChild title="Detail">
+                            <Link href={`/dashboard/referensi-pengajuan/${item.id}`}>
+                              <Eye className="w-4 h-4" />
+                            </Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+
+                {/* Pagination Row — integrated into table body (same as pengajuan-berkas-list) */}
+                {totalPages >= 1 && (
+                  <TableRow className="hover:bg-transparent border-t bg-white">
+                    <TableCell colSpan={8} className="p-0">
+                      <div className="flex items-center justify-center sm:justify-between px-4 py-2">
+                        <p className="text-xs text-muted-foreground hidden sm:block">
+                          Menampilkan{" "}
+                          <span className="font-medium text-slate-700">
+                            {(currentPage - 1) * 10 + 1}
+                          </span>{" "}
+                          sampai{" "}
+                          <span className="font-medium text-slate-700">
+                            {Math.min(currentPage * 10, totalItems)}
+                          </span>{" "}
+                          dari{" "}
+                          <span className="font-medium text-slate-700">{totalItems}</span>{" "}
+                          pengajuan
+                        </p>
+                        <Pagination className="mx-0 w-auto scale-90 sm:scale-100 origin-right">
+                          <PaginationContent>
+                            <PaginationItem>
+                              <PaginationPrevious
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (currentPage > 1) handlePageChange(currentPage - 1);
+                                }}
+                                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                              />
+                            </PaginationItem>
+                            {[...Array(totalPages)].map((_, i) => {
+                              const page = i + 1;
+                              if (
+                                page === 1 ||
+                                page === totalPages ||
+                                (page >= currentPage - 1 && page <= currentPage + 1)
+                              ) {
+                                return (
+                                  <PaginationItem key={page}>
+                                    <PaginationLink
+                                      href="#"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        handlePageChange(page);
+                                      }}
+                                      isActive={currentPage === page}
+                                      className="cursor-pointer"
+                                    >
+                                      {page}
+                                    </PaginationLink>
+                                  </PaginationItem>
+                                );
+                              } else if (page === currentPage - 2 || page === currentPage + 2) {
+                                return <PaginationEllipsis key={page} />;
+                              }
+                              return null;
+                            })}
+                            <PaginationItem>
+                              <PaginationNext
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (currentPage < totalPages) handlePageChange(currentPage + 1);
+                                }}
+                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                              />
+                            </PaginationItem>
+                          </PaginationContent>
+                        </Pagination>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── UserFilterSelect (sama persis dengan pengajuan-berkas-list) ─────────────────
+
+function UserFilterSelect({
+  users,
+  selectedUserId,
+  onSelectUser,
+  className,
+  placeholder = "Pilih User",
+}: {
+  users: { id: string; name: string }[];
+  selectedUserId: string;
+  onSelectUser: (id: string) => void;
+  className?: string;
+  placeholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const filteredUsers = users.filter((u) =>
+    u.name.toLowerCase().includes(search.toLowerCase()),
+  );
+
+  const selectedUserName =
+    selectedUserId === "ALL"
+      ? "Semua PAC"
+      : users.find((u) => u.id === selectedUserId)?.name 
+        ? capitalizeName(users.find((u) => u.id === selectedUserId)!.name)
+        : placeholder;
+
+  return (
+    <div className={cn("w-full", className)}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between font-normal h-9 bg-white"
+          >
+            <span className="truncate">{selectedUserName}</span>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="w-[var(--radix-popover-trigger-width)] min-w-[200px] p-0"
+          align="end"
+        >
+          <div className="flex flex-col max-h-[300px]">
+            <div className="flex items-center border-b px-3 pb-2 pt-3">
+              <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+              <input
+                className="flex h-5 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="Cari PAC..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <div className="overflow-y-auto py-2">
+              <div
+                className={cn(
+                  "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-slate-100 hover:text-slate-900 cursor-pointer mx-1",
+                  selectedUserId === "ALL" && "bg-slate-100",
+                )}
+                onClick={() => {
+                  onSelectUser("ALL");
+                  setOpen(false);
+                  setSearch("");
+                }}
+              >
+                <Check
+                  className={cn(
+                    "mr-2 h-4 w-4",
+                    selectedUserId === "ALL" ? "opacity-100" : "opacity-0",
+                  )}
+                />
+                Semua PAC
+              </div>
+              {filteredUsers.length === 0 && (
+                <div className="py-6 text-center text-sm text-muted-foreground">
+                  PAC tidak ditemukan.
+                </div>
+              )}
+              {filteredUsers.slice(0, 10).map((user) => (
+                <div
+                  key={user.id}
+                  className={cn(
+                    "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-slate-100 hover:text-slate-900 cursor-pointer mx-1",
+                    selectedUserId === user.id && "bg-slate-100",
+                  )}
+                  onClick={() => {
+                    onSelectUser(user.id);
+                    setOpen(false);
+                    setSearch("");
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      selectedUserId === user.id ? "opacity-100" : "opacity-0",
+                    )}
+                  />
+                  {capitalizeName(user.name)}
+                </div>
+              ))}
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}

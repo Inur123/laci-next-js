@@ -1,0 +1,87 @@
+import { NextResponse, type NextRequest } from "next/server";
+
+/**
+ * OPTIMIZED MIDDLEWARE
+ * 
+ * Menggunakan fetch ke /api/auth/get-session karena middleware
+ * berjalan di Edge Runtime dan tidak bisa import Prisma secara langsung.
+ * 
+ * Optimasi: Skip fetch untuk halaman login/register jika tidak ada cookie session.
+ */
+export default async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const isOnDashboard = pathname.startsWith("/dashboard");
+  const isOnAuthPage =
+    pathname.startsWith("/login") || pathname.startsWith("/register");
+
+  // OPTIMASI: Cek cookie dulu sebelum fetch
+  // Jika tidak ada cookie session, skip fetch (hemat ~200-400ms)
+  const sessionCookie = request.cookies.get("better-auth.session_token") 
+    || request.cookies.get("__Secure-better-auth.session_token");
+
+  // Jika di halaman auth dan TIDAK ada cookie → langsung lanjut (tidak perlu fetch)
+  if (isOnAuthPage && !sessionCookie) {
+    return NextResponse.next();
+  }
+
+  // Jika di dashboard dan TIDAK ada cookie → langsung redirect login
+  if (isOnDashboard && !sessionCookie) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Hanya fetch session jika ada cookie (artinya mungkin sudah login)
+  let session: any = null;
+  let user: any = null;
+  if (sessionCookie) {
+    try {
+      const authBaseURL = request.nextUrl.origin;
+
+      const res = await fetch(`${authBaseURL}/api/auth/get-session`, {
+        headers: {
+          cookie: request.headers.get("cookie") || "",
+        },
+      });
+
+      if (res.ok) {
+        const authData = await res.json();
+        if (authData) {
+          session = authData.session || null;
+          user = authData.user || null;
+        }
+      }
+    } catch (err) {
+      console.error("[Proxy Auth Error]:", err);
+    }
+  }
+
+  // 1. Dashboard: cek login dan status aktif
+  if (isOnDashboard) {
+    if (!session || !user) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+
+    if (user.isActive === false) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("error", "account_inactive");
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const response = NextResponse.next();
+    response.headers.set("x-pathname", pathname);
+    return response;
+  }
+
+  // 2. Auth page: redirect ke dashboard jika sudah login
+  if (isOnAuthPage && session && user) {
+    if (user.isActive === false) {
+      return NextResponse.next(); // Biarkan tetap di halaman login/register
+    }
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/dashboard/:path*", "/login", "/register"],
+};

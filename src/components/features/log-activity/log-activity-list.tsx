@@ -1,0 +1,923 @@
+"use client";
+
+import React, { useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Search, RefreshCcw, Eye, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { LogAction, LogModule } from "@prisma/client";
+import { DatePickerWithPresets } from "@/components/ui/date-range-picker-presets";
+import { DateRange } from "react-day-picker";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
+import {
+  getPersonalLogs,
+  getGlobalLogs,
+  type LogActivityFilters,
+} from "@/app/actions/log-activity-actions";
+import { formatDateForInput } from "@/lib/date-utils";
+
+export type LogActivityData = {
+  id: string;
+  action: LogAction;
+  module: LogModule;
+  description: string;
+  createdAt: Date;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  };
+  periode: {
+    id: string;
+    nama: string;
+  };
+};
+
+const actionConfig: Record<LogAction, { label: string; className: string }> = {
+  CREATE: {
+    label: "Tambah",
+    className:
+      "bg-green-100/80 text-green-700 border-green-200 hover:bg-green-200/80",
+  },
+  UPDATE: {
+    label: "Update",
+    className:
+      "bg-blue-100/80 text-blue-700 border-blue-200 hover:bg-blue-200/80",
+  },
+  DELETE: {
+    label: "Hapus",
+    className: "bg-red-100/80 text-red-700 border-red-200 hover:bg-red-200/80",
+  },
+  IMPORT: {
+    label: "Import Excel",
+    className:
+      "bg-teal-100/80 text-teal-700 border-teal-200 hover:bg-teal-200/80",
+  },
+  EXPORT: {
+    label: "Export Excel",
+    className:
+      "bg-purple-100/80 text-purple-700 border-purple-200 hover:bg-purple-200/80",
+  },
+  APPROVE: {
+    label: "Update",
+    className:
+      "bg-blue-100/80 text-blue-700 border-blue-200 hover:bg-blue-200/80",
+  },
+  REJECT: {
+    label: "Update",
+    className:
+      "bg-blue-100/80 text-blue-700 border-blue-200 hover:bg-blue-100/80",
+  },
+  LOGIN: {
+    label: "Login",
+    className:
+      "bg-emerald-100/80 text-emerald-700 border-emerald-200 hover:bg-emerald-200/80",
+  },
+  LOGOUT: {
+    label: "Logout",
+    className:
+      "bg-orange-100/80 text-orange-700 border-orange-200 hover:bg-orange-200/80",
+  },
+};
+
+const moduleConfig: Record<LogModule, { label: string; className: string }> = {
+  ARSIP_SURAT: {
+    label: "Arsip Surat",
+    className: "bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100",
+  },
+  ANGGOTA: {
+    label: "Anggota",
+    className: "bg-green-50 text-green-600 border-green-200 hover:bg-green-100",
+  },
+  BERKAS_PIMPINAN: {
+    label: "Berkas Pimpinan",
+    className:
+      "bg-purple-50 text-purple-600 border-purple-200 hover:bg-purple-100",
+  },
+  BERKAS_SP: {
+    label: "Berkas SP",
+    className:
+      "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100",
+  },
+  AGENDA_KEGIATAN: {
+    label: "Kegiatan",
+    className: "bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100",
+  },
+  PENGAJUAN_BERKAS: {
+    label: "Pengajuan PAC",
+    className: "bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100",
+  },
+  PERIODE: {
+    label: "Periode",
+    className: "bg-cyan-50 text-cyan-600 border-cyan-200 hover:bg-cyan-100",
+  },
+  USER: {
+    label: "Update Profil",
+    className: "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100",
+  },
+  AUTH: {
+    label: "Autentikasi",
+    className: "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100",
+  },
+  PRESENSI: {
+    label: "Presensi",
+    className: "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100",
+  },
+};
+
+type LogActivityListProps = {
+  initialLogs: LogActivityData[];
+  initialTotalPages: number;
+  initialCurrentPage: number;
+  initialTotalItems: number;
+  initialView: "personal" | "global";
+  userRole: string;
+  pacUsers?: { id: string; name: string }[];
+};
+
+export function LogActivityList({
+  initialLogs,
+  initialTotalPages,
+  initialCurrentPage,
+  initialTotalItems,
+  initialView,
+  userRole,
+  pacUsers = [],
+}: LogActivityListProps) {
+  // Local data state
+  const [logs, setLogs] = useState<LogActivityData[]>(initialLogs);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
+  const [currentPage, setCurrentPage] = useState(initialCurrentPage);
+  const [totalItems, setTotalItems] = useState(initialTotalItems);
+  const [currentView, setCurrentView] = useState(initialView);
+  const [isLoading, setIsLoading] = useState(false);
+  const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sort state (for local sorting by time)
+  type SortDir = "asc" | "desc";
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  type LogSortKey = "action" | "module" | "userName";
+  const [logSortKey, setLogSortKey] = useState<LogSortKey | null>(null);
+  const [logSortDir, setLogSortDir] = useState<SortDir>("asc");
+
+  const toggleSort = () => setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+
+  const handleLogSort = (key: LogSortKey) => {
+    if (logSortKey === key) {
+      setLogSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setLogSortKey(key);
+      setLogSortDir("asc");
+    }
+  };
+
+  const LogSortIcon = ({ col }: { col: LogSortKey }) => {
+    if (logSortKey !== col)
+      return <ArrowUpDown className="ml-1.5 h-3.5 w-3.5 text-slate-400 inline-block" />;
+    return logSortDir === "asc"
+      ? <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+      : <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />;
+  };
+
+  const sortedLogs = [...logs].sort((a, b) => {
+    // First apply time sort
+    const aTime = new Date(a.createdAt).getTime();
+    const bTime = new Date(b.createdAt).getTime();
+    // If secondary sort key is set, apply it first
+    if (logSortKey) {
+      const getVal = (item: typeof a) => {
+        if (logSortKey === "action") return item.action ?? "";
+        if (logSortKey === "module") return item.module ?? "";
+        if (logSortKey === "userName") return item.user?.name ?? "";
+        return "";
+      };
+      const aVal = getVal(a).toLowerCase();
+      const bVal = getVal(b).toLowerCase();
+      if (aVal !== bVal) {
+        if (aVal < bVal) return logSortDir === "asc" ? -1 : 1;
+        return logSortDir === "asc" ? 1 : -1;
+      }
+    }
+    return sortDir === "asc" ? aTime - bTime : bTime - aTime;
+  });
+
+  // Filter state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [actionFilter, setActionFilter] = useState("ALL");
+  const [moduleFilter, setModuleFilter] = useState("ALL");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [userFilter, setUserFilter] = useState("ALL");
+
+  const isCabang = userRole === "SEKRETARIS_CABANG";
+
+  // Detect if user has active filters or pagination
+  const isDirty =
+    currentPage !== 1 ||
+    searchTerm !== "" ||
+    actionFilter !== "ALL" ||
+    moduleFilter !== "ALL" ||
+    dateRange !== undefined ||
+    userFilter !== "ALL";
+
+  const fetchData = async (
+    search: string,
+    action: string,
+    module: string,
+    start: string,
+    end: string,
+    page: number,
+    view: "personal" | "global",
+    userId?: string,
+    options: { silent?: boolean } = {},
+  ) => {
+    if (!options.silent) setIsLoading(true);
+    try {
+      const filters: LogActivityFilters = {};
+      if (search) filters.search = search;
+      if (action !== "ALL") filters.action = action;
+      if (module !== "ALL") filters.module = module;
+      if (start) filters.startDate = start;
+      if (end) filters.endDate = end;
+      if (userId && userId !== "ALL") filters.userId = userId;
+
+      const data =
+        view === "global"
+          ? await getGlobalLogs(filters, page, 20)
+          : await getPersonalLogs(filters, page, 20);
+
+      setLogs(data.data as LogActivityData[]);
+      setTotalPages(data.totalPages);
+      setTotalItems(data.total);
+    } catch (error) {
+      console.error("Error fetching logs:", error);
+    } finally {
+      if (!options.silent) setIsLoading(false);
+    }
+  };
+
+  // REALTIME FIX: Smart Sync
+  // When server props (initialLogs) update due to realtime router.refresh():
+  // 1. If no filters (isDirty=false), sync directly with server data.
+  // 2. If filters active (isDirty=true), re-fetch client-side to maintain filters but get new data.
+  React.useEffect(() => {
+    if (!isDirty) {
+      setLogs(initialLogs);
+      setTotalPages(initialTotalPages);
+      setTotalItems(initialTotalItems);
+    } else {
+      const start = dateRange?.from
+        ? dateRange.from.toISOString().split("T")[0]
+        : "";
+      const end = dateRange?.to ? dateRange.to.toISOString().split("T")[0] : "";
+
+      // Refetch with current filters
+      fetchData(
+        searchTerm,
+        actionFilter,
+        moduleFilter,
+        start,
+        end,
+        currentPage,
+        currentView,
+        userFilter,
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialLogs, initialTotalPages, initialTotalItems]);
+
+  // Sync view from prop
+  React.useEffect(() => {
+    setCurrentView(initialView);
+    // When view changes from props, we just sync the local state.
+    // The key in parent will handle full reset if necessary.
+  }, [initialView]);
+
+  React.useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent).detail as {
+        type?: string;
+        model?: string;
+      };
+      const isLogEvent =
+        detail?.type === "log" ||
+        (detail?.type === "mutation" && detail.model === "LogActivity");
+      if (!isLogEvent) return;
+      if (realtimeTimerRef.current) return;
+      realtimeTimerRef.current = setTimeout(() => {
+        realtimeTimerRef.current = null;
+        const start = dateRange?.from
+          ? dateRange.from.toISOString().split("T")[0]
+          : "";
+        const end = dateRange?.to
+          ? dateRange.to.toISOString().split("T")[0]
+          : "";
+        fetchData(
+          searchTerm,
+          actionFilter,
+          moduleFilter,
+          start,
+          end,
+          currentPage,
+          currentView,
+          userFilter,
+          { silent: true },
+        );
+      }, 300);
+    };
+    window.addEventListener("laci-realtime", handler as EventListener);
+    return () => {
+      window.removeEventListener("laci-realtime", handler as EventListener);
+      if (realtimeTimerRef.current) {
+        clearTimeout(realtimeTimerRef.current);
+        realtimeTimerRef.current = null;
+      }
+    };
+  }, [
+    searchTerm,
+    actionFilter,
+    moduleFilter,
+    dateRange,
+    currentPage,
+    currentView,
+    userFilter,
+  ]);
+
+  // Debounced effect for search and dates
+  // Debounced effect for search and dates
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      const start = formatDateForInput(dateRange?.from);
+      const end = formatDateForInput(dateRange?.to || dateRange?.from);
+
+      fetchData(
+        searchTerm,
+        actionFilter,
+        moduleFilter,
+        start,
+        end,
+        currentPage,
+        currentView,
+        userFilter,
+      );
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [
+    searchTerm,
+    actionFilter,
+    moduleFilter,
+    dateRange,
+    currentPage,
+    currentView,
+    userFilter,
+  ]);
+
+  const handleReset = () => {
+    setSearchTerm("");
+    setActionFilter("ALL");
+    setModuleFilter("ALL");
+    setDateRange(undefined);
+    setUserFilter("ALL");
+    setCurrentPage(1);
+    fetchData("", "ALL", "ALL", "", "", 1, currentView, "ALL");
+  };
+
+  const handlePageChange = (page: number) => {
+    const start = formatDateForInput(dateRange?.from);
+    const end = formatDateForInput(dateRange?.to || dateRange?.from);
+
+    setCurrentPage(page);
+    fetchData(
+      searchTerm,
+      actionFilter,
+      moduleFilter,
+      start,
+      end,
+      page,
+      currentView,
+      userFilter,
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Filter Section - Matched with Reference Pattern */}
+      <div className="flex flex-col md:flex-row gap-4 mb-4 items-end">
+        {/* Date Range Picker with Presets */}
+        <div className="flex-1 w-full relative">
+          <Label className="text-xs font-medium mb-1 block">
+            Rentang Tanggal
+          </Label>
+          <DatePickerWithPresets
+            date={dateRange}
+            onSelect={setDateRange}
+            className="w-full bg-white border-slate-200 h-9"
+          />
+        </div>
+
+        {/* User Filter - Only for Global View (Cabang) */}
+        {currentView === "global" && isCabang && pacUsers.length > 0 && (
+          <div className="flex-1 w-full">
+            <Label className="text-xs font-medium mb-1 block">
+              Filter User
+            </Label>
+            <UserFilterSelect
+              users={pacUsers}
+              selectedUserId={userFilter}
+              onSelectUser={(val) => {
+                setUserFilter(val);
+                setCurrentPage(1);
+                fetchData(
+                  searchTerm,
+                  actionFilter,
+                  moduleFilter,
+                  formatDateForInput(dateRange?.from),
+                  formatDateForInput(dateRange?.to || dateRange?.from),
+                  1,
+                  currentView,
+                  val,
+                );
+              }}
+              placeholder="Pilih User"
+            />
+          </div>
+        )}
+
+        {/* Action */}
+        <div className="flex-1 w-full">
+          <Label className="text-xs font-medium mb-1 block">Entitas</Label>
+          <Select
+            value={actionFilter}
+            onValueChange={(val) => {
+              setActionFilter(val);
+              setCurrentPage(1);
+              fetchData(
+                searchTerm,
+                val,
+                moduleFilter,
+                formatDateForInput(dateRange?.from),
+                formatDateForInput(dateRange?.to || dateRange?.from),
+                1,
+                currentView,
+              );
+            }}
+          >
+            <SelectTrigger className="w-full bg-white h-9 text-sm border-slate-200 shadow-sm">
+              <SelectValue placeholder="Semua" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Semua</SelectItem>
+              {Object.entries(actionConfig)
+                .filter(([key]) => !["APPROVE", "REJECT"].includes(key))
+                .map(([key, config]) => (
+                  <SelectItem key={key} value={key}>
+                    {config.label}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Module */}
+        <div className="flex-1 w-full">
+          <Label className="text-xs font-medium mb-1 block">Modul/Menu</Label>
+          <Select
+            value={moduleFilter}
+            onValueChange={(val) => {
+              setModuleFilter(val);
+              setCurrentPage(1);
+              fetchData(
+                searchTerm,
+                actionFilter,
+                val,
+                formatDateForInput(dateRange?.from),
+                formatDateForInput(dateRange?.to || dateRange?.from),
+                1,
+                currentView,
+              );
+            }}
+          >
+            <SelectTrigger className="w-full bg-white h-9 text-sm border-slate-200 shadow-sm">
+              <SelectValue placeholder="Semua" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Semua</SelectItem>
+              {Object.entries(moduleConfig).map(([key, config]) => (
+                <SelectItem key={key} value={key}>
+                  {config.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Action Buttons Group */}
+        <div className="w-full md:w-auto">
+          <Button
+            variant="outline"
+            className={cn(
+              "h-9 w-full md:w-auto px-4 text-sm bg-white border-slate-200 shadow-sm whitespace-nowrap transition-all duration-200",
+              searchTerm !== "" ||
+                actionFilter !== "ALL" ||
+                moduleFilter !== "ALL" ||
+                dateRange !== undefined ||
+                userFilter !== "ALL"
+                ? "text-slate-900 border-slate-300 opacity-100"
+                : "text-slate-400 border-slate-200 opacity-50 cursor-not-allowed",
+            )}
+            onClick={handleReset}
+            disabled={
+              !isLoading &&
+              searchTerm === "" &&
+              actionFilter === "ALL" &&
+              moduleFilter === "ALL" &&
+              dateRange === undefined &&
+              userFilter === "ALL"
+            }
+          >
+            <RefreshCcw className="mr-2 h-3.5 w-3.5" />
+            Reset
+          </Button>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="relative">
+        <div className="rounded-md border">
+          <div className="overflow-x-auto">
+            <Table className="w-full [&_td]:py-3 [&_th]:py-3">
+              <TableHeader className="sticky top-0 bg-white z-10 shadow-[0_1px_0_0_rgba(0,0,0,0.05)]">
+                <TableRow className="bg-slate-50/40 hover:bg-slate-50/40 border-b-slate-100">
+                  <TableHead className="w-[60px] text-center text-slate-500 font-semibold h-12 whitespace-nowrap">
+                    No
+                  </TableHead>
+                  <TableHead
+                    className="w-[200px] whitespace-nowrap text-slate-500 font-semibold h-12 cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    onClick={() => toggleSort()}
+                  >
+                    <span className="inline-flex items-center">
+                      Waktu
+                      {sortDir === "asc" ? (
+                        <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+                      ) : (
+                        <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+                      )}
+                    </span>
+                  </TableHead>
+                  {currentView === "global" && (
+                    <TableHead
+                      className="w-[180px] whitespace-nowrap text-slate-500 font-semibold h-12 cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                      onClick={() => handleLogSort("userName")}
+                    >
+                      <span className="inline-flex items-center">
+                        User
+                        <LogSortIcon col="userName" />
+                      </span>
+                    </TableHead>
+                  )}
+                  <TableHead
+                    className="w-[130px] whitespace-nowrap text-slate-500 font-semibold h-12 cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    onClick={() => handleLogSort("action")}
+                  >
+                    <span className="inline-flex items-center">
+                      Entitas
+                      <LogSortIcon col="action" />
+                    </span>
+                  </TableHead>
+                  <TableHead
+                    className="w-[160px] whitespace-nowrap text-slate-500 font-semibold h-12 cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    onClick={() => handleLogSort("module")}
+                  >
+                    <span className="inline-flex items-center">
+                      Menu
+                      <LogSortIcon col="module" />
+                    </span>
+                  </TableHead>
+                  <TableHead className="whitespace-nowrap text-slate-500 font-semibold h-12">
+                    Aktivitas
+                  </TableHead>
+                  <TableHead className="w-[80px] text-right whitespace-nowrap text-slate-500 font-semibold h-12">
+                    Aksi
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {logs.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={currentView === "global" ? 7 : 6}
+                      className="h-32 text-center text-muted-foreground"
+                    >
+                      Belum ada riwayat aktivitas pada periode ini.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                    sortedLogs.map((log, index) => (
+                      <TableRow key={log.id} className="group transition-all hover:bg-slate-50/50">
+                        <TableCell className="text-center text-muted-foreground font-medium whitespace-nowrap">
+                          {(currentPage - 1) * 20 + index + 1}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-xs text-slate-600">
+                          {new Date(log.createdAt).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                        {" - "}
+                        {new Date(log.createdAt).toLocaleTimeString("id-ID", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                        })}
+                      </TableCell>
+                      {currentView === "global" && (
+                        <TableCell className="whitespace-nowrap">
+                          {log.user.name}
+                        </TableCell>
+                      )}
+                      <TableCell className="whitespace-nowrap">
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "whitespace-nowrap transition-colors",
+                            actionConfig[log.action]?.className,
+                          )}
+                        >
+                          {actionConfig[log.action]?.label || log.action}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "whitespace-nowrap transition-colors",
+                            moduleConfig[log.module]?.className,
+                          )}
+                        >
+                          {moduleConfig[log.module]?.label || log.module}
+                        </Badge>
+                      </TableCell>
+                        <TableCell className="text-slate-600 text-[13px] leading-relaxed">
+                          <div className="max-w-[400px] truncate" title={log.description}>
+                            {log.description}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 w-8 p-0 border-slate-200 text-slate-500 hover:text-slate-900 transition-colors"
+                          asChild
+                        >
+                          <Link href={`/dashboard/log-activity/${log.id}`}>
+                            <Eye className="w-4 h-4" />
+                          </Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+
+                {/* Pagination Row - Consistent with other modules */}
+                {totalPages >= 1 && (
+                  <TableRow className="hover:bg-transparent border-t bg-slate-50/30">
+                    <TableCell
+                      colSpan={currentView === "global" ? 7 : 6}
+                      className="p-0"
+                    >
+                      <div className="flex items-center justify-center sm:justify-between px-4 py-2">
+                        <p className="text-xs text-muted-foreground hidden sm:block">
+                          Menampilkan{" "}
+                          <span className="font-medium text-slate-700">
+                            {(currentPage - 1) * 20 + 1}
+                          </span>{" "}
+                          sampai{" "}
+                          <span className="font-medium text-slate-700">
+                            {Math.min(currentPage * 20, totalItems)}
+                          </span>{" "}
+                          dari{" "}
+                          <span className="font-medium text-slate-700">
+                            {new Intl.NumberFormat("id-ID").format(totalItems)}
+                          </span>{" "}
+                          data
+                        </p>
+                        <Pagination className="mx-0 w-auto scale-90 sm:scale-100 origin-center sm:origin-right">
+                          <PaginationContent>
+                            <PaginationItem>
+                              <PaginationPrevious
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (currentPage > 1)
+                                    handlePageChange(currentPage - 1);
+                                }}
+                                className={
+                                  currentPage === 1
+                                    ? "pointer-events-none opacity-50"
+                                    : "cursor-pointer"
+                                }
+                              />
+                            </PaginationItem>
+
+                            {[...Array(totalPages)].map((_, i) => {
+                              const page = i + 1;
+                              if (
+                                page === 1 ||
+                                page === totalPages ||
+                                (page >= currentPage - 1 &&
+                                  page <= currentPage + 1)
+                              ) {
+                                return (
+                                  <PaginationItem key={page}>
+                                    <PaginationLink
+                                      href="#"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        handlePageChange(page);
+                                      }}
+                                      isActive={currentPage === page}
+                                      className="cursor-pointer"
+                                    >
+                                      {page}
+                                    </PaginationLink>
+                                  </PaginationItem>
+                                );
+                              } else if (
+                                page === currentPage - 2 ||
+                                page === currentPage + 2
+                              ) {
+                                return <PaginationEllipsis key={page} />;
+                              }
+                              return null;
+                            })}
+
+                            <PaginationItem>
+                              <PaginationNext
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (currentPage < totalPages)
+                                    handlePageChange(currentPage + 1);
+                                }}
+                                className={
+                                  currentPage === totalPages
+                                    ? "pointer-events-none opacity-50"
+                                    : "cursor-pointer"
+                                }
+                              />
+                            </PaginationItem>
+                          </PaginationContent>
+                        </Pagination>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// User Filter Select Component
+function UserFilterSelect({
+  users,
+  selectedUserId,
+  onSelectUser,
+  className,
+  placeholder = "Pilih User",
+}: {
+  users: { id: string; name: string }[];
+  selectedUserId: string;
+  onSelectUser: (id: string) => void;
+  className?: string;
+  placeholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const filteredUsers = users.filter((u) =>
+    u.name.toLowerCase().includes(search.toLowerCase()),
+  );
+
+  const selectedUserName =
+    selectedUserId === "ALL"
+      ? "Semua User"
+      : users.find((u) => u.id === selectedUserId)?.name || placeholder;
+
+  return (
+    <div className={cn("w-full", className)}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between font-normal h-9 bg-white"
+          >
+            <span className="truncate">{selectedUserName}</span>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="w-[var(--radix-popover-trigger-width)] min-w-[200px] p-0"
+          align="end"
+        >
+          <div className="flex flex-col max-h-[300px]">
+            <div className="flex items-center border-b px-3 pb-2 pt-3">
+              <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+              <input
+                className="flex h-5 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="Cari user..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <div className="overflow-y-auto py-2">
+              <div
+                className={cn(
+                  "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-slate-100 hover:text-slate-900 cursor-pointer mx-1",
+                  selectedUserId === "ALL" && "bg-slate-100",
+                )}
+                onClick={() => {
+                  onSelectUser("ALL");
+                  setOpen(false);
+                  setSearch("");
+                }}
+              >
+                <Check
+                  className={cn(
+                    "mr-2 h-4 w-4",
+                    selectedUserId === "ALL" ? "opacity-100" : "opacity-0",
+                  )}
+                />
+                Semua User
+              </div>
+              {filteredUsers.map((user) => (
+                <div
+                  key={user.id}
+                  className={cn(
+                    "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-slate-100 hover:text-slate-900 cursor-pointer mx-1",
+                    selectedUserId === user.id && "bg-slate-100",
+                  )}
+                  onClick={() => {
+                    onSelectUser(user.id);
+                    setOpen(false);
+                    setSearch("");
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      selectedUserId === user.id ? "opacity-100" : "opacity-0",
+                    )}
+                  />
+                  {user.name}
+                </div>
+              ))}
+              {filteredUsers.length === 0 && (
+                <div className="py-6 text-center text-sm text-muted-foreground">
+                  Tidak ada user ditemukan
+                </div>
+              )}
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
