@@ -313,7 +313,7 @@ export function PresensiDetail({
     const exportData = dataPresensi.map((item: any, i: number) => ({
       No: i + 1,
       "Nama Lengkap": item.namaLengkap,
-      Organisasi: item.organisasi,
+      Organisasi: item.organisasi === "UMUM" ? "Eksternal" : item.organisasi,
       Tingkat: item.tingkat || "-",
       Instansi: item.instansi || "-",
       Jabatan: item.jabatan || "-",
@@ -802,7 +802,7 @@ export function PresensiDetail({
                                         : "bg-slate-100/80 text-slate-700 border-slate-200",
                                   )}
                                 >
-                                  {item.organisasi}
+                                  {item.organisasi === "UMUM" ? "Eksternal" : item.organisasi}
                                 </Badge>
                               </TableCell>
                               <TableCell className="whitespace-nowrap">

@@ -154,7 +154,7 @@ export function AttendanceForm({ presensi }: AttendanceFormProps) {
           namaLengkap: data.namaLengkap as string,
           organisasi:
             asalType === "non-struktural"
-              ? "UMUM"
+              ? "Eksternal"
               : (data.organisasi as string),
           email: data.email as string,
           noHp: data.noHp as string,
@@ -267,7 +267,7 @@ export function AttendanceForm({ presensi }: AttendanceFormProps) {
                   {capitalizeName(submittedData.namaLengkap)}
                 </h3>
                 <p className="text-xs font-semibold text-green-600 uppercase tracking-wide">
-                  {submittedData.organisasi} {submittedData.tingkat || ""}
+                  {submittedData.organisasi === "UMUM" ? "Eksternal" : submittedData.organisasi} {submittedData.tingkat || ""}
                 </p>
               </div>
             </div>

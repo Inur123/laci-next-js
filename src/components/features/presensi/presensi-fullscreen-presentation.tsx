@@ -305,7 +305,7 @@ export function PresensiFullscreenPresentation({
                               ? "bg-rose-100/50 text-rose-700"
                               : "bg-slate-100 text-slate-600"
                         }`}>
-                          {item.organisasi}
+                          {item.organisasi === "UMUM" ? "Eksternal" : item.organisasi}
                         </div>
                         <p className="text-slate-500 text-xs font-semibold truncate">
                           {item.tingkat ? `${item.tingkat} • ` : ""}
