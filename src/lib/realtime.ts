@@ -18,8 +18,8 @@ let listenerClient: Client | null = null;
 
 export function getPool(): Pool {
   if (!pool) {
-    const databaseUrl = process.env.DATABASE_URL;
-    if (!databaseUrl) throw new Error("DATABASE_URL not set");
+    const databaseUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
+    if (!databaseUrl) throw new Error("DATABASE_URL/DIRECT_URL not set");
     
     pool = new Pool({
       connectionString: databaseUrl,
@@ -37,7 +37,7 @@ export function getPool(): Pool {
 async function startGlobalListener() {
   if (listenerClient) return; // Sudah jalan
 
-  const databaseUrl = process.env.DATABASE_URL;
+  const databaseUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
   if (!databaseUrl) return;
 
   try {
