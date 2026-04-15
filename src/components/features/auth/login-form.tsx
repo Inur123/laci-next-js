@@ -182,9 +182,8 @@ function LoginWithRecaptcha() {
           return;
         }
 
-        // Success
-        toast.success("Login berhasil!");
-        router.push("/dashboard");
+        // Success - Konsisten dengan Google, biarkan Dashboard yang menampilkan toast
+        router.push("/dashboard?login=success");
         router.refresh();
       } catch (error) {
         console.error("Login error:", error);
@@ -294,7 +293,7 @@ function LoginWithRecaptcha() {
           try {
             await authClient.signIn.social({
               provider: "google",
-              callbackURL: "/dashboard",
+              callbackURL: "/dashboard?login=success",
             });
           } catch (err) {
             console.error("Google login error:", err);

@@ -126,7 +126,7 @@ export default function RootLayout({
           <RealtimeListener />
           {children}
         </NextAuthProvider>
-        <Toaster position="top-right" expand visibleToasts={9} />
+        <Toaster position="top-right" />
       </body>
     </html>
   );

@@ -5,20 +5,18 @@ import { Suspense } from "react";
 import { DashboardSkeleton } from "@/components/features/dashboard/dashboard-skeleton";
 import { cookies } from "next/headers";
 
-export default async function DashboardPage() {
+export default async function DashboardPage(props: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const searchParams = await props.searchParams;
   const stats = await getDashboardStats();
 
-  // Check for login success cookie
+  // Cek login via cookie (untuk email) atau search param (untuk google)
   const cookieStore = await cookies();
-  const showLoginToast = cookieStore.get("login_success")?.value === "true";
+  const hasLoginCookie = cookieStore.get("login_success")?.value === "true";
+  const hasLoginParam = searchParams.login === "success";
 
-  // Delete cookie immediately after reading
-  if (showLoginToast) {
-    // We cannot delete cookie here easily because it's a server component during render,
-    // but the Client Component will handle the display.
-    // Actually, setting it to delete in a server component is tricky.
-    // Let's just pass the prop.
-  }
+  const showLoginToast = hasLoginCookie || hasLoginParam;
 
   return (
     <Suspense fallback={<DashboardSkeleton />}>

@@ -75,9 +75,13 @@ export default function DashboardClient({
         duration: 3000,
       });
 
-      // Cleanup cookie manually on client side to prevent toast on refresh
+      // Cleanup: Hapus cookie dan bersihkan URL agar tidak muncul lagi saat refresh
       document.cookie =
         "login_success=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        
+      const url = new URL(window.location.href);
+      url.searchParams.delete("login");
+      window.history.replaceState(null, "", url.pathname + url.search);
     }
   }, [showLoginToast]);
 
