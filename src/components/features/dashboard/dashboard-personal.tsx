@@ -54,7 +54,7 @@ export function DashboardPersonal({
         {
           title: "Total Anggota",
           icon: Users,
-          href: "/dashboard/data-anggota",
+          href: "/dashboard/anggota",
           color: "text-blue-600",
           bgColor: "bg-blue-100/50",
           borderColor: "border-blue-100",

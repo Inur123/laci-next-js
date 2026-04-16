@@ -55,8 +55,9 @@ export default async function proxy(request: NextRequest) {
     } catch (err) {
       console.error("[Proxy Auth Error]:", err);
       // Jika fetch gagal (e.g. timeout), jangan langsung tendang user.
-      // Kita biarkan dia lewat dulu dan biarkan Server Component yang validasi lebih akurat.
-      return NextResponse.next();
+      const response = NextResponse.next();
+      response.headers.set("x-pathname", pathname);
+      return response;
     }
   }
 
