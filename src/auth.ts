@@ -17,18 +17,20 @@ import { Role } from "@prisma/client";
 export async function auth() {
   try {
     const user = await getCurrentUser();
-
     if (!user) {
+      console.log("[Auth DEBUG] No user found in session.");
       return null;
     }
 
     // Proteksi Dasar: Jika tidak aktif, anggap tidak terautentikasi
     if ((user as any).isActive === false) {
+      console.warn(`[Auth DEBUG] User "${user.email}" blocked: account INACTIVE.`);
       return null;
     }
 
     // Map Better Auth user to NextAuth session format
     const u = user as any;
+    console.log(`[Auth DEBUG] Valid session for: ${u.email} (${u.role})`);
     return {
       user: {
         id: u.id,
@@ -43,7 +45,7 @@ export async function auth() {
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
     };
   } catch (error) {
-    console.error("[Auth Compat] Error:", error);
+    console.error("[Auth DEBUG] CRITICAL Error during auth check:", error);
     return null;
   }
 }

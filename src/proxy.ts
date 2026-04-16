@@ -26,6 +26,7 @@ export default async function proxy(request: NextRequest) {
 
   // Jika di dashboard dan TIDAK ada cookie → langsung redirect login
   if (isOnDashboard && !sessionCookie) {
+    console.warn(`[Proxy DEBUG] Redirect to Login: No Session Cookie found at ${pathname}`);
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -51,9 +52,11 @@ export default async function proxy(request: NextRequest) {
           session = authData.session || null;
           user = authData.user || null;
         }
+      } else {
+        console.error(`[Proxy DEBUG] Internal Fetch Failed (Status ${res.status}): ${pathname}`);
       }
     } catch (err) {
-      console.error("[Proxy Auth Error]:", err);
+      console.error("[Proxy DEBUG] Internal Fetch Error:", err);
       // Jika fetch gagal (e.g. timeout), jangan langsung tendang user.
       const response = NextResponse.next();
       response.headers.set("x-pathname", pathname);
@@ -64,10 +67,12 @@ export default async function proxy(request: NextRequest) {
   // 1. Dashboard: cek login dan status aktif
   if (isOnDashboard) {
     if (!session || !user) {
+      console.warn(`[Proxy DEBUG] Redirect to Login: Session or User data NULL at ${pathname}`);
       return NextResponse.redirect(new URL("/login", request.url));
     }
 
     if (user.isActive === false) {
+      console.warn(`[Proxy DEBUG] Redirect to Login: User "${user.email}" is INACTIVE at ${pathname}`);
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("error", "account_inactive");
       return NextResponse.redirect(loginUrl);

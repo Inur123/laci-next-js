@@ -51,6 +51,7 @@ export default async function DashboardLayout({
   const session = await auth();
 
   if (!session?.user) {
+    console.warn("[Layout DEBUG] Redirect to Login: AUTH session missing.");
     redirect("/login");
   }
 
@@ -58,11 +59,13 @@ export default async function DashboardLayout({
   const dbUser = await getUserWithActivePeriod(session.user.id);
 
   if (!dbUser) {
+    console.error(`[Layout DEBUG] Redirect to Login: User ID "${session.user.id}" not found in Database!`);
     redirect("/login");
   }
 
   // Proteksi: Blokir jika akun tidak aktif
   if (!dbUser.isActive) {
+    console.warn(`[Layout DEBUG] Redirect to Login: User "${dbUser.email}" is explicitly INACTIVE.`);
     redirect("/login?error=inactive");
   }
 
