@@ -3,11 +3,11 @@ import { EventEmitter } from "events";
 
 /**
  * GLOBAL REALTIME HUB
- * 
+ *
  * Strategi: "Satu Koneksi untuk Ribuan User"
  * Kita hanya pakai 1 koneksi database persisten untuk LISTEN,
  * lalu disebarkan ke semua user yang sedang online lewat memori (EventEmitter).
- * 
+ *
  * PENTING: Semua state disimpan di globalThis agar survive HMR (Hot Module Replacement)
  * di development mode. Tanpa ini, setiap save file akan membuat instance baru
  * dan SSE connections akan menunjuk ke EventEmitter yang sudah mati.
@@ -32,7 +32,7 @@ export function getPool(): Pool {
   if (!globalThis.__realtimePool) {
     const databaseUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
     if (!databaseUrl) throw new Error("DATABASE_URL/DIRECT_URL not set");
-    
+
     globalThis.__realtimePool = new Pool({
       connectionString: databaseUrl,
       max: 10,
@@ -55,7 +55,7 @@ async function startGlobalListener() {
   try {
     const client = new Client({ connectionString: databaseUrl });
     globalThis.__realtimeListenerClient = client;
-    
+
     await client.connect();
     await client.query("LISTEN laci_realtime");
 
@@ -75,9 +75,11 @@ async function startGlobalListener() {
       globalThis.__realtimeListenerClient = undefined;
       setTimeout(startGlobalListener, 5000);
     });
-
   } catch (err) {
-    console.error("[Realtime] Failed to start listener:", (err as Error).message);
+    console.error(
+      "[Realtime] Failed to start listener:",
+      (err as Error).message,
+    );
     globalThis.__realtimeListenerClient = undefined;
     setTimeout(startGlobalListener, 5000);
   }
@@ -85,8 +87,11 @@ async function startGlobalListener() {
 
 // Jalankan listener secara otomatis, tapi hanya jika dalam konteks server (bukan saat build/seed)
 if (typeof window === "undefined" && process.env.NODE_ENV !== "test") {
-  const isServer = process.env.NEXT_RUNTIME === "nodejs" || process.env.PHASE === "phase-production-server" || process.env.NODE_ENV === "development";
-  
+  const isServer =
+    process.env.NEXT_RUNTIME === "nodejs" ||
+    process.env.PHASE === "phase-production-server" ||
+    process.env.NODE_ENV === "development";
+
   if (isServer && !globalThis.__realtimeListenerStarted) {
     globalThis.__realtimeListenerStarted = true;
     startGlobalListener();

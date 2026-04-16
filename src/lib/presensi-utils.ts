@@ -29,33 +29,16 @@ export function isPresensiOpen(presensi: any) {
   }
 
   // 3. Fallback to Automatic timing
-  // FORCE WIB (Asia/Jakarta) agar server Vercel yang UTC tetap sinkron dengan HP User
-  const nowWIB = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Jakarta",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(now);
+  // VPS sudah di-setting timezone Asia/Jakarta, jadi pakai date-fns langsung
+  const todayStr = format(now, "yyyy-MM-dd");
+  const eventDateStr = format(new Date(presensi.tanggal), "yyyy-MM-dd");
 
-  const eventDateWIB = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Jakarta",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(presensi.tanggal));
-
-  if (nowWIB !== eventDateWIB) return false;
+  if (todayStr !== eventDateStr) return false;
 
   // Check time match if date is today
   try {
-    const timeFormatter = new Intl.DateTimeFormat("en-GB", {
-      timeZone: "Asia/Jakarta",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-    
-    const [nowH, nowM] = timeFormatter.format(now).split(":").map(Number);
+    const nowH = now.getHours();
+    const nowM = now.getMinutes();
     const [startH, startM] = presensi.jamMulai.split(":").map(Number);
     const [endH, endM] = presensi.jamSelesai.split(":").map(Number);
 

@@ -33,11 +33,10 @@ export default async function PublicPresensiPage({
     notFound();
   }
 
-  // Paksa pakai timezone Asia/Jakarta agar di Vercel tidak mundur 1 hari
-  const tanggalFormatted = new Intl.DateTimeFormat("id-ID", {
-    dateStyle: "full",
-    timeZone: "Asia/Jakarta",
-  }).format(new Date(data.tanggal));
+  // VPS sudah di-setting timezone Asia/Jakarta, pakai date-fns langsung
+  const tanggalFormatted = format(new Date(data.tanggal), "EEEE, dd MMMM yyyy", {
+    locale: idLocale,
+  });
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
