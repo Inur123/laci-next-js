@@ -34,9 +34,8 @@ export default async function proxy(request: NextRequest) {
   let user: any = null;
   if (sessionCookie) {
     try {
-      const authBaseURL = request.nextUrl.origin;
-
-      const res = await fetch(`${authBaseURL}/api/auth/get-session`, {
+      // Selalu gunakan localhost untuk fetch internal agar menghindari SSL error di VPS
+      const res = await fetch(`http://localhost:3000/api/auth/get-session`, {
         headers: {
           cookie: request.headers.get("cookie") || "",
         },
