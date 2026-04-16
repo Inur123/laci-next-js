@@ -65,19 +65,40 @@ async function LogActivityPageContent({
 
   if (!periodeAktif) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center bg-white rounded-2xl border border-slate-200 shadow-sm">
-        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-          <History className="w-8 h-8 text-slate-400" />
+      <div className="flex flex-col gap-4 sm:gap-6">
+        {/* Header - Mimicking LogActivityHeader but static for no-period state */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-100 pb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
+              <History size={24} />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900">
+                Riwayat Aktivitas
+              </h2>
+              <p className="text-sm text-slate-500">
+                Tidak ada periode aktif
+              </p>
+            </div>
+          </div>
         </div>
-        <h3 className="text-xl font-bold text-slate-800">Belum Ada Periode Aktif</h3>
-        <p className="text-slate-500 mt-2 mb-6 max-w-md">
-          Anda belum memiliki periode kepengurusan yang aktif. Silakan pilih atau buat periode aktif terlebih dahulu di menu Periode.
-        </p>
-        <Button asChild className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all">
-          <Link href="/dashboard/settings/periods">
-            Ke Menu Periode
-          </Link>
-        </Button>
+
+        {/* Empty State Style (Matching AnggotaPage) */}
+        <div className="rounded-lg border border-dashed p-8 text-center bg-white/50">
+          <p className="text-slate-500">
+            Silakan aktifkan periode terlebih dahulu untuk melihat riwayat aktivitas.
+          </p>
+          <Button
+            asChild
+            className={`mt-4 text-white shadow-md hover:shadow-xl transition-all duration-200 ${
+              isCabang
+                ? "bg-blue-600 hover:bg-blue-700"
+                : "bg-green-600 hover:bg-green-700"
+            }`}
+          >
+            <Link href="/dashboard/periode">Kelola Periode</Link>
+          </Button>
+        </div>
       </div>
     );
   }
