@@ -54,10 +54,18 @@ export default async function proxy(request: NextRequest) {
         }
       } else {
         console.error(`[Proxy DEBUG] Internal Fetch Failed (Status ${res.status}): ${pathname}`);
+        // Jika kena limit (429), biarkan lewat ke Server Component (yang akses DB langsung)
+        if (res.status === 429) {
+          const response = NextResponse.next();
+          response.headers.set("x-pathname", pathname);
+          return response;
+        }
       }
     } catch (err) {
       console.error("[Proxy DEBUG] Internal Fetch Error:", err);
-      // Jika fetch gagal (e.g. timeout), jangan langsung tendang user.
+      // Jika fetch gagal karena rate limit (429) atau timeout, 
+      // JANGAN redirect. Biarkan user lewat ke halaman, 
+      // karena Server Component punya akses langsung ke DB yang lebih stabil.
       const response = NextResponse.next();
       response.headers.set("x-pathname", pathname);
       return response;
