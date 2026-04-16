@@ -89,10 +89,12 @@ async function startGlobalListener() {
 if (typeof window === "undefined" && process.env.NODE_ENV !== "test") {
   const isServer =
     process.env.NEXT_RUNTIME === "nodejs" ||
-    process.env.PHASE === "phase-production-server" ||
     process.env.NODE_ENV === "development";
+  
+  // Deteksi build phase
+  const isBuild = process.env.NEXT_PHASE === "phase-production-build";
 
-  if (isServer && !globalThis.__realtimeListenerStarted) {
+  if (isServer && !isBuild && !globalThis.__realtimeListenerStarted) {
     globalThis.__realtimeListenerStarted = true;
     startGlobalListener();
   }

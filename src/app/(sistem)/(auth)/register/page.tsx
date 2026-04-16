@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import RegisterForm from "@/components/features/auth/register-form";
 import prisma from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Register",
 };
