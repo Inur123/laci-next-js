@@ -27,9 +27,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, RefreshCcw, Eye, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { cn, capitalizeName } from "@/lib/utils";
+import { useRouter, useSearchParams } from "next/navigation";
+import { UserFilterSelect } from "@/components/shared/user-filter-select";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { 
+  Search, 
+  RefreshCcw, 
+  Eye, 
+  ArrowUpDown, 
+  ArrowUp, 
+  ArrowDown, 
+  Check, 
+  ChevronsUpDown 
+} from "lucide-react";
 import Link from "next/link";
 import { LogAction, LogModule } from "@prisma/client";
 import { DatePickerWithPresets } from "@/components/ui/date-range-picker-presets";
@@ -39,7 +50,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
 import {
   getPersonalLogs,
   getGlobalLogs,
@@ -176,6 +186,9 @@ export function LogActivityList({
   userRole,
   pacUsers = [],
 }: LogActivityListProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   // Local data state
   const [logs, setLogs] = useState<LogActivityData[]>(initialLogs);
   const [totalPages, setTotalPages] = useState(initialTotalPages);
@@ -184,6 +197,45 @@ export function LogActivityList({
   const [currentView, setCurrentView] = useState(initialView);
   const [isLoading, setIsLoading] = useState(false);
   const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync state from server props
+  React.useEffect(() => {
+    setLogs(initialLogs);
+    setTotalPages(initialTotalPages);
+    setTotalItems(initialTotalItems);
+    setCurrentPage(initialCurrentPage);
+  }, [initialLogs, initialTotalPages, initialTotalItems, initialCurrentPage]);
+
+  // Filter state initialized from URL
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
+  const [actionFilter, setActionFilter] = useState(searchParams.get("action") || "ALL");
+  const [moduleFilter, setModuleFilter] = useState(searchParams.get("module") || "ALL");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [userFilter, setUserFilter] = useState(searchParams.get("userId") || "ALL");
+
+  // Sync state with URL when it changes (e.g., back/forward buttons)
+  React.useEffect(() => {
+    setSearchTerm(searchParams.get("q") || "");
+    setActionFilter(searchParams.get("action") || "ALL");
+    setModuleFilter(searchParams.get("module") || "ALL");
+    setUserFilter(searchParams.get("userId") || "ALL");
+    setCurrentPage(Number(searchParams.get("page")) || 1);
+  }, [searchParams]);
+
+  const isCabang = userRole === "SEKRETARIS_CABANG";
+
+  // Helper to update URL
+  const updateUrl = (newParams: Record<string, string | null>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value === null || value === "ALL" || value === "") {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    });
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
 
   // Sort state (for local sorting by time)
   type SortDir = "asc" | "desc";
@@ -232,15 +284,6 @@ export function LogActivityList({
     }
     return sortDir === "asc" ? aTime - bTime : bTime - aTime;
   });
-
-  // Filter state
-  const [searchTerm, setSearchTerm] = useState("");
-  const [actionFilter, setActionFilter] = useState("ALL");
-  const [moduleFilter, setModuleFilter] = useState("ALL");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [userFilter, setUserFilter] = useState("ALL");
-
-  const isCabang = userRole === "SEKRETARIS_CABANG";
 
   // Detect if user has active filters or pagination
   const isDirty =
@@ -404,31 +447,32 @@ export function LogActivityList({
     userFilter,
   ]);
 
+  const handlePageChange = (page: number) => {
+    updateUrl({ page: page.toString() });
+  };
+
+  const handleActionFilterChange = (val: string) => {
+    setActionFilter(val);
+    updateUrl({ action: val, page: "1" });
+  };
+
+  const handleModuleFilterChange = (val: string) => {
+    setModuleFilter(val);
+    updateUrl({ module: val, page: "1" });
+  };
+
+  const handleUserFilterSelect = (val: string) => {
+    setUserFilter(val);
+    updateUrl({ userId: val, page: "1" });
+  };
+
   const handleReset = () => {
     setSearchTerm("");
     setActionFilter("ALL");
     setModuleFilter("ALL");
     setDateRange(undefined);
     setUserFilter("ALL");
-    setCurrentPage(1);
-    fetchData("", "ALL", "ALL", "", "", 1, currentView, "ALL");
-  };
-
-  const handlePageChange = (page: number) => {
-    const start = formatDateForInput(dateRange?.from);
-    const end = formatDateForInput(dateRange?.to || dateRange?.from);
-
-    setCurrentPage(page);
-    fetchData(
-      searchTerm,
-      actionFilter,
-      moduleFilter,
-      start,
-      end,
-      page,
-      currentView,
-      userFilter,
-    );
+    router.push(window.location.pathname);
   };
 
   return (
@@ -456,20 +500,7 @@ export function LogActivityList({
             <UserFilterSelect
               users={pacUsers}
               selectedUserId={userFilter}
-              onSelectUser={(val) => {
-                setUserFilter(val);
-                setCurrentPage(1);
-                fetchData(
-                  searchTerm,
-                  actionFilter,
-                  moduleFilter,
-                  formatDateForInput(dateRange?.from),
-                  formatDateForInput(dateRange?.to || dateRange?.from),
-                  1,
-                  currentView,
-                  val,
-                );
-              }}
+            onSelectUser={handleUserFilterSelect}
               placeholder="Pilih User"
             />
           </div>
@@ -480,19 +511,7 @@ export function LogActivityList({
           <Label className="text-xs font-medium mb-1 block">Entitas</Label>
           <Select
             value={actionFilter}
-            onValueChange={(val) => {
-              setActionFilter(val);
-              setCurrentPage(1);
-              fetchData(
-                searchTerm,
-                val,
-                moduleFilter,
-                formatDateForInput(dateRange?.from),
-                formatDateForInput(dateRange?.to || dateRange?.from),
-                1,
-                currentView,
-              );
-            }}
+            onValueChange={handleActionFilterChange}
           >
             <SelectTrigger className="w-full bg-white h-9 text-sm border-slate-200 shadow-sm">
               <SelectValue placeholder="Semua" />
@@ -515,20 +534,7 @@ export function LogActivityList({
           <Label className="text-xs font-medium mb-1 block">Modul/Menu</Label>
           <Select
             value={moduleFilter}
-            onValueChange={(val) => {
-              setModuleFilter(val);
-              setCurrentPage(1);
-              fetchData(
-                searchTerm,
-                actionFilter,
-                val,
-                formatDateForInput(dateRange?.from),
-                formatDateForInput(dateRange?.to || dateRange?.from),
-                1,
-                currentView,
-              );
-            }}
-          >
+            onValueChange={handleModuleFilterChange}>
             <SelectTrigger className="w-full bg-white h-9 text-sm border-slate-200 shadow-sm">
               <SelectValue placeholder="Semua" />
             </SelectTrigger>
@@ -813,111 +819,3 @@ export function LogActivityList({
   );
 }
 
-// User Filter Select Component
-function UserFilterSelect({
-  users,
-  selectedUserId,
-  onSelectUser,
-  className,
-  placeholder = "Pilih User",
-}: {
-  users: { id: string; name: string }[];
-  selectedUserId: string;
-  onSelectUser: (id: string) => void;
-  className?: string;
-  placeholder?: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-
-  const filteredUsers = users.filter((u) =>
-    u.name.toLowerCase().includes(search.toLowerCase()),
-  );
-
-  const selectedUserName =
-    selectedUserId === "ALL"
-      ? "Semua User"
-      : users.find((u) => u.id === selectedUserId)?.name || placeholder;
-
-  return (
-    <div className={cn("w-full", className)}>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-full justify-between font-normal h-9 bg-white"
-          >
-            <span className="truncate">{selectedUserName}</span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="w-[var(--radix-popover-trigger-width)] min-w-[200px] p-0"
-          align="end"
-        >
-          <div className="flex flex-col max-h-[300px]">
-            <div className="flex items-center border-b px-3 pb-2 pt-3">
-              <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-              <input
-                className="flex h-5 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder="Cari user..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <div className="overflow-y-auto py-2">
-              <div
-                className={cn(
-                  "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-slate-100 hover:text-slate-900 cursor-pointer mx-1",
-                  selectedUserId === "ALL" && "bg-slate-100",
-                )}
-                onClick={() => {
-                  onSelectUser("ALL");
-                  setOpen(false);
-                  setSearch("");
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    selectedUserId === "ALL" ? "opacity-100" : "opacity-0",
-                  )}
-                />
-                Semua User
-              </div>
-              {filteredUsers.map((user) => (
-                <div
-                  key={user.id}
-                  className={cn(
-                    "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-slate-100 hover:text-slate-900 cursor-pointer mx-1",
-                    selectedUserId === user.id && "bg-slate-100",
-                  )}
-                  onClick={() => {
-                    onSelectUser(user.id);
-                    setOpen(false);
-                    setSearch("");
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      selectedUserId === user.id ? "opacity-100" : "opacity-0",
-                    )}
-                  />
-                  {user.name}
-                </div>
-              ))}
-              {filteredUsers.length === 0 && (
-                <div className="py-6 text-center text-sm text-muted-foreground">
-                  Tidak ada user ditemukan
-                </div>
-              )}
-            </div>
-          </div>
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
-}

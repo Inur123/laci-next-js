@@ -245,8 +245,8 @@ export async function createAnggota(formData: FormData) {
           create: rawPerkaderans
             ? JSON.parse(rawPerkaderans).map((p: any) => ({
                 namaPerkaderan: encryptText(p.namaPerkaderan),
-                tanggal: new Date(p.tanggal),
-                tempat: encryptText(p.tempat),
+                tanggal: p.tanggal ? new Date(p.tanggal) : new Date(),
+                tempat: encryptText(p.tempat || "-"),
               }))
             : [],
         },
@@ -339,8 +339,8 @@ export async function updateAnggota(id: string, formData: FormData) {
           create: rawPerkaderans
             ? JSON.parse(rawPerkaderans).map((p: any) => ({
                 namaPerkaderan: encryptText(p.namaPerkaderan),
-                tanggal: new Date(p.tanggal),
-                tempat: encryptText(p.tempat),
+                tanggal: p.tanggal ? new Date(p.tanggal) : new Date(),
+                tempat: encryptText(p.tempat || "-"),
               }))
             : [],
         },
@@ -403,18 +403,48 @@ export async function getAnggotaStats(userId?: string) {
   if (isCabang) {
     if (userId && userId !== "ALL") where.userId = userId;
     if (active) where.periode = { nama: active.nama };
-    else return { total: 0, lakiLaki: 0, perempuan: 0 };
+    else
+      return {
+        total: 0,
+        lakiLaki: 0,
+        perempuan: 0,
+        makesta: 0,
+        lakmud: 0,
+        latin: 0,
+        latpel: 0,
+        lakut: 0,
+      };
   } else {
     if (!active) return null;
     where = { userId: session.user.id, periodeId: active.id };
   }
 
-  const [total, lakiLaki, perempuan] = await Promise.all([
+  const [total, lakiLaki, perempuan, perkaderans] = await Promise.all([
     prisma.anggota.count({ where }),
     prisma.anggota.count({ where: { ...where, jenisKelamin: "LAKI_LAKI" } }),
     prisma.anggota.count({ where: { ...where, jenisKelamin: "PEREMPUAN" } }),
+    prisma.perkaderan.findMany({
+      where: { anggota: where },
+      select: { namaPerkaderan: true },
+    }),
   ]);
-  return { total, lakiLaki, perempuan };
+
+  let makesta = 0;
+  let lakmud = 0;
+  let latin = 0;
+  let latpel = 0;
+  let lakut = 0;
+
+  perkaderans.forEach((p) => {
+    const nama = decryptText(p.namaPerkaderan).toUpperCase();
+    if (nama === "MAKESTA") makesta++;
+    else if (nama === "LAKMUD") lakmud++;
+    else if (nama === "LATIN") latin++;
+    else if (nama === "LATPEL") latpel++;
+    else if (nama === "LAKUT") lakut++;
+  });
+
+  return { total, lakiLaki, perempuan, makesta, lakmud, latin, latpel, lakut };
 }
 
 /**

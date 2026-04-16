@@ -51,7 +51,7 @@ export async function GET(request: Request) {
       whereClause = { userId: session.user.id, periodeId: periodeAktif.id };
     }
 
-    const [total, lakiLaki, perempuan] = await Promise.all([
+    const [total, lakiLaki, perempuan, perkaderans] = await Promise.all([
       prisma.anggota.count({ where: whereClause }),
       prisma.anggota.count({
         where: { ...whereClause, jenisKelamin: "LAKI_LAKI" },
@@ -59,11 +59,41 @@ export async function GET(request: Request) {
       prisma.anggota.count({
         where: { ...whereClause, jenisKelamin: "PEREMPUAN" },
       }),
+      prisma.perkaderan.findMany({
+        where: { anggota: whereClause },
+        select: { namaPerkaderan: true },
+      }),
     ]);
+
+    let makesta = 0;
+    let lakmud = 0;
+    let latin = 0;
+    let latpel = 0;
+    let lakut = 0;
+
+    const { decryptText } = await import("@/lib/encryption");
+
+    perkaderans.forEach((p) => {
+      const nama = decryptText(p.namaPerkaderan).toUpperCase();
+      if (nama === "MAKESTA") makesta++;
+      else if (nama === "LAKMUD") lakmud++;
+      else if (nama === "LATIN") latin++;
+      else if (nama === "LATPEL") latpel++;
+      else if (nama === "LAKUT") lakut++;
+    });
 
     return NextResponse.json({
       success: true,
-      data: { total, lakiLaki, perempuan },
+      data: {
+        total,
+        lakiLaki,
+        perempuan,
+        makesta,
+        lakmud,
+        latin,
+        latpel,
+        lakut,
+      },
     });
   } catch (error) {
     return NextResponse.json(

@@ -6,8 +6,22 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import prisma from "@/lib/prisma";
+import { BerkasSPFormSkeleton } from "@/components/features/berkas-sp/berkas-sp-skeleton";
+import { Suspense } from "react";
 
 export default async function EditBerkasSPPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  return (
+    <Suspense fallback={<BerkasSPFormSkeleton />}>
+      <EditBerkasSPContent params={params} />
+    </Suspense>
+  );
+}
+
+async function EditBerkasSPContent({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -36,7 +50,7 @@ export default async function EditBerkasSPPage({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-4 sm:gap-6">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
           <Link href="/dashboard/berkas-sp">

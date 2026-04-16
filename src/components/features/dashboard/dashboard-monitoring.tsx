@@ -10,7 +10,10 @@ import {
   Activity,
   UserPlus,
   PieChart as PieIcon,
+  GraduationCap,
+  School,
 } from "lucide-react";
+import { NumberTicker } from "@/components/ui/number-ticker";
 import {
   BarChart,
   Bar,
@@ -44,6 +47,24 @@ interface MonitoringStats {
     totalSurat: number;
     totalPAC: number;
     verifikasiPending: number;
+    perkaderan?: {
+      Makesta: number;
+      Lakmud: number;
+      Latin: number;
+      Latpel: number;
+      Lakut: number;
+    };
+    pendidikan?: {
+      "SD/MI": number;
+      "SMP/MTs": number;
+      "SMA/MA/SMK": number;
+      "D1": number;
+      "D2": number;
+      "D3": number;
+      "D4/S1": number;
+      "S2": number;
+      "S3": number;
+    };
   };
   leaderboard: LeaderboardItem[];
 }
@@ -119,6 +140,93 @@ export function DashboardMonitoring({ data }: { data: MonitoringStats | null }) 
           colorClass="text-rose-700"
           bgClass="bg-rose-50/20 border-rose-100"
         />
+      </div>
+
+      {/* 1.1 Global Perkaderan Row (Only for Cabang Monitoring) */}
+      <div className="space-y-4">
+        <h3 className="text-base font-bold flex items-center gap-2 text-slate-800">
+          <GraduationCap size={18} className="text-primary" />
+          Total Perkaderan Wilayah
+        </h3>
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          {/* Makesta */}
+          <div className="space-y-1.5 p-4 bg-purple-50/30 rounded-lg border border-purple-100 shadow-sm">
+            <span className="text-[10px] font-bold text-purple-500 uppercase tracking-widest flex items-center gap-1">
+              <GraduationCap size={12} /> Makesta
+            </span>
+            <div className="text-sm font-bold text-slate-700">
+              <NumberTicker value={data.global.perkaderan?.Makesta || 0} /> Makesta
+            </div>
+          </div>
+          {/* Lakmud */}
+          <div className="space-y-1.5 p-4 bg-emerald-50/30 rounded-lg border border-emerald-100 shadow-sm">
+            <span className="text-[10px] font-bold text-green-600 uppercase tracking-widest flex items-center gap-1">
+              <GraduationCap size={12} /> Lakmud
+            </span>
+            <div className="text-sm font-bold text-slate-700">
+              <NumberTicker value={data.global.perkaderan?.Lakmud || 0} /> Lakmud
+            </div>
+          </div>
+          {/* Latin */}
+          <div className="space-y-1.5 p-4 bg-blue-50/30 rounded-lg border border-blue-100 shadow-sm">
+            <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest flex items-center gap-1">
+              <GraduationCap size={12} /> Latin
+            </span>
+            <div className="text-sm font-bold text-slate-700">
+              <NumberTicker value={data.global.perkaderan?.Latin || 0} /> Alumni
+            </div>
+          </div>
+          {/* Latpel */}
+          <div className="space-y-1.5 p-4 bg-cyan-50/30 rounded-lg border border-cyan-100 shadow-sm">
+            <span className="text-[10px] font-bold text-cyan-600 uppercase tracking-widest flex items-center gap-1">
+              <GraduationCap size={12} /> Latpel
+            </span>
+            <div className="text-sm font-bold text-slate-700">
+              <NumberTicker value={data.global.perkaderan?.Latpel || 0} /> Alumni
+            </div>
+          </div>
+          {/* Lakut */}
+          <div className="space-y-1.5 p-4 bg-indigo-50/30 rounded-lg border border-indigo-100 shadow-sm">
+            <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest flex items-center gap-1">
+              <GraduationCap size={12} /> Lakut
+            </span>
+            <div className="text-sm font-bold text-slate-700">
+              <NumberTicker value={data.global.perkaderan?.Lakut || 0} /> Alumni
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* 1.2 Global Pendidikan Row */}
+      <div className="space-y-4">
+        <h3 className="text-base font-bold flex items-center gap-2 text-slate-800">
+          <School size={18} className="text-primary" />
+          Total Pendidikan Wilayah
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9 gap-4">
+          {[
+            { id: "SD/MI", color: "slate" },
+            { id: "SMP/MTs", color: "orange" },
+            { id: "SMA/MA/SMK", color: "amber" },
+            { id: "D1", color: "yellow" },
+            { id: "D2", color: "lime" },
+            { id: "D3", color: "emerald" },
+            { id: "D4/S1", color: "blue" },
+            { id: "S2", color: "indigo" },
+            { id: "S3", color: "purple" },
+          ].map((item) => (
+            <div
+              key={item.id}
+              className={`space-y-1.5 p-4 bg-${item.color}-50/30 rounded-lg border border-${item.color}-100 shadow-sm flex flex-col justify-between`}
+            >
+              <span className={`text-[10px] font-bold text-${item.color}-500 uppercase tracking-widest flex items-center gap-1`}>
+                <School size={12} /> {item.id}
+              </span>
+              <div className="text-sm font-bold text-slate-700">
+                <NumberTicker value={data.global.pendidikan?.[item.id as keyof typeof data.global.pendidikan] || 0} />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* 2. Charts Row */}

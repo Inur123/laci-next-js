@@ -47,13 +47,16 @@ async function ReferensiContent({
   const page = Number(params.page) || 1;
   const limit = 10;
 
+  const userIdParam = (params.userId as string) || "ALL";
+
   const [result, users] = await Promise.all([
-    getPengajuanForReferensiPac(q, page, limit),
+    getPengajuanForReferensiPac(q, page, limit, "ALL", "ALL", userIdParam),
     getActivePacUsersForReferensi(),
   ]);
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-4 sm:gap-6">
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-slate-100 rounded-lg text-slate-500">

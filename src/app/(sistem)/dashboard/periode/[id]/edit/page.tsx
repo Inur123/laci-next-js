@@ -5,8 +5,22 @@ import { EditPeriodeForm } from "@/components/features/periode/edit-periode-form
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
+import { PeriodeFormSkeleton } from "@/components/features/periode/periode-skeleton";
 
-export default async function Page({
+export default function EditPeriodePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  return (
+    <Suspense fallback={<PeriodeFormSkeleton />}>
+      <EditPeriodeContent params={params} />
+    </Suspense>
+  );
+}
+
+async function EditPeriodeContent({
   params,
 }: {
   params: Promise<{ id: string }>;

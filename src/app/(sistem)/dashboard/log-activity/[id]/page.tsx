@@ -19,6 +19,8 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { LogAction, LogModule } from "@prisma/client";
 import { formatDate, formatTime } from "@/lib/date-utils";
+import { Suspense } from "react";
+import { LogDetailSkeleton } from "@/components/features/log-activity/log-activity-skeleton";
 
 const actionConfig: Record<
   LogAction,
@@ -114,7 +116,19 @@ const moduleConfig: Record<LogModule, { label: string; className: string }> = {
   },
 };
 
-export default async function LogDetailPage({
+export default function LogDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  return (
+    <Suspense fallback={<LogDetailSkeleton />}>
+      <LogDetailContent params={params} />
+    </Suspense>
+  );
+}
+
+async function LogDetailContent({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -131,7 +145,7 @@ export default async function LogDetailPage({
   const moduleInfo = moduleConfig[log.module];
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-4 sm:gap-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -238,7 +252,7 @@ export default async function LogDetailPage({
           </CardHeader>
           <CardContent className="pt-6 space-y-6">
             <div className="flex items-start gap-4">
-              <div className="h-10 w-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-green-600 shrink-0">
+              <div className="h-10 w-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
                 <User size={20} />
               </div>
               <div className="space-y-1">

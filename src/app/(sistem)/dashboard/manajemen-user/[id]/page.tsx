@@ -12,12 +12,6 @@ export default async function UserDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await auth();
-
-  if (session?.user?.role !== "SEKRETARIS_CABANG") {
-    redirect("/dashboard");
-  }
-
   return (
     <Suspense fallback={<UserDetailSkeleton />}>
       <UserDetailContent params={params} />
@@ -30,6 +24,12 @@ async function UserDetailContent({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const session = await auth();
+
+  if (session?.user?.role !== "SEKRETARIS_CABANG") {
+    redirect("/dashboard");
+  }
+
   const { id } = await params;
   const user = await getUserDetail(id);
 
@@ -37,5 +37,9 @@ async function UserDetailContent({
     notFound();
   }
 
-  return <UserDetailClient user={user as any} />;
+  return (
+    <div className="flex flex-col gap-4 sm:gap-6">
+      <UserDetailClient user={user as any} />
+    </div>
+  );
 }

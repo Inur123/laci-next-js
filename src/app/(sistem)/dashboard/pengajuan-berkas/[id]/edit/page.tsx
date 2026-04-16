@@ -6,8 +6,22 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
+import { PengajuanBerkasFormSkeleton } from "@/components/features/pengajuan-berkas/pengajuan-berkas-skeleton";
+import { Suspense } from "react";
 
 export default async function EditPengajuanBerkasPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  return (
+    <Suspense fallback={<PengajuanBerkasFormSkeleton />}>
+      <EditPengajuanBerkasContent params={params} />
+    </Suspense>
+  );
+}
+
+async function EditPengajuanBerkasContent({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -34,7 +48,7 @@ export default async function EditPengajuanBerkasPage({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-4 sm:gap-6">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
           <Link href="/dashboard/pengajuan-berkas">

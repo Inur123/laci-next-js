@@ -57,7 +57,8 @@ async function AnggotaPageContent({
   const userRole = session?.user?.role;
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-4 sm:gap-6">
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
@@ -133,7 +134,7 @@ async function AnggotaContent({
 
   return (
     <div className="space-y-6">
-      <AnggotaStats stats={stats} />
+      <AnggotaStats stats={stats} userId={userId} />
       <AnggotaList
         anggotaList={data}
         userRole={userRole || "SEKRETARIS_PAC"}

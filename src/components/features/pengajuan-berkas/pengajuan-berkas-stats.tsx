@@ -23,13 +23,20 @@ type PengajuanBerkasStatsProps = {
     diterima: number;
     ditolak: number;
   };
+  userId?: string;
 };
 
 export function PengajuanBerkasStats({
   stats: initialStats,
+  userId,
 }: PengajuanBerkasStatsProps) {
   const [stats, setStats] = useState(initialStats);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync with prop changes (e.g. from URL params or parent state)
+  useEffect(() => {
+    setStats(initialStats);
+  }, [initialStats]);
 
   useEffect(() => {
     const handler = (event: Event) => {
@@ -42,7 +49,7 @@ export function PengajuanBerkasStats({
       if (timerRef.current) return;
       timerRef.current = setTimeout(async () => {
         timerRef.current = null;
-        const fresh = await getPengajuanBerkasStats();
+        const fresh = await getPengajuanBerkasStats(userId);
         setStats(fresh);
       }, 300);
     };
@@ -54,7 +61,7 @@ export function PengajuanBerkasStats({
         timerRef.current = null;
       }
     };
-  }, []);
+  }, [userId]);
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">

@@ -9,76 +9,91 @@ import {
 } from "@/app/actions/log-activity-actions";
 import { LogActivityClient } from "@/components/features/log-activity/log-activity-client";
 import prisma from "@/lib/prisma";
-
 import { Button } from "@/components/ui/button";
 import { History } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
+import { LogActivitySkeleton } from "@/components/features/log-activity/log-activity-skeleton";
 
-export const metadata = {
-  title: "Riwayat Aktivitas | Laci Digital",
-};
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default async function LogActivityPage() {
+export default async function LogActivityPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   const session = await auth();
 
   if (!session?.user) {
     redirect("/login");
   }
 
+  const role = session.user.role;
+
+  return (
+    <Suspense fallback={<LogActivitySkeleton userRole={role} />}>
+      <LogActivityPageContent 
+        userId={session.user.id} 
+        role={role} 
+        searchParams={searchParams}
+      />
+    </Suspense>
+  );
+}
+
+async function LogActivityPageContent({
+  userId,
+  role,
+  searchParams,
+}: {
+  userId: string;
+  role: string;
+  searchParams: SearchParams;
+}) {
+  const params = await searchParams;
+  const filteredUserId = (params.userId as string) || "ALL";
+
   // Check active period
   const periodeAktif = await prisma.periode.findFirst({
     where: {
-      userId: session.user.id,
+      userId: userId,
       isActive: true,
     },
   });
 
-  const role = session.user.role;
   const isCabang = role === "SEKRETARIS_CABANG";
 
-  // If NO active period AND NOT Cabang, show empty state immediately
-  // Cabang can still see "Global" even without their own active period.
-  if (!periodeAktif && !isCabang) {
+  if (!periodeAktif) {
     return (
-      <div className="space-y-8">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
-            <History size={24} />
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold">Riwayat Aktivitas</h2>
-            <p className="text-sm text-muted-foreground">
-              Tidak ada periode aktif
-            </p>
-          </div>
+      <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center bg-white rounded-2xl border border-slate-200 shadow-sm">
+        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+          <History className="w-8 h-8 text-slate-400" />
         </div>
-
-        <div className="rounded-lg border border-dashed p-8 text-center">
-          <p className="text-muted-foreground">
-            Silakan aktifkan periode terlebih dahulu untuk melihat riwayat
-            aktivitas.
-          </p>
-          <Button asChild className="mt-4">
-            <Link href="/dashboard/periode">Kelola Periode</Link>
-          </Button>
-        </div>
+        <h3 className="text-xl font-bold text-slate-800">Belum Ada Periode Aktif</h3>
+        <p className="text-slate-500 mt-2 mb-6 max-w-md">
+          Anda belum memiliki periode kepengurusan yang aktif. Silakan pilih atau buat periode aktif terlebih dahulu di menu Periode.
+        </p>
+        <Button asChild className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all">
+          <Link href="/dashboard/settings/periods">
+            Ke Menu Periode
+          </Link>
+        </Button>
       </div>
     );
   }
 
   // Pre-fetch initial data
-  // Only fetch data if CABANG or having an active period
   const [personalLogs, globalLogs, personalStats, globalStats, monitoringData] =
     await Promise.all([
       periodeAktif
         ? getPersonalLogs({}, 1, 20)
         : Promise.resolve({ data: [], total: 0, totalPages: 0 }),
       isCabang
-        ? getGlobalLogs({}, 1, 20)
+        ? getGlobalLogs({ userId: filteredUserId }, 1, 20)
         : Promise.resolve({ data: [], total: 0, totalPages: 0 }),
       getLogStats(),
-      isCabang ? getGlobalLogStats() : Promise.resolve(null),
-      isCabang ? getLogMonitoringData() : Promise.resolve(null),
+      isCabang ? getGlobalLogStats(filteredUserId) : Promise.resolve(null),
+      isCabang ? getLogMonitoringData(filteredUserId) : Promise.resolve(null),
     ]);
 
   // Fetch PAC users for filter (only for Cabang)
@@ -99,14 +114,16 @@ export default async function LogActivityPage() {
     : [];
 
   return (
-    <LogActivityClient
-      initialPersonalLogs={personalLogs}
-      initialGlobalLogs={globalLogs}
-      personalStats={personalStats}
-      globalStats={globalStats}
-      monitoringData={monitoringData}
-      userRole={role}
-      pacUsers={pacUsers}
-    />
+    <div className="flex flex-col gap-4 sm:gap-6">
+      <LogActivityClient
+        initialPersonalLogs={personalLogs}
+        initialGlobalLogs={globalLogs}
+        personalStats={personalStats}
+        globalStats={globalStats}
+        monitoringData={monitoringData}
+        userRole={role}
+        pacUsers={pacUsers}
+      />
+    </div>
   );
 }

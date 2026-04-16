@@ -6,7 +6,18 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 
+import { BerkasPimpinanFormSkeleton } from "@/components/features/berkas-pimpinan/berkas-pimpinan-skeleton";
+import { Suspense } from "react";
+
 export default async function AddBerkasPimpinanPage() {
+  return (
+    <Suspense fallback={<BerkasPimpinanFormSkeleton />}>
+      <AddBerkasPimpinanContent />
+    </Suspense>
+  );
+}
+
+async function AddBerkasPimpinanContent() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
@@ -19,7 +30,7 @@ export default async function AddBerkasPimpinanPage() {
   const label = isCabang ? "Berkas Cabang" : "Berkas PAC";
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-4 sm:gap-6">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
           <Link href="/dashboard/berkas-pimpinan">

@@ -4,8 +4,18 @@ import { AddPeriodeForm } from "@/components/features/periode/add-periode-form";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
+import { PeriodeFormSkeleton } from "@/components/features/periode/periode-skeleton";
 
-export default async function AddPeriodePage() {
+export default function AddPeriodePage() {
+  return (
+    <Suspense fallback={<PeriodeFormSkeleton />}>
+      <AddPeriodeContent />
+    </Suspense>
+  );
+}
+
+async function AddPeriodeContent() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 

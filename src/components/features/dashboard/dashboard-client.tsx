@@ -143,15 +143,30 @@ export default function DashboardClient({
   return (
     <div className="w-full space-y-6">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-100 pb-4">
-        <div>
-          <h1
-            className={`text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${isCabang ? "from-blue-700 to-blue-500" : "from-green-800 to-green-600"}`}
+        <div className="flex items-center gap-4">
+          <div
+            className={`p-2.5 rounded-xl border-2 ${
+              isCabang
+                ? "bg-blue-50/50 border-blue-100 text-blue-600"
+                : "bg-emerald-50/50 border-emerald-100 text-emerald-600"
+            } hidden sm:block shadow-sm`}
           >
-            Dashboard
-          </h1>
-          <p className="text-sm text-slate-500">
-            Pusat kontrol dan monitoring administrasi.
-          </p>
+            <LayoutDashboard size={24} strokeWidth={2.5} />
+          </div>
+          <div className="min-w-0">
+            <h1
+              className={`text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${
+                isCabang
+                  ? "from-blue-700 to-blue-500"
+                  : "from-emerald-800 to-emerald-600"
+              } tracking-tight`}
+            >
+              Dashboard
+            </h1>
+            <p className="text-sm text-slate-500 font-medium">
+              Pusat kontrol dan monitoring administrasi.
+            </p>
+          </div>
         </div>
 
         {/* Custom Tab Selector - Only if Cabang */}

@@ -5,8 +5,18 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
+import { PengajuanBerkasFormSkeleton } from "@/components/features/pengajuan-berkas/pengajuan-berkas-skeleton";
+import { Suspense } from "react";
 
 export default async function AddPengajuanBerkasPage() {
+  return (
+    <Suspense fallback={<PengajuanBerkasFormSkeleton />}>
+      <AddPengajuanBerkasContent />
+    </Suspense>
+  );
+}
+
+async function AddPengajuanBerkasContent() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
@@ -28,7 +38,7 @@ export default async function AddPengajuanBerkasPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-4 sm:gap-6">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
           <Link href="/dashboard/pengajuan-berkas">

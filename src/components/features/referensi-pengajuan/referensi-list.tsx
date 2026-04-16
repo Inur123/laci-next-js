@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -53,17 +54,8 @@ import {
   getActivePacUsersForReferensi,
 } from "@/app/actions/pengajuan-berkas-actions";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-
-// ─── Utils ────────────────────────────────────────────────────────────────────
-
-const capitalizeName = (name: string) => {
-  if (!name) return "";
-  return name
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(" ");
-};
+import { cn, capitalizeName } from "@/lib/utils";
+import { UserFilterSelect } from "@/components/shared/user-filter-select";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -132,6 +124,9 @@ export function ReferensiPengajuanList({
   currentPage: number;
   totalItems: number;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   // ── Data State ────────────────────────────────────────────────────────────
   const [data, setData] = useState<PengajuanItem[]>(initialPengajuanList);
   const [pacUsers, setPacUsers] = useState<PacUser[]>(initialPacUsers);
@@ -139,11 +134,19 @@ export function ReferensiPengajuanList({
   const [currentPage, setCurrentPage] = useState(initialCurrentPage);
   const [totalItems, setTotalItems] = useState(initialTotalItems);
 
+  // Sync state with props
+  useEffect(() => {
+    setData(initialPengajuanList);
+    setTotalPages(initialTotalPages);
+    setCurrentPage(initialCurrentPage);
+    setTotalItems(initialTotalItems);
+  }, [initialPengajuanList, initialTotalPages, initialCurrentPage, initialTotalItems]);
+
   // ── Filter State ──────────────────────────────────────────────────────────
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [penerimaFilter, setPenerimaFilter] = useState("ALL");
-  const [pacFilter, setPacFilter] = useState("ALL");
+  const [pacFilter, setPacFilter] = useState(searchParams.get("userId") || "ALL");
 
   const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -247,9 +250,26 @@ export function ReferensiPengajuanList({
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleFilterChange = (key: string, value: string) => {
-    if (key === "status") setStatusFilter(value);
-    if (key === "penerima") setPenerimaFilter(value);
-    if (key === "pac") setPacFilter(value);
+    if (key === "status") {
+      setStatusFilter(value);
+    }
+    if (key === "penerima") {
+      setPenerimaFilter(value);
+    }
+    if (key === "pac") {
+      setPacFilter(value);
+
+      // Update URL to trigger server-side re-render (optional but good for consistency)
+      const params = new URLSearchParams(searchParams.toString());
+      if (value === "ALL") {
+        params.delete("userId");
+      } else {
+        params.set("userId", value);
+      }
+      params.set("page", "1");
+      router.push(`?${params.toString()}`, { scroll: false });
+    }
+
     setCurrentPage(1);
   };
 
@@ -576,114 +596,3 @@ export function ReferensiPengajuanList({
   );
 }
 
-// ─── UserFilterSelect (sama persis dengan pengajuan-berkas-list) ─────────────────
-
-function UserFilterSelect({
-  users,
-  selectedUserId,
-  onSelectUser,
-  className,
-  placeholder = "Pilih User",
-}: {
-  users: { id: string; name: string }[];
-  selectedUserId: string;
-  onSelectUser: (id: string) => void;
-  className?: string;
-  placeholder?: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-
-  const filteredUsers = users.filter((u) =>
-    u.name.toLowerCase().includes(search.toLowerCase()),
-  );
-
-  const selectedUserName =
-    selectedUserId === "ALL"
-      ? "Semua PAC"
-      : users.find((u) => u.id === selectedUserId)?.name 
-        ? capitalizeName(users.find((u) => u.id === selectedUserId)!.name)
-        : placeholder;
-
-  return (
-    <div className={cn("w-full", className)}>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-full justify-between font-normal h-9 bg-white"
-          >
-            <span className="truncate">{selectedUserName}</span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="w-[var(--radix-popover-trigger-width)] min-w-[200px] p-0"
-          align="end"
-        >
-          <div className="flex flex-col max-h-[300px]">
-            <div className="flex items-center border-b px-3 pb-2 pt-3">
-              <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-              <input
-                className="flex h-5 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder="Cari PAC..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <div className="overflow-y-auto py-2">
-              <div
-                className={cn(
-                  "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-slate-100 hover:text-slate-900 cursor-pointer mx-1",
-                  selectedUserId === "ALL" && "bg-slate-100",
-                )}
-                onClick={() => {
-                  onSelectUser("ALL");
-                  setOpen(false);
-                  setSearch("");
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    selectedUserId === "ALL" ? "opacity-100" : "opacity-0",
-                  )}
-                />
-                Semua PAC
-              </div>
-              {filteredUsers.length === 0 && (
-                <div className="py-6 text-center text-sm text-muted-foreground">
-                  PAC tidak ditemukan.
-                </div>
-              )}
-              {filteredUsers.slice(0, 10).map((user) => (
-                <div
-                  key={user.id}
-                  className={cn(
-                    "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-slate-100 hover:text-slate-900 cursor-pointer mx-1",
-                    selectedUserId === user.id && "bg-slate-100",
-                  )}
-                  onClick={() => {
-                    onSelectUser(user.id);
-                    setOpen(false);
-                    setSearch("");
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      selectedUserId === user.id ? "opacity-100" : "opacity-0",
-                    )}
-                  />
-                  {capitalizeName(user.name)}
-                </div>
-              ))}
-            </div>
-          </div>
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
-}

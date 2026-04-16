@@ -4,13 +4,25 @@ import { PeriodeList } from "@/components/features/periode/periode-list";
 import { Button } from "@/components/ui/button";
 import { Plus, CalendarDays } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
+import { PeriodeSkeleton } from "@/components/features/periode/periode-skeleton";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "Periode | Laci Digital",
 };
 
-export default async function PeriodePage() {
+export default function PeriodePage() {
+  return (
+    <Suspense fallback={<PeriodeSkeleton />}>
+      <PeriodeContent />
+    </Suspense>
+  );
+}
+
+async function PeriodeContent() {
   const session = await auth();
+  if (!session) redirect("/login");
   const userId = session?.user?.id;
 
   const periods = await prisma.periode.findMany({
@@ -21,7 +33,7 @@ export default async function PeriodePage() {
   const userRole = session?.user?.role;
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-4 sm:gap-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-slate-100 rounded-lg text-slate-500">

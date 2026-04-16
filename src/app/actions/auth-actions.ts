@@ -11,7 +11,11 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
 import { Prisma } from "@prisma/client";
 import crypto from "crypto";
-import { encryptFile, generateEncryptedFilename } from "@/lib/encryption";
+import {
+  decryptText,
+  encryptFile,
+  generateEncryptedFilename,
+} from "@/lib/encryption";
 // FS imports removed
 import { uploadToR2, deleteFromR2 } from "@/lib/storage-r2";
 
@@ -215,6 +219,8 @@ export async function getUserDetail(userId: string) {
       anggotaCount,
       logCount,
       spCount,
+      perkaderanList,
+      pendidikanStats,
     ] = await Promise.all([
       prisma.arsipSurat.count({
         where: { userId, periodeId: activePeriod.id },
@@ -234,6 +240,27 @@ export async function getUserDetail(userId: string) {
       prisma.berkasSP.count({
         where: { userId, periodeId: activePeriod.id },
       }),
+      prisma.perkaderan.findMany({
+        where: {
+          anggota: {
+            userId,
+            periodeId: activePeriod.id,
+          },
+        },
+        select: {
+          namaPerkaderan: true,
+        },
+      }),
+      prisma.anggota.groupBy({
+        by: ["jenjangPendidikan"],
+        where: {
+          userId,
+          periodeId: activePeriod.id,
+        },
+        _count: {
+          id: true,
+        },
+      }),
     ]);
 
     stats = {
@@ -244,7 +271,60 @@ export async function getUserDetail(userId: string) {
       logActivities: logCount,
       berkasSPs: spCount,
     };
+
+    // Perkaderan Counts
+    const perkaderanCounts: { [key: string]: number } = {
+      Makesta: 0,
+      Lakmud: 0,
+      Latin: 0,
+      Latpel: 0,
+      Lakut: 0,
+    };
+
+    (perkaderanList as any[]).forEach((p) => {
+      const decrypted = decryptText(p.namaPerkaderan).toUpperCase();
+      if (decrypted === "MAKESTA") perkaderanCounts["Makesta"]++;
+      else if (decrypted === "LAKMUD") perkaderanCounts["Lakmud"]++;
+      else if (decrypted === "LATIN") perkaderanCounts["Latin"]++;
+      else if (decrypted === "LATPEL") perkaderanCounts["Latpel"]++;
+      else if (decrypted === "LAKUT") perkaderanCounts["Lakut"]++;
+    });
+
+    // Pendidikan Counts
+    const pendidikanCounts: { [key: string]: number } = {
+      "SD/MI": 0,
+      "SMP/MTs": 0,
+      "SMA/MA/SMK": 0,
+      D1: 0,
+      D2: 0,
+      D3: 0,
+      "D4/S1": 0,
+      S2: 0,
+      S3: 0,
+    };
+
+    (pendidikanStats as any[]).forEach((p: any) => {
+      if (
+        p.jenjangPendidikan &&
+        pendidikanCounts.hasOwnProperty(p.jenjangPendidikan)
+      ) {
+        pendidikanCounts[p.jenjangPendidikan] = p._count.id;
+      }
+    });
+
+    (stats as any).perkaderanCounts = perkaderanCounts;
+    (stats as any).pendidikanCounts = pendidikanCounts;
   }
+
+  // Fetch Member Info if exists (to get profile's Perkaderan)
+  const member = await prisma.anggota.findFirst({
+    where: { email: user.email },
+    include: {
+      perkaderans: {
+        orderBy: { tanggal: "desc" },
+      },
+    },
+  });
 
   return {
     ...user,
@@ -254,7 +334,26 @@ export async function getUserDetail(userId: string) {
     totalAnggota: stats.anggota,
     totalLog: stats.logActivities,
     totalBerkasSP: stats.berkasSPs,
+    perkaderanCounts: (stats as any).perkaderanCounts || {
+      Makesta: 0,
+      Lakmud: 0,
+      Latin: 0,
+      Latpel: 0,
+      Lakut: 0,
+    },
+    pendidikanCounts: (stats as any).pendidikanCounts || {
+      "SD/MI": 0,
+      "SMP/MTs": 0,
+      "SMA/MA/SMK": 0,
+      D1: 0,
+      D2: 0,
+      D3: 0,
+      "D4/S1": 0,
+      S2: 0,
+      S3: 0,
+    },
     periodeAktif: activePeriod?.nama || "Tidak ada periode aktif",
+    perkaderans: member?.perkaderans || [],
   };
 }
 
@@ -284,7 +383,7 @@ export async function toggleUserStatus(userId: string) {
   );
 
   revalidatePath("/dashboard/manajemen-user", "page");
-  revalidatePath("/dashboard", "layout"); 
+  revalidatePath("/dashboard", "layout");
   return { success: `Status akun ${user.name} berhasil diubah!` };
 }
 
@@ -303,7 +402,7 @@ export async function deleteUser(userId: string) {
     createLog("DELETE", "USER", `Menghapus user: ${userId}`, userId);
 
     revalidatePath("/dashboard/manajemen-user", "page");
-    revalidatePath("/dashboard", "layout"); 
+    revalidatePath("/dashboard", "layout");
     return { success: "User berhasil dihapus secara permanen!" };
   } catch {
     return { error: "Gagal menghapus user." };
@@ -334,12 +433,7 @@ export async function resetUserPassword(userId: string) {
     });
 
     // Log activity (non-blocking)
-    createLog(
-      "UPDATE",
-      "USER",
-      `Mereset password user: ${userId}`,
-      userId,
-    );
+    createLog("UPDATE", "USER", `Mereset password user: ${userId}`, userId);
 
     return { success: "Password berhasil direset menjadi 'password'!" };
   } catch {
@@ -486,15 +580,11 @@ export async function updateProfile(formData: FormData) {
     });
 
     // Log activity (non-blocking)
-    createLog(
-      "UPDATE",
-      "USER",
-      `Mengupdate profil akun: ${session.user.name}`,
-    );
+    createLog("UPDATE", "USER", `Mengupdate profil akun: ${session.user.name}`);
 
     revalidatePath("/dashboard", "page");
     revalidatePath("/dashboard/profile", "page");
-    revalidatePath("/dashboard", "layout"); 
+    revalidatePath("/dashboard", "layout");
 
     return { success: "Profil berhasil diperbarui!" };
   } catch (error) {

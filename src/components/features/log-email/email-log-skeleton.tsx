@@ -12,7 +12,7 @@ import {
 
 export function EmailLogSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-pulse">
       {/* Header Skeleton */}
       <div className="flex items-center gap-3">
         <Skeleton className="h-10 w-10 rounded-lg" />

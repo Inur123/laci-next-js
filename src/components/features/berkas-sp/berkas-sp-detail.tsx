@@ -200,12 +200,12 @@ export function BerkasSPDetail({ berkasSP }: BerkasSPDetailProps) {
                 </p>
                 <p className="font-medium mt-1">{berkasSP.periode.nama}</p>
               </div>
-              
-              <div className="md:col-span-2">
+
+              <div>
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
                   <FileText className="w-3 h-3" /> Catatan
                 </p>
-                <p className="font-medium mt-1">
+                <p className="font-medium mt-1 truncate max-w-full">
                   {berkasSP.catatan ? capitalizeName(berkasSP.catatan) : "-"}
                 </p>
               </div>

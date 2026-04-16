@@ -12,8 +12,19 @@ import {
 
 export function ReferensiSkeleton() {
   return (
-    <div className="space-y-6">
-      {/* Filter Skeleton — matches referensi-list flex-row layout */}
+    <div className="flex flex-col gap-4 sm:gap-6 animate-pulse">
+      {/* Header Skeleton */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-10 w-10 rounded-lg" />
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-44" />
+            <Skeleton className="h-4 w-72" />
+          </div>
+        </div>
+      </div>
+
+      {/* Filter Skeleton */}
       <div className="flex flex-col md:flex-row gap-4 mb-6 items-end">
         {/* Search */}
         <Skeleton className="h-9 flex-1 min-w-[200px]" />
@@ -21,7 +32,7 @@ export function ReferensiSkeleton() {
         <Skeleton className="h-9 w-full md:w-36" />
         {/* Penerima */}
         <Skeleton className="h-9 w-full md:w-36" />
-        {/* Filter PAC (popover) */}
+        {/* Filter PAC */}
         <Skeleton className="h-9 w-full md:w-64" />
         {/* Reset button */}
         <Skeleton className="h-9 w-full md:w-24" />
@@ -95,8 +106,6 @@ export function ReferensiSkeleton() {
                   <div className="flex items-center justify-between">
                     <Skeleton className="h-4 w-48 hidden sm:block" />
                     <div className="flex gap-1 ml-auto">
-                      <Skeleton className="h-8 w-8" />
-                      <Skeleton className="h-8 w-8" />
                       <Skeleton className="h-8 w-8" />
                       <Skeleton className="h-8 w-8" />
                       <Skeleton className="h-8 w-8" />

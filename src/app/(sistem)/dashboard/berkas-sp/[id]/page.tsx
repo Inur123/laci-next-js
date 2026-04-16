@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   title: "Detail Berkas SP | Laci Digital",
 };
 
+import { BerkasSPDetailSkeleton } from "@/components/features/berkas-sp/berkas-sp-skeleton";
+import { Suspense } from "react";
+
 async function getBerkasSP(id: string) {
   const berkas = await prisma.berkasSP.findUnique({
     where: { id },
@@ -37,6 +40,18 @@ export default async function BerkasSPDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  return (
+    <Suspense fallback={<BerkasSPDetailSkeleton />}>
+      <BerkasSPDetailContent params={params} />
+    </Suspense>
+  );
+}
+
+async function BerkasSPDetailContent({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const session = await auth();
   if (!session) return null;
 
@@ -48,7 +63,7 @@ export default async function BerkasSPDetailPage({
   }
 
   return (
-    <div className="container mx-auto py-6 max-w-7xl">
+    <div className="flex flex-col gap-4 sm:gap-6">
       <BerkasSPDetail berkasSP={berkas as any} />
     </div>
   );

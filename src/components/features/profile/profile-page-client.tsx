@@ -301,9 +301,20 @@ export default function ProfilePage({ user }: { user: Session["user"] }) {
   }, [router]);
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Profil Saya</h2>
+    <div className="flex flex-col gap-4 sm:gap-6">
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
+            <UserIcon size={24} />
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold">Profil Saya</h2>
+            <p className="text-sm text-muted-foreground">
+              Kelola informasi profil dan pengaturan keamanan akun Anda
+            </p>
+          </div>
+        </div>
       </div>
 
       <Card className="border shadow-sm overflow-hidden w-full">

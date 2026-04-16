@@ -11,6 +11,9 @@ export const metadata = {
   title: "Berkas Pimpinan | Laci Digital",
 };
 
+import { Suspense } from "react";
+import { BerkasPimpinanSkeleton } from "@/components/features/berkas-pimpinan/berkas-pimpinan-skeleton";
+
 export default async function BerkasPimpinanPage({
   searchParams,
 }: {
@@ -19,13 +22,27 @@ export default async function BerkasPimpinanPage({
   const session = await auth();
   if (!session?.user) redirect("/login");
 
+  return (
+    <Suspense fallback={<BerkasPimpinanSkeleton />}>
+      <BerkasPimpinanPageContent searchParams={searchParams} userId={session.user.id} />
+    </Suspense>
+  );
+}
+
+async function BerkasPimpinanPageContent({
+  searchParams,
+  userId,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  userId: string;
+}) {
   const params = await searchParams;
   const q = (params.q as string) || "";
   const page = Number(params.page) || 1;
   const limit = 10;
 
   const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
+    where: { id: userId },
     select: { role: true },
   });
 
@@ -33,7 +50,7 @@ export default async function BerkasPimpinanPage({
   const title = isCabang ? "Berkas Cabang" : "Berkas PAC";
 
   const periodeAktif = await prisma.periode.findFirst({
-    where: { userId: session.user.id, isActive: true },
+    where: { userId: userId, isActive: true },
   });
 
   const {

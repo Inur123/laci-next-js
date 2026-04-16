@@ -3,6 +3,7 @@
 import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { startOfMonth, endOfMonth } from "date-fns";
 import {
   encryptText,
   decryptText,
@@ -10,7 +11,6 @@ import {
   decryptFile,
   generateEncryptedFilename,
 } from "@/lib/encryption";
-
 
 import { BerkasPimpinan } from "@prisma/client";
 import { createLog } from "@/lib/log-activity";
@@ -465,4 +465,46 @@ function parseFlexibleDate(raw: string): Date | null {
 
   const d = new Date(s);
   return isNaN(d.getTime()) ? null : d;
+}
+
+/**
+ * Get statistics for berkas pimpinan
+ */
+export async function getBerkasPimpinanStats() {
+  const session = await auth();
+  if (!session?.user?.id) return null;
+
+  const periodeAktif = await prisma.periode.findFirst({
+    where: {
+      userId: session.user.id,
+      isActive: true,
+    },
+  });
+
+  if (!periodeAktif) return null;
+
+  const whereBase = {
+    userId: session.user.id,
+    periodeId: periodeAktif.id,
+  };
+
+  const now = new Date();
+
+  const [total, bulanIni] = await Promise.all([
+    prisma.berkasPimpinan.count({ where: whereBase }),
+    prisma.berkasPimpinan.count({
+      where: {
+        ...whereBase,
+        tanggal: {
+          gte: startOfMonth(now),
+          lte: endOfMonth(now),
+        },
+      },
+    }),
+  ]);
+
+  return {
+    total,
+    bulanIni,
+  };
 }

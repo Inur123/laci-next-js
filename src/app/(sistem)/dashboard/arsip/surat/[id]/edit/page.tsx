@@ -5,8 +5,22 @@ import { ArsipSuratForm } from "@/components/features/arsip/arsip-surat-form";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { ArsipFormSkeleton } from "@/components/features/arsip/arsip-skeleton";
+import { Suspense } from "react";
 
 export default async function EditArsipSuratPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  return (
+    <Suspense fallback={<ArsipFormSkeleton />}>
+      <EditArsipSuratContent params={params} />
+    </Suspense>
+  );
+}
+
+async function EditArsipSuratContent({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -25,7 +39,7 @@ export default async function EditArsipSuratPage({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-4 sm:gap-6">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
           <Link href="/dashboard/arsip/surat">

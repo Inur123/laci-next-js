@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -60,16 +61,9 @@ import {
 import { logExport } from "@/app/actions/log-activity-actions";
 import { ConfirmModal } from "@/components/shared/confirm-modal";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, capitalizeName } from "@/lib/utils";
 import XLSX from "xlsx-js-style";
-
-const capitalizeName = (name: string) => {
-  if (!name) return "";
-  return name
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(" ");
-};
+import { UserFilterSelect } from "@/components/shared/user-filter-select";
 
 type PengajuanBerkas = {
   id: string;
@@ -156,17 +150,28 @@ export function PengajuanBerkasList({
   detailBasePath?: string;
   actionsInlineOnDesktop?: boolean;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   // Local data state
   const [data, setData] = useState<PengajuanBerkas[]>(initialPengajuanList);
   const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [currentPage, setCurrentPage] = useState(initialCurrentPage);
   const [totalItems, setTotalItems] = useState(initialTotalItems);
 
+  // Sync state with props (important for URL changes and statistics update)
+  useEffect(() => {
+    setData(initialPengajuanList);
+    setTotalPages(initialTotalPages);
+    setCurrentPage(initialCurrentPage);
+    setTotalItems(initialTotalItems);
+  }, [initialPengajuanList, initialTotalPages, initialCurrentPage, initialTotalItems]);
+
   // Filter state
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [penerimaFilter, setPenerimaFilter] = useState("ALL");
-  const [pacFilter, setPacFilter] = useState("ALL");
+  const [pacFilter, setPacFilter] = useState(searchParams.get("userId") || "ALL");
 
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [optimisticHiddenIds, setOptimisticHiddenIds] = useState<string[]>([]);
@@ -319,10 +324,21 @@ export function PengajuanBerkasList({
     }
     if (key === "pac") {
       setPacFilter(value);
+
+      // Update URL to trigger server-side re-render of statistics
+      const params = new URLSearchParams(searchParams.toString());
+      if (value === "ALL") {
+        params.delete("userId");
+      } else {
+        params.set("userId", value);
+      }
+      params.set("page", "1");
+      router.push(`?${params.toString()}`, { scroll: false });
     }
 
     setCurrentPage(1);
   };
+
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -910,88 +926,3 @@ export function PengajuanBerkasList({
   );
 }
 
-function UserFilterSelect({
-  users,
-  selectedUserId,
-  onSelectUser,
-  placeholder,
-}: {
-  users: PacUser[];
-  selectedUserId: string;
-  onSelectUser: (id: string) => void;
-  placeholder: string;
-}) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full h-9 justify-between font-normal text-sm bg-white"
-        >
-          {selectedUserId === "ALL"
-            ? "Semua PAC"
-            : users.find((user) => user.id === selectedUserId)?.name}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 z-50">
-        <div className="flex flex-col">
-          <div className="p-2 border-b">
-            <Input
-              placeholder="Cari PAC..."
-              className="h-8 text-xs px-2"
-              onChange={(e) => {
-                // Local filtering could go here if needed, but for small list it's okay
-              }}
-            />
-          </div>
-          <div className="max-h-[300px] overflow-y-auto p-1">
-            <div
-              className={cn(
-                "flex items-center px-2 py-1.5 text-sm rounded-sm cursor-pointer hover:bg-slate-100",
-                selectedUserId === "ALL" && "bg-slate-100",
-              )}
-              onClick={() => {
-                onSelectUser("ALL");
-                setOpen(false);
-              }}
-            >
-              <Check
-                className={cn(
-                  "mr-2 h-4 w-4",
-                  selectedUserId === "ALL" ? "opacity-100" : "opacity-0",
-                )}
-              />
-              Semua PAC
-            </div>
-            {users.map((user) => (
-              <div
-                key={user.id}
-                className={cn(
-                  "flex items-center px-2 py-1.5 text-sm rounded-sm cursor-pointer hover:bg-slate-100",
-                  selectedUserId === user.id && "bg-slate-100",
-                )}
-                onClick={() => {
-                  onSelectUser(user.id);
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    selectedUserId === user.id ? "opacity-100" : "opacity-0",
-                  )}
-                />
-                {capitalizeName(user.name)}
-              </div>
-            ))}
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}

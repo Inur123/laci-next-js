@@ -12,6 +12,14 @@ export const metadata = {
 };
 
 export default async function AddKegiatanPage() {
+  return (
+    <Suspense fallback={<KegiatanFormSkeleton />}>
+      <AddKegiatanContent />
+    </Suspense>
+  );
+}
+
+async function AddKegiatanContent() {
   const session = await auth();
 
   if (!session) redirect("/login");
@@ -21,7 +29,7 @@ export default async function AddKegiatanPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-4 sm:gap-6">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
           <Link href="/dashboard/agenda-kegiatan">
@@ -37,9 +45,7 @@ export default async function AddKegiatanPage() {
         </div>
       </div>
 
-      <Suspense fallback={<KegiatanFormSkeleton />}>
-        <KegiatanForm userRole={session.user.role} />
-      </Suspense>
+      <KegiatanForm userRole={session.user.role} />
     </div>
   );
 }

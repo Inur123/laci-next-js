@@ -161,7 +161,7 @@ export async function getLogStats() {
   }
 }
 
-export async function getGlobalLogStats() {
+export async function getGlobalLogStats(userId?: string) {
   try {
     const session = await auth();
     if (!session?.user?.id || session.user.role !== "SEKRETARIS_CABANG") {
@@ -169,13 +169,19 @@ export async function getGlobalLogStats() {
     }
 
     // Get counts for each module across all PAC users in active periods
+    const where: Prisma.LogActivityWhereInput = {
+      periode: {
+        isActive: true,
+      },
+    };
+
+    if (userId && userId !== "ALL") {
+      where.userId = userId;
+    }
+
     const stats = await prisma.logActivity.groupBy({
       by: ["module"],
-      where: {
-        periode: {
-          isActive: true,
-        },
-      },
+      where,
       _count: {
         id: true,
       },
@@ -209,19 +215,25 @@ export async function getGlobalLogStats() {
   }
 }
 
-export async function getLogMonitoringData() {
+export async function getLogMonitoringData(userId?: string) {
   try {
     const session = await auth();
     if (!session?.user?.id || session.user.role !== "SEKRETARIS_CABANG") {
       return null;
     }
 
+    const where: Prisma.LogActivityWhereInput = {
+      periode: { isActive: true },
+    };
+
+    if (userId && userId !== "ALL") {
+      where.userId = userId;
+    }
+
     // 1. Distribution by Module
     const moduleStats = await prisma.logActivity.groupBy({
       by: ["module"],
-      where: {
-        periode: { isActive: true },
-      },
+      where,
       _count: { id: true },
     });
 
@@ -233,9 +245,7 @@ export async function getLogMonitoringData() {
     // 2. Top Active PACs
     const userStats = await prisma.logActivity.groupBy({
       by: ["userId"],
-      where: {
-        periode: { isActive: true },
-      },
+      where,
       _count: { id: true },
     });
 
@@ -269,7 +279,7 @@ export async function getLogMonitoringData() {
 
         const count = await prisma.logActivity.count({
           where: {
-            periode: { isActive: true },
+            ...where,
             createdAt: { gte: start, lte: end },
           },
         });

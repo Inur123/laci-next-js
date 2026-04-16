@@ -33,7 +33,8 @@ export default async function PengajuanBerkasPage({
   const isCabang = userRole === "SEKRETARIS_CABANG";
 
   return (
-    <Suspense fallback={<PengajuanBerkasSkeleton />}>
+    <Suspense fallback={<PengajuanBerkasSkeleton isCabang={isCabang} />}>
+
       <PengajuanBerkasPageContent
         searchParams={searchParams}
         userId={session.user.id}
@@ -166,11 +167,13 @@ async function PengajuanContent({
     ditolak: 0,
   };
 
+  const userIdParam = (params.userId as string) || "ALL";
+
   if (isCabang) {
     const [result, users, statsResult] = await Promise.all([
-      getVerifikasiPengajuanForCabang(q, page, limit),
+      getVerifikasiPengajuanForCabang(q, page, limit, "ALL", "ALL", userIdParam),
       getActivePacUsers(),
-      getPengajuanBerkasStats(),
+      getPengajuanBerkasStats(userIdParam),
     ]);
     pengajuanData = result;
     pacUsers = users;
@@ -186,7 +189,7 @@ async function PengajuanContent({
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
-      <PengajuanBerkasStats stats={stats} />
+      <PengajuanBerkasStats stats={stats} userId={userIdParam} />
       <PengajuanBerkasList
         pengajuanList={pengajuanData.data}
         userRole={userRole || "SEKRETARIS_PAC"}

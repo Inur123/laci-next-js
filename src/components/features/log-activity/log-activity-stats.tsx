@@ -24,6 +24,7 @@ type LogStatsProps = {
   stats: Record<string, number> | null;
   currentView: string;
   userRole: string;
+  userId?: string;
 };
 
 const moduleConfig: Record<
@@ -51,6 +52,7 @@ export function LogActivityStats({
   stats: initialStats,
   currentView,
   userRole,
+  userId,
 }: LogStatsProps) {
   const [stats, setStats] = useState(initialStats);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -62,7 +64,7 @@ export function LogActivityStats({
 
   useEffect(() => {
     const handler = (event: Event) => {
-      const detail = (event as CustomEvent).detail as {
+      const detail = (event as any).detail as {
         type?: string;
         model?: string;
       };
@@ -82,7 +84,7 @@ export function LogActivityStats({
 
         const fresh =
           currentView === "global"
-            ? await getGlobalLogStats()
+            ? await getGlobalLogStats(userId)
             : await getLogStats();
 
         if (fresh) setStats(fresh);
@@ -96,7 +98,7 @@ export function LogActivityStats({
         clearTimeout(timerRef.current);
       }
     };
-  }, [currentView]);
+  }, [currentView, userId]);
 
   if (!stats) return null;
 

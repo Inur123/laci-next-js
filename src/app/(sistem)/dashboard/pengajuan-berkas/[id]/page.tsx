@@ -17,12 +17,12 @@ export default async function DetailPengajuanBerkasPage({
   const session = await auth();
   if (!session?.user) redirect("/login");
 
+  const isCabang = session.user.role === "SEKRETARIS_CABANG";
+
   return (
-    <div className="space-y-6">
-      <Suspense fallback={<PengajuanBerkasDetailSkeleton />}>
-        <PengajuanBerkasContent params={params} sessionId={session.user.id} />
-      </Suspense>
-    </div>
+    <Suspense fallback={<PengajuanBerkasDetailSkeleton isCabang={isCabang} />}>
+      <PengajuanBerkasContent params={params} sessionId={session.user.id} />
+    </Suspense>
   );
 }
 
@@ -46,7 +46,7 @@ async function PengajuanBerkasContent({
   const isCabang = user?.role === "SEKRETARIS_CABANG";
 
   return (
-    <>
+    <div className="flex flex-col gap-4 sm:gap-6">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
           <Link href="/dashboard/pengajuan-berkas">
@@ -62,6 +62,6 @@ async function PengajuanBerkasContent({
       </div>
 
       <PengajuanBerkasDetail pengajuan={pengajuan} isCabang={isCabang} />
-    </>
+    </div>
   );
 }

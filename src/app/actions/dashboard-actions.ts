@@ -2,10 +2,11 @@
 
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
+import { decryptText } from "@/lib/encryption";
 
 /**
  * HIGH-PERFORMANCE DASHBOARD STATS
- * 
+ *
  * Optimized for Remote VPS + Vercel:
  * - Parallel data fetching
  * - Database-level aggregation (no heavy JS filtering)
@@ -26,7 +27,7 @@ export async function getDashboardStats() {
     prisma.periode.findFirst({
       where: { userId: userId, isActive: true },
       select: { id: true, nama: true },
-    })
+    }),
   ]);
 
   const periodeId = activePeriode?.id || null;
@@ -37,7 +38,7 @@ export async function getDashboardStats() {
 
   // Pakai groupBy agar yang dikirim internet cuma angka, bukan ribuan data surat
   const suratStats = await prisma.arsipSurat.groupBy({
-    by: ['createdAt'],
+    by: ["createdAt"],
     where: {
       userId: userId,
       periodeId: periodeId || undefined,
@@ -56,7 +57,7 @@ export async function getDashboardStats() {
   const trendStats = months.map((date) => {
     const month = date.getMonth();
     const year = date.getFullYear();
-    
+
     const count = suratStats.reduce((acc, curr) => {
       const d = curr.createdAt;
       if (d.getMonth() === month && d.getFullYear() === year) {
@@ -71,34 +72,65 @@ export async function getDashboardStats() {
     };
   });
 
-  // 3. Get All Personal Stats in ONE Promise.all
+  // 3. Get All Personal Stats & Global Totals
   const [
     counts,
     globalAnggota,
-    verifikasiPending
+    globalArsip,
+    globalPimpinan,
+    globalPengajuan,
+    verifikasiPending,
   ] = await Promise.all([
     // Grouped counts for current user
     Promise.all([
-      prisma.anggota.count({ where: { userId, periodeId: periodeId || undefined } }),
-      prisma.arsipSurat.count({ where: { userId, periodeId: periodeId || undefined } }),
-      prisma.berkasPimpinan.count({ where: { userId, periodeId: periodeId || undefined } }),
-      prisma.berkasSP.count({ where: { userId, periodeId: periodeId || undefined } }),
-      prisma.pengajuanBerkas.count({ 
-        where: user?.role === "SEKRETARIS_CABANG" 
-          ? { periodeId: periodeId || undefined } // Cabang: Lihat semua yang masuk ke periode cabang ini
-          : { userId, periodeIdPac: periodeId || undefined } // PAC: Lihat punya sendiri
+      prisma.anggota.count({
+        where: { userId, periodeId: periodeId || undefined },
       }),
-      prisma.user.count({ where: { role: "SEKRETARIS_PAC", isActive: true, emailVerified: true } }),
+      prisma.arsipSurat.count({
+        where: { userId, periodeId: periodeId || undefined },
+      }),
+      prisma.berkasPimpinan.count({
+        where: { userId, periodeId: periodeId || undefined },
+      }),
+      prisma.berkasSP.count({
+        where: { userId, periodeId: periodeId || undefined },
+      }),
+      prisma.pengajuanBerkas.count({
+        where:
+          user?.role === "SEKRETARIS_CABANG"
+            ? { periodeId: periodeId || undefined }
+            : { userId, periodeIdPac: periodeId || undefined },
+      }),
+      prisma.user.count({
+        where: { role: "SEKRETARIS_PAC", isActive: true, emailVerified: true },
+      }),
       prisma.periode.count({ where: { userId } }),
-      prisma.agendaKegiatan.count({ where: { userId, periodeId: periodeId || undefined } }),
-      prisma.presensi.count({ where: { userId, periodeId: periodeId || undefined } }),
+      prisma.agendaKegiatan.count({
+        where: { userId, periodeId: periodeId || undefined },
+      }),
+      prisma.presensi.count({
+        where: { userId, periodeId: periodeId || undefined },
+      }),
     ]),
-    // Global stats
+    // Global stats: Semua yang ada di periode AKTIF
     prisma.anggota.count({ where: { periode: { isActive: true } } }),
+    prisma.arsipSurat.count({ where: { periode: { isActive: true } } }),
+    prisma.berkasPimpinan.count({ where: { periode: { isActive: true } } }),
+    prisma.pengajuanBerkas.count({
+      where: {
+        status: "DITERIMA",
+        OR: [
+          { periodePac: { isActive: true } },
+          { periodeCabang: { isActive: true } },
+        ],
+      },
+    }),
     // Pending verification (for Cabang)
-    user?.role === "SEKRETARIS_CABANG" 
-      ? prisma.user.count({ where: { role: "SEKRETARIS_PAC", isActive: false } }) 
-      : Promise.resolve(0)
+    user?.role === "SEKRETARIS_CABANG"
+      ? prisma.user.count({
+          where: { role: "SEKRETARIS_PAC", isActive: false },
+        })
+      : Promise.resolve(0),
   ]);
 
   const personalStats = {
@@ -112,6 +144,9 @@ export async function getDashboardStats() {
     kegiatan: counts[7],
     presensi: counts[8],
     globalAnggota,
+    globalArsip,
+    globalPimpinan,
+    globalPengajuan,
     trend: trendStats,
   };
 
@@ -126,41 +161,67 @@ export async function getDashboardStats() {
 
   // 4. CABANG MONITORING — OPTIMIZED LEADERBOARD
   // Mengambil data user aktif saja, stats dihitung tanpa heavy JOIN
-  const activeUsers = await prisma.user.findMany({
-    where: { role: 'SEKRETARIS_PAC', isActive: true },
-    select: {
-      id: true,
-      name: true,
-      image: true,
+  const [activeUsers, perkaderanStats, pendidikanStats] = await Promise.all([
+    prisma.user.findMany({
+      where: { role: "SEKRETARIS_PAC", isActive: true },
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        _count: {
+          select: {
+            anggota: { where: { periode: { isActive: true } } },
+            arsipSurats: { where: { periode: { isActive: true } } },
+            agendaKegiatan: { where: { periode: { isActive: true } } },
+            berkasPimpinans: { where: { periode: { isActive: true } } },
+            pengajuanBerkass: { where: { status: "DITERIMA" } },
+          },
+        },
+      },
+      take: 50, // Limit leaderboard for performance
+    }),
+    prisma.perkaderan.findMany({
+      where: {
+        anggota: {
+          periode: { isActive: true },
+        },
+      },
+      select: {
+        namaPerkaderan: true,
+      },
+    }),
+    prisma.anggota.groupBy({
+      by: ["jenjangPendidikan"],
+      where: {
+        periode: { isActive: true },
+      },
       _count: {
-        select: {
-          anggota: { where: { periode: { isActive: true } } },
-          arsipSurats: { where: { periode: { isActive: true } } },
-          agendaKegiatan: { where: { periode: { isActive: true } } },
-          berkasPimpinans: { where: { periode: { isActive: true } } },
-          pengajuanBerkass: { where: { status: 'DITERIMA' } },
-        }
-      }
-    },
-    take: 50, // Limit leaderboard for performance
-  });
+        id: true,
+      },
+    }),
+  ]);
 
-  const leaderboard = activeUsers.map((u) => {
-    const anggotas = u._count.anggota;
-    const totalAdmin = u._count.arsipSurats + u._count.berkasPimpinans + u._count.pengajuanBerkass;
-    const kegiatans = u._count.agendaKegiatan;
-    
-    // Scouring formula
-    const score = (anggotas * 1) + (totalAdmin * 2) + (kegiatans * 3);
+  const leaderboard = activeUsers
+    .map((u) => {
+      const anggotas = u._count.anggota;
+      const totalAdmin =
+        u._count.arsipSurats +
+        u._count.berkasPimpinans +
+        u._count.pengajuanBerkass;
+      const kegiatans = u._count.agendaKegiatan;
 
-    return {
-      id: u.id,
-      name: u.name || "Unknown",
-      image: u.image,
-      stats: { anggotas, totalAdmin, kegiatans },
-      score,
-    };
-  }).sort((a, b) => b.score - a.score);
+      // Scouring formula
+      const score = anggotas * 1 + totalAdmin * 2 + kegiatans * 3;
+
+      return {
+        id: u.id,
+        name: u.name || "Unknown",
+        image: u.image,
+        stats: { anggotas, totalAdmin, kegiatans },
+        score,
+      };
+    })
+    .sort((a, b) => b.score - a.score);
 
   return {
     role: "CABANG",
@@ -168,10 +229,63 @@ export async function getDashboardStats() {
     monitoring: {
       leaderboard,
       global: {
-        totalAnggota: leaderboard.reduce((acc, curr) => acc + curr.stats.anggotas, 0),
-        totalSurat: leaderboard.reduce((acc, curr) => acc + curr.stats.totalAdmin, 0),
-        totalPAC: leaderboard.length,
+        totalAnggota: personalStats.globalAnggota,
+        totalSurat:
+          personalStats.globalArsip +
+          personalStats.globalPimpinan +
+          personalStats.globalPengajuan,
+        totalPAC: personalStats.userCount,
         verifikasiPending,
+        perkaderan: {
+          Makesta: (perkaderanStats as any[]).filter(
+            (p) => decryptText(p.namaPerkaderan).toUpperCase() === "MAKESTA",
+          ).length,
+          Lakmud: (perkaderanStats as any[]).filter(
+            (p) => decryptText(p.namaPerkaderan).toUpperCase() === "LAKMUD",
+          ).length,
+          Latin: (perkaderanStats as any[]).filter(
+            (p) => decryptText(p.namaPerkaderan).toUpperCase() === "LATIN",
+          ).length,
+          Latpel: (perkaderanStats as any[]).filter(
+            (p) => decryptText(p.namaPerkaderan).toUpperCase() === "LATPEL",
+          ).length,
+          Lakut: (perkaderanStats as any[]).filter(
+            (p) => decryptText(p.namaPerkaderan).toUpperCase() === "LAKUT",
+          ).length,
+        },
+        pendidikan: {
+          "SD/MI":
+            (pendidikanStats as any[]).find(
+              (p) => p.jenjangPendidikan === "SD/MI",
+            )?._count.id || 0,
+          "SMP/MTs":
+            (pendidikanStats as any[]).find(
+              (p) => p.jenjangPendidikan === "SMP/MTs",
+            )?._count.id || 0,
+          "SMA/MA/SMK":
+            (pendidikanStats as any[]).find(
+              (p) => p.jenjangPendidikan === "SMA/MA/SMK",
+            )?._count.id || 0,
+          D1:
+            (pendidikanStats as any[]).find((p) => p.jenjangPendidikan === "D1")
+              ?._count.id || 0,
+          D2:
+            (pendidikanStats as any[]).find((p) => p.jenjangPendidikan === "D2")
+              ?._count.id || 0,
+          D3:
+            (pendidikanStats as any[]).find((p) => p.jenjangPendidikan === "D3")
+              ?._count.id || 0,
+          "D4/S1":
+            (pendidikanStats as any[]).find(
+              (p) => p.jenjangPendidikan === "D4/S1",
+            )?._count.id || 0,
+          S2:
+            (pendidikanStats as any[]).find((p) => p.jenjangPendidikan === "S2")
+              ?._count.id || 0,
+          S3:
+            (pendidikanStats as any[]).find((p) => p.jenjangPendidikan === "S3")
+              ?._count.id || 0,
+        },
       },
     },
   };

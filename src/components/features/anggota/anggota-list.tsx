@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -35,11 +36,10 @@ import {
 } from "lucide-react";
 import { deleteAnggota, getAnggotaList } from "@/app/actions/anggota-actions";
 import { logExport } from "@/app/actions/log-activity-actions";
-import { ConfirmModal } from "@/components/shared/confirm-modal";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
+import { cn, capitalizeName } from "@/lib/utils";
 import {
   Popover,
   PopoverContent,
@@ -70,13 +70,8 @@ type AnggotaItem = {
   periode?: { nama?: string | null } | null;
 };
 
-const capitalizeName = (name: string) => {
-  if (!name) return "";
-  return name
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(" ");
-};
+import { UserFilterSelect } from "@/components/shared/user-filter-select";
+import { ConfirmModal } from "@/components/shared/confirm-modal";
 
 export function AnggotaList({
   anggotaList: initialAnggotaList,
@@ -93,15 +88,26 @@ export function AnggotaList({
   totalItems: number;
   activeUsers?: { id: string; name: string }[];
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   // Local data state
   const [data, setData] = useState<AnggotaItem[]>(initialAnggotaList);
   const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [currentPage, setCurrentPage] = useState(initialCurrentPage);
   const [totalItems, setTotalItems] = useState(initialTotalItems);
 
+  // Sync state with props (important for URL changes and statistics update)
+  useEffect(() => {
+    setData(initialAnggotaList);
+    setTotalPages(initialTotalPages);
+    setCurrentPage(initialCurrentPage);
+    setTotalItems(initialTotalItems);
+  }, [initialAnggotaList, initialTotalPages, initialCurrentPage, initialTotalItems]);
+
   // Filter state
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUser, setSelectedUser] = useState("ALL");
+  const [selectedUser, setSelectedUser] = useState(searchParams.get("userId") || "ALL");
 
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [optimisticHiddenIds, setOptimisticHiddenIds] = useState<string[]>([]);
@@ -204,12 +210,29 @@ export function AnggotaList({
   const handleUserFilterChange = (value: string) => {
     setSelectedUser(value);
     setCurrentPage(1);
+
+    // Update URL to trigger server-side re-render of statistics
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === "ALL") {
+      params.delete("userId");
+    } else {
+      params.set("userId", value);
+    }
+    params.set("page", "1");
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
   const handleResetFilters = () => {
     setSearchTerm("");
     setSelectedUser("ALL");
     setCurrentPage(1);
+    
+    // Reset URL
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("userId");
+    params.delete("q");
+    params.set("page", "1");
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
   // Handle Page Change
@@ -542,7 +565,9 @@ export function AnggotaList({
                           <div className="flex items-center gap-1.5">
                             <UserIcon size={12} className="text-slate-400" />
                             <span className="text-xs text-slate-600 truncate max-w-[120px]">
-                              {item.user?.name ? capitalizeName(item.user.name) : "-"}
+                              {item.user?.name
+                                ? capitalizeName(item.user.name)
+                                : "-"}
                             </span>
                           </div>
                         </TableCell>
@@ -691,112 +716,6 @@ export function AnggotaList({
         variant="destructive"
         loading={false}
       />
-    </div>
-  );
-}
-
-function UserFilterSelect({
-  users,
-  selectedUserId,
-  onSelectUser,
-  className,
-}: {
-  users: { id: string; name: string }[];
-  selectedUserId: string;
-  onSelectUser: (id: string) => void;
-  className?: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-
-  const filteredUsers = users.filter((u) =>
-    u.name.toLowerCase().includes(search.toLowerCase()),
-  );
-
-  const selectedUserName =
-    selectedUserId === "ALL"
-      ? "Semua User"
-      : users.find((u) => u.id === selectedUserId)?.name || "Pilih User";
-
-  return (
-    <div className={cn("w-full", className)}>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-full justify-between font-normal"
-          >
-            <span className="truncate">{selectedUserName}</span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="w-[var(--radix-popover-trigger-width)] min-w-[200px] p-0"
-          align="end"
-        >
-          <div className="flex flex-col max-h-[300px]">
-            <div className="flex items-center border-b px-3 pb-2 pt-3">
-              <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-              <input
-                className="flex h-5 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder="Cari user..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <div className="overflow-y-auto py-2">
-              <div
-                className={cn(
-                  "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-slate-100 hover:text-slate-900 cursor-pointer mx-1",
-                  selectedUserId === "ALL" && "bg-slate-100",
-                )}
-                onClick={() => {
-                  onSelectUser("ALL");
-                  setOpen(false);
-                  setSearch("");
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    selectedUserId === "ALL" ? "opacity-100" : "opacity-0",
-                  )}
-                />
-                Semua User
-              </div>
-              {filteredUsers.length === 0 && (
-                <div className="py-6 text-center text-sm text-muted-foreground">
-                  User tidak ditemukan.
-                </div>
-              )}
-              {filteredUsers.slice(0, 5).map((user) => (
-                <div
-                  key={user.id}
-                  className={cn(
-                    "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-slate-100 hover:text-slate-900 cursor-pointer mx-1",
-                    selectedUserId === user.id && "bg-slate-100",
-                  )}
-                  onClick={() => {
-                    onSelectUser(user.id);
-                    setOpen(false);
-                    setSearch("");
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      selectedUserId === user.id ? "opacity-100" : "opacity-0",
-                    )}
-                  />
-                  <span className="capitalize">{capitalizeName(user.name)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </PopoverContent>
-      </Popover>
     </div>
   );
 }

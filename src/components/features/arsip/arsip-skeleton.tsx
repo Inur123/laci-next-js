@@ -9,10 +9,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export function ArsipSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-4 sm:gap-6 animate-pulse">
       {/* Header Skeleton */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -22,22 +23,15 @@ export function ArsipSkeleton() {
             <Skeleton className="h-4 w-48" />
           </div>
         </div>
-        <Skeleton className="h-10 w-32 rounded-md" />
+        <Skeleton className="h-10 w-full sm:w-32 rounded-md" />
       </div>
 
       {/* Stats Skeleton (6 Cards) */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
-        {[
-          "border-slate-200",
-          "border-emerald-100 bg-emerald-50/5",
-          "border-orange-100 bg-orange-50/5",
-          "border-green-100 bg-green-50/5",
-          "border-green-100 bg-green-50/5",
-          "border-blue-100 bg-blue-50/5",
-        ].map((style, i) => (
+        {[...Array(6)].map((_, i) => (
           <div
             key={i}
-            className={`h-[85px] p-3 border rounded-xl flex flex-col justify-between ${style}`}
+            className="h-[85px] p-3 border rounded-xl flex flex-col justify-between"
           >
             <div className="flex items-center justify-between">
               <Skeleton className="h-2 w-12" />
@@ -59,16 +53,16 @@ export function ArsipSkeleton() {
         <div className="flex-1">
           <Skeleton className="h-10 w-full" />
         </div>
-        <Skeleton className="h-10 w-32" />
+        <Skeleton className="h-10 w-24" />
       </div>
 
       {/* Table Skeleton */}
       <div className="rounded-md border">
         <div className="relative overflow-auto">
           <Table className="min-w-[900px]">
-            <TableHeader className="bg-slate-50">
+            <TableHeader className="bg-slate-50/40 sticky top-0 z-10">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[50px] bg-slate-50/40 text-center whitespace-nowrap">
+                <TableHead className="w-[50px] text-center bg-slate-50/40 whitespace-nowrap">
                   No
                 </TableHead>
                 <TableHead className="w-[120px] bg-slate-50/40 whitespace-nowrap">
@@ -116,11 +110,10 @@ export function ArsipSkeleton() {
                     <Skeleton className="h-4 w-32" />
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-4 w-[200px]" />
+                    <Skeleton className="h-4 w-full" />
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Skeleton className="h-8 w-8 rounded-md" />
                       <Skeleton className="h-8 w-8 rounded-md" />
                       <Skeleton className="h-8 w-8 rounded-md" />
                     </div>
@@ -131,6 +124,144 @@ export function ArsipSkeleton() {
           </Table>
         </div>
       </div>
+    </div>
+  );
+}
+
+export function ArsipDetailSkeleton() {
+  return (
+    <div className="flex flex-col gap-4 sm:gap-6 animate-pulse">
+      {/* Header Skeleton */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-10 w-10 rounded-md" />
+          <div className="min-w-0 space-y-2">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Skeleton className="h-10 flex-1 sm:w-24 rounded-md" />
+          <Skeleton className="h-10 flex-1 sm:w-24 rounded-md" />
+        </div>
+      </div>
+
+      <div className="grid gap-6">
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-5 w-48" />
+                </div>
+              ))}
+              <div className="space-y-2">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-6 w-full max-w-[400px]" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row items-center justify-between p-4 border rounded-lg gap-4">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <Skeleton className="h-4 w-40" />
+              </div>
+              <div className="flex gap-2 w-full md:w-auto">
+                <Skeleton className="h-9 flex-1 md:w-24 rounded-md" />
+                <Skeleton className="h-9 flex-1 md:w-24 rounded-md" />
+              </div>
+            </div>
+            <div className="mt-4 border rounded-lg h-[400px]">
+              <div className="p-2 border-b flex justify-between">
+                <Skeleton className="h-3 w-32" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+              <div className="p-8 flex items-center justify-center h-full">
+                <Skeleton className="h-full w-full max-w-[600px]" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+export function ArsipFormSkeleton() {
+  return (
+    <div className="flex flex-col gap-4 sm:gap-6 animate-pulse">
+      {/* Header Skeleton */}
+      <div className="flex items-center gap-4">
+        <Skeleton className="h-10 w-10 rounded-md" />
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+      </div>
+
+      <Card>
+        <CardContent className="p-6 md:p-8 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-10 w-full rounded-md" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <div className="flex gap-4">
+                <Skeleton className="h-10 flex-1 rounded-md" />
+                <Skeleton className="h-10 flex-1 rounded-md" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-10 w-full rounded-md" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-10 w-full rounded-md" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-10 w-full rounded-md" />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-20 w-full rounded-md" />
+          </div>
+
+          <div className="space-y-4">
+            <Skeleton className="h-4 w-28" />
+            <div className="border-2 border-dashed rounded-lg p-12 flex flex-col items-center justify-center space-y-4">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-4 w-64" />
+              <Skeleton className="h-10 w-40 rounded-md" />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-6 border-t">
+            <Skeleton className="h-10 w-24 rounded-md" />
+            <Skeleton className="h-10 w-32 rounded-md" />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

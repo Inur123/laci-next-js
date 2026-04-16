@@ -13,7 +13,19 @@ export const metadata = {
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default async function UsersPage({
+export default function UsersPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  return (
+    <Suspense fallback={<UserSkeleton />}>
+      <UsersContentWrapper searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function UsersContentWrapper({
   searchParams,
 }: {
   searchParams: SearchParams;
@@ -23,6 +35,16 @@ export default async function UsersPage({
   if (session?.user?.role !== "SEKRETARIS_CABANG") {
     redirect("/dashboard");
   }
+
+  const params = await searchParams;
+  const q = (params.q as string) || "";
+  const page = Number(params.page) || 1;
+  const limit = 10;
+
+  const [userData, stats] = await Promise.all([
+    getPACUsers(q, page, limit),
+    getUserStats(),
+  ]);
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
@@ -40,26 +62,6 @@ export default async function UsersPage({
         </div>
       </div>
 
-      <Suspense fallback={<UserSkeleton />}>
-        <UsersContent searchParams={searchParams} />
-      </Suspense>
-    </div>
-  );
-}
-
-async function UsersContent({ searchParams }: { searchParams: SearchParams }) {
-  const params = await searchParams;
-  const q = (params.q as string) || "";
-  const page = Number(params.page) || 1;
-  const limit = 10;
-
-  const [userData, stats] = await Promise.all([
-    getPACUsers(q, page, limit),
-    getUserStats(),
-  ]);
-
-  return (
-    <div className="flex flex-col gap-4 sm:gap-6">
       <UserStats stats={stats} />
       <UserList
         users={userData.data}

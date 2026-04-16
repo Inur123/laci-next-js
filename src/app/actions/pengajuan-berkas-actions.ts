@@ -1053,7 +1053,7 @@ export async function updateStatusPengajuan(
 /**
  * Get statistics for pengajuan PAC
  */
-export async function getPengajuanBerkasStats() {
+export async function getPengajuanBerkasStats(userId?: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
@@ -1071,6 +1071,11 @@ export async function getPengajuanBerkasStats() {
   if (!isCabang) {
     whereClause.userId = session.user.id;
   } else {
+    // If specific userId requested and it's not ALL, use it
+    if (userId && userId !== "ALL") {
+      whereClause.userId = userId;
+    }
+
     // Get Cabang's active periode to filter pengajuans
     const periodeAktifCabang = await prisma.periode.findFirst({
       where: {

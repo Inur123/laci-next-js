@@ -6,8 +6,22 @@ import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
+import { BerkasPimpinanFormSkeleton } from "@/components/features/berkas-pimpinan/berkas-pimpinan-skeleton";
+import { Suspense } from "react";
 
 export default async function EditBerkasPimpinanPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  return (
+    <Suspense fallback={<BerkasPimpinanFormSkeleton />}>
+      <EditBerkasPimpinanContent params={params} />
+    </Suspense>
+  );
+}
+
+async function EditBerkasPimpinanContent({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -28,7 +42,7 @@ export default async function EditBerkasPimpinanPage({
   const label = isCabang ? "Berkas Cabang" : "Berkas PAC";
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-4 sm:gap-6">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
           <Link href="/dashboard/berkas-pimpinan">

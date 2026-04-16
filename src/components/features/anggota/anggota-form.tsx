@@ -99,6 +99,24 @@ export function AnggotaForm({ anggota, userRole }: AnggotaFormProps) {
   const [selectedFileMimeType, setSelectedFileMimeType] =
     useState<string>("image/jpeg");
   const [showCropModal, setShowCropModal] = useState(false);
+  const [jenisKelamin, setJenisKelamin] = useState<string | undefined>(
+    anggota?.jenisKelamin ?? undefined,
+  );
+
+  // Auto-correct perkaderan based on gender change
+  useEffect(() => {
+    setPerkaderans((prev) =>
+      prev.map((p) => {
+        if (jenisKelamin === "LAKI_LAKI" && p.namaPerkaderan === "Latpel") {
+          return { ...p, namaPerkaderan: "" };
+        }
+        if (jenisKelamin === "PEREMPUAN" && p.namaPerkaderan === "Latin") {
+          return { ...p, namaPerkaderan: "" };
+        }
+        return p;
+      }),
+    );
+  }, [jenisKelamin]);
 
   const addPerkaderan = () => {
     setPerkaderans([
@@ -168,12 +186,9 @@ export function AnggotaForm({ anggota, userRole }: AnggotaFormProps) {
       return;
     }
 
-    // Filter out empty perkaderans
+    // Filter: Wajibkan minimal Nama Perkaderan terisi
     const activePerkaderans = perkaderans.filter(
-      (p) =>
-        p.namaPerkaderan.trim() !== "" &&
-        p.tanggal !== "" &&
-        p.tempat.trim() !== "",
+      (p) => p.namaPerkaderan.trim() !== "",
     );
 
     if (selectedDate) formData.set("tanggalLahir", selectedDate.toISOString());
@@ -447,14 +462,19 @@ export function AnggotaForm({ anggota, userRole }: AnggotaFormProps) {
                   />
                   <Select
                     name="jenisKelamin"
-                    defaultValue={anggota?.jenisKelamin ?? undefined}
+                    value={jenisKelamin}
+                    onValueChange={setJenisKelamin}
                   >
                     <SelectTrigger className="w-full pl-10">
                       <SelectValue placeholder="Pilih Jenis Kelamin" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="LAKI_LAKI">Laki-laki</SelectItem>
-                      <SelectItem value="PEREMPUAN">Perempuan</SelectItem>
+                      <SelectItem value="LAKI_LAKI" className="text-xs">
+                        Laki-laki
+                      </SelectItem>
+                      <SelectItem value="PEREMPUAN" className="text-xs">
+                        Perempuan
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -577,15 +597,33 @@ export function AnggotaForm({ anggota, userRole }: AnggotaFormProps) {
                       <SelectValue placeholder="Pilih Jenjang" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="SD/MI">SD / MI</SelectItem>
-                      <SelectItem value="SMP/MTs">SMP / MTs</SelectItem>
-                      <SelectItem value="SMA/MA/SMK">SMA / MA / SMK</SelectItem>
-                      <SelectItem value="D1">D1</SelectItem>
-                      <SelectItem value="D2">D2</SelectItem>
-                      <SelectItem value="D3">D3</SelectItem>
-                      <SelectItem value="D4/S1">D4 / S1</SelectItem>
-                      <SelectItem value="S2">S2</SelectItem>
-                      <SelectItem value="S3">S3</SelectItem>
+                      <SelectItem value="SD/MI" className="text-xs">
+                        SD / MI
+                      </SelectItem>
+                      <SelectItem value="SMP/MTs" className="text-xs">
+                        SMP / MTs
+                      </SelectItem>
+                      <SelectItem value="SMA/MA/SMK" className="text-xs">
+                        SMA / MA / SMK
+                      </SelectItem>
+                      <SelectItem value="D1" className="text-xs">
+                        D1
+                      </SelectItem>
+                      <SelectItem value="D2" className="text-xs">
+                        D2
+                      </SelectItem>
+                      <SelectItem value="D3" className="text-xs">
+                        D3
+                      </SelectItem>
+                      <SelectItem value="D4/S1" className="text-xs">
+                        D4 / S1
+                      </SelectItem>
+                      <SelectItem value="S2" className="text-xs">
+                        S2
+                      </SelectItem>
+                      <SelectItem value="S3" className="text-xs">
+                        S3
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -707,18 +745,46 @@ export function AnggotaForm({ anggota, userRole }: AnggotaFormProps) {
                         <Label className="text-[10px] font-bold uppercase text-slate-500">
                           Nama
                         </Label>
-                        <Input
+                        <Select
                           value={p.namaPerkaderan}
-                          onChange={(e) =>
-                            updatePerkaderan(
-                              index,
-                              "namaPerkaderan",
-                              e.target.value,
-                            )
+                          onValueChange={(val) =>
+                            updatePerkaderan(index, "namaPerkaderan", val)
                           }
-                          placeholder="Contoh: MAKESTA"
-                          className="h-8 text-xs"
-                        />
+                        >
+                          <SelectTrigger className="h-8 text-xs w-full">
+                            <SelectValue placeholder="Pilih Perkaderan" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[
+                              { id: "Makesta", label: "Makesta" },
+                              { id: "Lakmud", label: "Lakmud" },
+                              ...(jenisKelamin === "LAKI_LAKI"
+                                ? [{ id: "Latin", label: "Latin" }]
+                                : []),
+                              ...(jenisKelamin === "PEREMPUAN"
+                                ? [{ id: "Latpel", label: "Latpel" }]
+                                : []),
+                              { id: "Lakut", label: "Lakut" },
+                            ].map((opt) => {
+                              const isSelectedElsewhere = perkaderans.some(
+                                (item, i) =>
+                                  i !== index &&
+                                  item.namaPerkaderan?.toUpperCase() ===
+                                    opt.id.toUpperCase(),
+                              );
+                              return (
+                                <SelectItem
+                                  key={opt.id}
+                                  value={opt.id}
+                                  disabled={isSelectedElsewhere}
+                                  className="text-xs"
+                                >
+                                  {opt.label}
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[10px] font-bold uppercase text-slate-500">

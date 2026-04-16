@@ -28,6 +28,9 @@ import {
   FileText,
   History as HistoryIcon,
   Users,
+  GraduationCap,
+  School,
+  LogOut,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
@@ -49,6 +52,30 @@ type UserDetail = {
   totalAnggota?: number | null;
   totalBerkasPimpinan?: number | null;
   totalLog?: number | null;
+  perkaderanCounts?: {
+    Makesta: number;
+    Lakmud: number;
+    Latin: number;
+    Latpel: number;
+    Lakut: number;
+  };
+  pendidikanCounts?: {
+    "SD/MI": number;
+    "SMP/MTs": number;
+    "SMA/MA/SMK": number;
+    D1: number;
+    D2: number;
+    D3: number;
+    "D4/S1": number;
+    S2: number;
+    S3: number;
+  };
+  perkaderans?: Array<{
+    id: string;
+    namaPerkaderan: string;
+    tanggal: Date | string;
+    tempat: string;
+  }>;
 };
 
 export default function UserDetailClient({
@@ -377,6 +404,95 @@ export default function UserDetailClient({
                       Aktivitas
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Statistik Perkaderan Section */}
+              <div className="space-y-4 pt-6 border-t">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-900">
+                  <GraduationCap size={18} className="text-primary" />
+                  Statistik Perkaderan
+                </h3>
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+                  {/* Makesta */}
+                  <div className="space-y-1.5 p-4 bg-purple-50/30 rounded-lg border border-purple-100">
+                    <span className="text-[10px] font-bold text-purple-500 uppercase tracking-widest flex items-center gap-1">
+                      <GraduationCap size={12} /> Makesta
+                    </span>
+                    <div className="text-sm font-medium text-slate-700">
+                      <NumberTicker value={currentUser.perkaderanCounts?.Makesta || 0} /> Makesta
+                    </div>
+                  </div>
+                  {/* Lakmud */}
+                  <div className="space-y-1.5 p-4 bg-emerald-50/30 rounded-lg border border-emerald-100">
+                    <span className="text-[10px] font-bold text-green-600 uppercase tracking-widest flex items-center gap-1">
+                      <GraduationCap size={12} /> Lakmud
+                    </span>
+                    <div className="text-sm font-medium text-slate-700">
+                      <NumberTicker value={currentUser.perkaderanCounts?.Lakmud || 0} /> Lakmud
+                    </div>
+                  </div>
+                  {/* Latin */}
+                  <div className="space-y-1.5 p-4 bg-blue-50/30 rounded-lg border border-blue-100">
+                    <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest flex items-center gap-1">
+                      <GraduationCap size={12} /> Latin
+                    </span>
+                    <div className="text-sm font-medium text-slate-700">
+                      <NumberTicker value={currentUser.perkaderanCounts?.Latin || 0} /> Alumni
+                    </div>
+                  </div>
+                  {/* Latpel */}
+                  <div className="space-y-1.5 p-4 bg-cyan-50/30 rounded-lg border border-cyan-100">
+                    <span className="text-[10px] font-bold text-cyan-600 uppercase tracking-widest flex items-center gap-1">
+                      <GraduationCap size={12} /> Latpel
+                    </span>
+                    <div className="text-sm font-medium text-slate-700">
+                      <NumberTicker value={currentUser.perkaderanCounts?.Latpel || 0} /> Alumni
+                    </div>
+                  </div>
+                  {/* Lakut */}
+                  <div className="space-y-1.5 p-4 bg-indigo-50/30 rounded-lg border border-indigo-100">
+                    <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest flex items-center gap-1">
+                      <GraduationCap size={12} /> Lakut
+                    </span>
+                    <div className="text-sm font-medium text-slate-700">
+                      <NumberTicker value={currentUser.perkaderanCounts?.Lakut || 0} /> Alumni
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Statistik Pendidikan Section */}
+              <div className="space-y-4 pt-6 border-t">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-900">
+                   <School size={18} className="text-primary" />
+                   Statistik Pendidikan
+                </h3>
+                <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 text-left">
+                  {[
+                    { id: "SD/MI", bg: "bg-slate-50/80", border: "border-slate-200", text: "text-slate-600" },
+                    { id: "SMP/MTs", bg: "bg-orange-50/80", border: "border-orange-200", text: "text-orange-600" },
+                    { id: "SMA/MA/SMK", bg: "bg-amber-50/80", border: "border-amber-200", text: "text-amber-600" },
+                    { id: "D1", bg: "bg-yellow-50/80", border: "border-yellow-200", text: "text-yellow-600" },
+                    { id: "D2", bg: "bg-lime-50/80", border: "border-lime-200", text: "text-lime-600" },
+                    { id: "D3", bg: "bg-emerald-50/80", border: "border-emerald-200", text: "text-emerald-600" },
+                    { id: "D4/S1", bg: "bg-blue-50/80", border: "border-blue-200", text: "text-blue-600" },
+                    { id: "S2", bg: "bg-indigo-50/80", border: "border-indigo-200", text: "text-indigo-600" },
+                    { id: "S3", bg: "bg-purple-50/80", border: "border-purple-200", text: "text-purple-600" },
+                  ].map((item) => (
+                    <div
+                      key={item.id}
+                      className={`space-y-1.5 p-4 ${item.bg} rounded-lg border ${item.border} flex flex-col justify-between`}
+                    >
+                      <span className={`text-[10px] font-bold ${item.text} uppercase tracking-widest flex items-center gap-1.5`}>
+                        <School size={12} className="shrink-0" />
+                        <span className="truncate">{item.id}</span>
+                      </span>
+                      <div className="text-sm font-bold text-slate-700">
+                        <NumberTicker value={currentUser.pendidikanCounts?.[item.id as keyof typeof currentUser.pendidikanCounts] || 0} />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 

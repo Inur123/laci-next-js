@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { LogActivityHeader } from "./log-activity-header";
 import { LogActivityStats } from "./log-activity-stats";
 import { LogActivityList } from "./log-activity-list";
@@ -35,6 +36,8 @@ export function LogActivityClient({
   userRole,
   pacUsers = [],
 }: LogActivityClientProps) {
+  const searchParams = useSearchParams();
+  const userIdFilter = searchParams.get("userId") || "ALL";
   const [activeTab, setActiveTab] = useState<"personal" | "global">("personal");
   const [monitoringData, setMonitoringData] = useState(initialMonitoringData);
   const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -66,14 +69,17 @@ export function LogActivityClient({
       realtimeTimerRef.current = setTimeout(async () => {
         realtimeTimerRef.current = null;
 
+        // Give extra time for server revalidation to settle
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
         // Only fetch monitoring data as stats are handled internally by LogActivityStats
         if (isCabang) {
           const { getLogMonitoringData } =
             await import("@/app/actions/log-activity-actions");
-          const mData = await getLogMonitoringData();
+          const mData = await getLogMonitoringData(userIdFilter);
           if (mData) setMonitoringData(mData);
         }
-      }, 300);
+      }, 500);
     };
 
     window.addEventListener("laci-realtime", handler as EventListener);
@@ -83,7 +89,7 @@ export function LogActivityClient({
         clearTimeout(realtimeTimerRef.current);
       }
     };
-  }, [isCabang]);
+  }, [isCabang, userIdFilter]);
 
   return (
     <div className="space-y-6 text-slate-900">
