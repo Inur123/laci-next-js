@@ -49,10 +49,11 @@ export default async function PresensiSuccessPage({
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-3 sm:p-4">
-      <div className="w-full max-w-[380px] bg-white rounded-[32px] shadow-2xl shadow-slate-200/50 overflow-hidden animate-in fade-in zoom-in duration-500 border border-slate-100">
-        {/* Success Icon Area (Kustom Sesuai Gambar) */}
-        <div className="pt-8 pb-4 flex flex-col items-center text-center px-6 relative">
+    <div className="min-h-screen bg-slate-100 flex flex-col items-center py-0 sm:py-8 px-0 sm:px-4">
+      {/* ── Main Column Wrapper (Full Mobile, Card Desktop) ── */}
+      <div className="w-full max-w-md bg-white sm:rounded-[32px] shadow-2xl shadow-slate-200/50 overflow-hidden min-h-screen sm:min-h-0 flex flex-col">
+        {/* Success Icon Area */}
+        <div className="pt-10 pb-6 flex flex-col items-center text-center px-6 relative">
           {/* Sparkles hiasan */}
           <Sparkles className="absolute top-10 right-24 w-4 h-4 text-green-200" />
           <div className="absolute top-24 left-24 w-3 h-3 text-green-300 font-bold">
@@ -76,7 +77,7 @@ export default async function PresensiSuccessPage({
         </div>
 
         {/* Info Content - Ultra Compact */}
-        <div className="px-6 pb-6 pt-2 space-y-4">
+        <div className="px-6 pb-8 pt-2 space-y-6 flex-1 flex flex-col">
           {/* Agenda Info Section */}
           <div className="space-y-3">
             <AgendaRow label="Nama Agenda" value={data.namaKegiatan} />
