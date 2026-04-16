@@ -79,7 +79,10 @@ interface PresensiListProps {
   userRole?: string;
 }
 
-export function PresensiList({ data: initialData, userRole = "SEKRETARIS_PAC" }: PresensiListProps) {
+export function PresensiList({
+  data: initialData,
+  userRole = "SEKRETARIS_PAC",
+}: PresensiListProps) {
   const [data, setData] = useState<any[]>(initialData);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -114,9 +117,40 @@ export function PresensiList({ data: initialData, userRole = "SEKRETARIS_PAC" }:
     }
   };
 
+  useEffect(() => {
+    const handleRealtime = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      if (
+        detail.type === "log" &&
+        detail.module === "PRESENSI_DATA" &&
+        detail.action === "CREATE" &&
+        detail.entityId
+      ) {
+        setData((prev) =>
+          prev.map((item) => {
+            if (item.id === detail.entityId) {
+              const currentCount = item._count?.dataPresensi ?? 0;
+              return {
+                ...item,
+                _count: {
+                  ...item._count,
+                  dataPresensi: currentCount + 1,
+                },
+              };
+            }
+            return item;
+          }),
+        );
+      }
+    };
+
+    window.addEventListener("laci-realtime", handleRealtime);
+    return () => window.removeEventListener("laci-realtime", handleRealtime);
+  }, []);
+
   const handleStatusUpdate = async (
     id: string,
-    mode: "AUTO" | "FORCE_OPEN" | "MANUAL_CLOSE",
+    mode: "AUTO" | "MANUAL_CLOSE",
   ) => {
     setLoadingId(id);
     const result = await updatePresensiStatus(id, mode);
@@ -150,7 +184,12 @@ export function PresensiList({ data: initialData, userRole = "SEKRETARIS_PAC" }:
   });
 
   // Sort state
-  type SortKey = "namaKegiatan" | "tanggal" | "jamMulai" | "tempat" | "isActive";
+  type SortKey =
+    | "namaKegiatan"
+    | "tanggal"
+    | "jamMulai"
+    | "tempat"
+    | "isActive";
   type SortDir = "asc" | "desc";
   const [sortKey, setSortKey] = useState<SortKey | null>("tanggal");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -166,10 +205,14 @@ export function PresensiList({ data: initialData, userRole = "SEKRETARIS_PAC" }:
 
   const SortIcon = ({ col }: { col: SortKey }) => {
     if (sortKey !== col)
-      return <ArrowUpDown className="ml-1.5 h-3.5 w-3.5 text-slate-400 inline-block" />;
-    return sortDir === "asc"
-      ? <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
-      : <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />;
+      return (
+        <ArrowUpDown className="ml-1.5 h-3.5 w-3.5 text-slate-400 inline-block" />
+      );
+    return sortDir === "asc" ? (
+      <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+    ) : (
+      <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+    );
   };
 
   const sortedFilteredData = [...filteredData].sort((a, b) => {
@@ -374,7 +417,9 @@ export function PresensiList({ data: initialData, userRole = "SEKRETARIS_PAC" }:
                         href={`/dashboard/presensi/${item.id}`}
                         className={cn(
                           "transition-colors font-semibold text-slate-900 block max-w-[220px] truncate",
-                          userRole === "SEKRETARIS_CABANG" ? "hover:text-blue-600" : "hover:text-green-700"
+                          userRole === "SEKRETARIS_CABANG"
+                            ? "hover:text-blue-600"
+                            : "hover:text-green-700",
                         )}
                       >
                         {capitalizeName(item.namaKegiatan)}
@@ -456,16 +501,19 @@ export function PresensiList({ data: initialData, userRole = "SEKRETARIS_PAC" }:
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
                           {/* Detail */}
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             asChild
                             className={cn(
                               "cursor-pointer",
-                              userRole === "SEKRETARIS_CABANG" 
-                                ? "text-blue-600 focus:text-blue-600" 
-                                : "text-green-700 focus:text-green-700"
+                              userRole === "SEKRETARIS_CABANG"
+                                ? "text-blue-600 focus:text-blue-600"
+                                : "text-green-700 focus:text-green-700",
                             )}
                           >
-                            <Link href={`/dashboard/presensi/${item.id}`} className="flex items-center">
+                            <Link
+                              href={`/dashboard/presensi/${item.id}`}
+                              className="flex items-center"
+                            >
                               <Eye className="w-4 h-4 mr-2 shrink-0" />
                               Detail
                             </Link>
@@ -482,20 +530,7 @@ export function PresensiList({ data: initialData, userRole = "SEKRETARIS_PAC" }:
                             </Link>
                           </DropdownMenuItem>
 
-                          {/* Kontrol Status Kontekstual */}
                           <DropdownMenuSeparator />
-
-                          {isPresensiOpen(item) ? null : (
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleStatusUpdate(item.id, "FORCE_OPEN")
-                              }
-                              className="flex items-center cursor-pointer text-green-600 focus:text-green-700"
-                            >
-                              <Power className="w-4 h-4 mr-2 shrink-0" />
-                              Buka Presensi
-                            </DropdownMenuItem>
-                          )}
 
                           <DropdownMenuSeparator />
 

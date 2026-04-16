@@ -16,19 +16,7 @@ export function isPresensiOpen(presensi: any) {
 
   const now = new Date();
 
-  // 2. If it was forced open by admin (isForcedOpen: true)
-  if (presensi.isForcedOpen === true && presensi.forcedOpenAt) {
-    const forcedOpenTime = new Date(presensi.forcedOpenAt);
-    const expiryTime = addMinutes(forcedOpenTime, 10); // LIMIT: 10 MINUTES
-
-    // Only return true if still within the 10-minute grace period
-    if (now <= expiryTime) return true;
-
-    // If we've passed the 10-minute window, it falls back to automatic checks below
-    // (Essentially it self-closes the 'Forced' state after 10 mins)
-  }
-
-  // 3. Fallback to Automatic timing
+  // 2. Automatic timing
   // VPS sudah di-setting timezone Asia/Jakarta, jadi pakai date-fns langsung
   const todayStr = format(now, "yyyy-MM-dd");
   const eventDateStr = format(new Date(presensi.tanggal), "yyyy-MM-dd");

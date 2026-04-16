@@ -214,10 +214,11 @@ const presensiSchema = z.object({
     .string()
     .transform((val) => val.replace(/\s+/g, "")) // Hapus smua spasi biar aman
     .pipe(
-      z.string()
+      z
+        .string()
         .regex(/^[0-9]+$/, "Nomor HP tidak boleh ada huruf/simbol")
         .min(10, "Nomor HP minimal harus 10 digit")
-        .max(15, "Nomor HP maksimal 15 digit")
+        .max(15, "Nomor HP maksimal 15 digit"),
     ),
   organisasi: z.string().min(1, "Organisasi wajib diisi"),
   tingkat: z.string().nullable().optional(),
@@ -244,18 +245,13 @@ export async function submitPresensiData(
   });
 
   if (!validation.success) {
-    return { error: validation.error.issues[0]?.message || "Input tidak valid" };
+    return {
+      error: validation.error.issues[0]?.message || "Input tidak valid",
+    };
   }
 
-  const {
-    namaLengkap,
-    email,
-    noHp,
-    organisasi,
-    tingkat,
-    jabatan,
-    instansi,
-  } = validation.data;
+  const { namaLengkap, email, noHp, organisasi, tingkat, jabatan, instansi } =
+    validation.data;
 
   // Check if session is currently active
   const presensi = await prisma.presensi.findUnique({
@@ -273,7 +269,7 @@ export async function submitPresensiData(
   // ... (jam check logic)
 
   try {
-    await prisma.presensiData.create({
+    const newRecord = await prisma.presensiData.create({
       data: {
         presensiId,
         namaLengkap: encryptText(namaLengkap),
@@ -288,7 +284,10 @@ export async function submitPresensiData(
       },
     });
 
-    return { success: "Berhasil melakukan presensi!" };
+    return {
+      success: "Berhasil melakukan presensi!",
+      participantId: newRecord.id,
+    };
   } catch (error: any) {
     if (error.code === "P2002") {
       return {
@@ -332,8 +331,8 @@ export async function deletePresensi(id: string) {
  * Update Presensi State (Automatic/Manual)
  */
 export async function updatePresensiStatus(
-  id: string, 
-  mode: "AUTO" | "FORCE_OPEN" | "MANUAL_CLOSE"
+  id: string,
+  mode: "AUTO" | "MANUAL_CLOSE",
 ) {
   const session = await auth();
   if (!session?.user?.id) return { error: "Unauthorized" };
@@ -345,10 +344,6 @@ export async function updatePresensiStatus(
     if (mode === "AUTO") {
       data = { isActive: true, isForcedOpen: false, forcedOpenAt: null };
       label = "diatur Otomatis";
-    } else if (mode === "FORCE_OPEN") {
-      // SET TIMESTAMP FOR 10 MINUTE LIMIT
-      data = { isActive: true, isForcedOpen: true, forcedOpenAt: new Date() };
-      label = "dibuka Paksa (Manual - 10 Menit)";
     } else if (mode === "MANUAL_CLOSE") {
       data = { isActive: false, isForcedOpen: false, forcedOpenAt: null };
       label = "ditutup Manual";
@@ -370,12 +365,30 @@ export async function updatePresensiStatus(
     revalidatePath("/dashboard/presensi", "page");
     revalidatePath(`/dashboard/presensi/${id}`, "page");
 
-    return { 
+    return {
       success: `Status presensi berhasil ${label}!`,
-      data: updated 
+      data: updated,
     };
   } catch (error) {
     console.error("Update presensi status error:", error);
     return { error: "Gagal mengubah status presensi" };
   }
+}
+
+/**
+ * Get Specific Participant Detail
+ */
+export async function getParticipantDetail(id: string) {
+  const data = await prisma.presensiData.findUnique({
+    where: { id },
+  });
+
+  if (!data) return null;
+
+  return {
+    ...data,
+    namaLengkap: decryptText(data.namaLengkap),
+    email: decryptText(data.email),
+    noHp: decryptText(data.noHp),
+  };
 }

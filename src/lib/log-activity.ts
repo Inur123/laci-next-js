@@ -59,7 +59,7 @@ export async function createLog(
       });
 
       // Notifikasi realtime (Fire and forget)
-      notifyRealtime({ type: "log", action, module, description }).catch(() => {});
+      notifyRealtime({ type: "log", action, module, description, entityId }).catch(() => {});
     } catch (err) {
       console.error("[Logger] Background logging failed:", err);
     }
@@ -122,7 +122,7 @@ export async function createLogManual(
         },
       });
 
-      notifyRealtime({ type: "log", action, module, description }).catch(() => {});
+      notifyRealtime({ type: "log", action, module, description, entityId }).catch(() => {});
     } catch (err) {
       console.error("[Logger Manual] Background logging failed:", err);
     }

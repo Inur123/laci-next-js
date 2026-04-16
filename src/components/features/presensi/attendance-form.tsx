@@ -28,6 +28,7 @@ import {
   getPresensiDetail,
 } from "@/app/actions/presensi-actions";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
@@ -47,6 +48,7 @@ interface AttendanceFormProps {
 }
 
 export function AttendanceForm({ presensi }: AttendanceFormProps) {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [submittedData, setSubmittedData] = useState<{
@@ -147,25 +149,21 @@ export function AttendanceForm({ presensi }: AttendanceFormProps) {
       if (result.error) {
         toast.error(result.error);
       } else {
-        const asalType = formData.get("asal_type") as
-          | "struktural"
-          | "non-struktural";
-        setSubmittedData({
-          namaLengkap: data.namaLengkap as string,
-          organisasi:
-            asalType === "non-struktural"
-              ? "Eksternal"
-              : (data.organisasi as string),
-          email: data.email as string,
-          noHp: data.noHp as string,
-          asal: asalType,
-          tingkat: (data.tingkat as string) || null,
-          jabatan: (data.jabatan as string) || null,
-          instansi: (data.instansi as string) || null,
-        });
-        setIsSuccess(true);
+        toast.success("Presensi berhasil!");
+
+        // Redirect ke halaman sukses dengan ID peserta
+        setTimeout(() => {
+          if (result.participantId) {
+            router.push(
+              `/presensi/${presensi.id}/success?id=${result.participantId}`,
+            );
+          } else {
+            router.push(`/presensi/${presensi.id}/success`);
+          }
+        }, 100);
       }
-    } catch {
+    } catch (err) {
+      console.error("Submit Error:", err);
       toast.error("Terjadi kesalahan sistem saat menyimpan data");
     } finally {
       setIsSubmitting(false);
@@ -195,113 +193,6 @@ export function AttendanceForm({ presensi }: AttendanceFormProps) {
   /* ------------------------------------------------------------------ */
   /* Sukses – tampilkan summary data, tanpa tombol kembali               */
   /* ------------------------------------------------------------------ */
-  if (isSuccess && submittedData) {
-    const displayRole =
-      submittedData.asal === "non-struktural"
-        ? [submittedData.jabatan, submittedData.instansi]
-            .filter(Boolean)
-            .join(" · ")
-        : [
-            submittedData.jabatan,
-            submittedData.organisasi,
-            submittedData.tingkat,
-          ]
-            .filter(Boolean)
-            .join(" · ");
-
-    return (
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        {/* Sukses header */}
-        <div className="bg-green-50 border-b border-green-100 px-6 pt-8 pb-6 flex flex-col items-center text-center">
-          <div className="relative flex items-center justify-center mb-5">
-            <div className="absolute w-20 h-20 rounded-full bg-green-100/60" />
-            <div className="absolute w-28 h-28 rounded-full bg-green-50/80" />
-            <div className="relative w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <CheckCircle2
-                className="w-9 h-9 text-green-600"
-                strokeWidth={1.5}
-              />
-            </div>
-          </div>
-          <h2 className="text-xl font-bold text-green-700 mb-1">
-            Presensi Sukses!
-          </h2>
-          <p className="text-green-600/70 text-sm">
-            Data Anda berhasil dicatat.
-          </p>
-        </div>
-
-        {/* Detail kegiatan */}
-        <div className="px-6 py-5 space-y-3">
-          <SuksesRow label="Nama Agenda" value={capitalizeName(presensi.namaKegiatan)} />
-          <SuksesRow label="Tempat" value={capitalizeName(presensi.tempat)} />
-          <SuksesRow label="Penyelenggara" value={capitalizeName(presensi.penyelenggara)} />
-          <div className="grid grid-cols-2 gap-4">
-            <SuksesRow
-              label="Tanggal"
-              value={format(new Date(presensi.tanggal), "d MMMM yyyy", {
-                locale: idLocale,
-              })}
-            />
-            <SuksesRow
-              label="Waktu"
-              value={`${presensi.jamMulai} – ${presensi.jamSelesai}`}
-            />
-          </div>
-        </div>
-
-        {/* Data terverifikasi - Flat & Integrated */}
-        <div className="px-6 pb-10 space-y-5">
-          <div className="pt-6 border-t border-slate-100">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">
-              Data Anda Terverifikasi:
-            </p>
-
-            {/* Header Nama Ringkas */}
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-12 h-12 bg-green-100/80 rounded-2xl flex items-center justify-center shrink-0">
-                <User className="w-6 h-6 text-green-600" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="font-bold text-lg text-slate-900 leading-tight">
-                  {capitalizeName(submittedData.namaLengkap)}
-                </h3>
-                <p className="text-xs font-semibold text-green-600 uppercase tracking-wide">
-                  {submittedData.organisasi === "UMUM" ? "Eksternal" : submittedData.organisasi} {submittedData.tingkat || ""}
-                </p>
-              </div>
-            </div>
-
-            {/* List Detail - Tanpa Card */}
-            <div className="grid grid-cols-1 gap-y-4">
-              <DetailItem
-                icon={<Mail className="w-4 h-4" />}
-                label="Email Terdaftar"
-                value={submittedData.email}
-              />
-              <DetailItem
-                icon={<Phone className="w-4 h-4" />}
-                label="Nomor WhatsApp"
-                value={submittedData.noHp}
-              />
-              <DetailItem
-                icon={<MapPin className="w-4 h-4" />}
-                label="Status / Jabatan"
-                value={`${submittedData.jabatan || "Peserta"} - ${submittedData.organisasi}`}
-              />
-              {submittedData.instansi && (
-                <DetailItem
-                  icon={<Building className="w-4 h-4" />}
-                  label="Asal Instansi"
-                  value={submittedData.instansi}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // Helper component untuk detail item (Flat version)
   function DetailItem({
@@ -334,27 +225,19 @@ export function AttendanceForm({ presensi }: AttendanceFormProps) {
   /* Form utama – clean flat tanpa Card global                           */
   /* ------------------------------------------------------------------ */
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-      {/* Form header */}
-      <div className="px-6 pt-7 pb-5 border-b border-slate-50 flex flex-col items-center text-center">
-        <div className="relative w-12 h-12 mb-3">
-          <Image
-            src="/images/logo-laci.webp"
-            alt="Laci Digital"
-            fill
-            sizes="48px"
-            className="object-contain"
-          />
+    <div className="w-full">
+        {/* ── CARD HEADER ── */}
+        <div className="pt-2 px-0 pb-2 text-center">
+          <h2 className="text-lg font-bold text-slate-800 tracking-tight">
+            Lengkapi Data Anda
+          </h2>
+          <p className="text-[11px] text-slate-400 font-medium leading-relaxed mt-1">
+            Silakan mengisi formulir berikut untuk keperluan presensi.
+          </p>
         </div>
-        <h2 className="text-lg font-bold text-slate-800 mb-0.5">
-          Lengkapi Data Anda
-        </h2>
-        <p className="text-sm text-slate-400 leading-relaxed max-w-xs">
-          Silakan mengisi formulir berikut untuk keperluan presensi.
-        </p>
-      </div>
 
-      <form onSubmit={handleSubmit} className="px-5 py-6 space-y-4">
+      {/* ── CARD BODY ── */}
+      <form onSubmit={handleSubmit} className="py-6 px-0 pt-6 space-y-5">
         {/* Nama Lengkap */}
         <Field label="Nama Lengkap" htmlFor="namaLengkap" required>
           <Input

@@ -6,6 +6,7 @@ import { Metadata } from "next";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import Image from "next/image";
+import { isPresensiOpen } from "@/lib/presensi-utils";
 
 const capitalizeName = (name: string) => {
   if (!name) return "";
@@ -33,108 +34,87 @@ export default async function PublicPresensiPage({
     notFound();
   }
 
+  // Hitung status buka/tutup secara realtime
+  const isOpen = isPresensiOpen(data);
+
   // VPS sudah di-setting timezone Asia/Jakarta, pakai date-fns langsung
-  const tanggalFormatted = format(new Date(data.tanggal), "EEEE, dd MMMM yyyy", {
-    locale: idLocale,
-  });
+  const tanggalFormatted = format(
+    new Date(data.tanggal),
+    "EEEE, dd MMMM yyyy",
+    {
+      locale: idLocale,
+    },
+  );
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* ── Top green header ── */}
-      <div className="bg-green-600 text-white">
-        {/* Brand bar */}
-        <div className="max-w-lg mx-auto px-4 pt-6 pb-4 flex items-center gap-3">
-          <div className="relative w-10 h-10 shrink-0 bg-white rounded-full p-0.5 shadow">
-            <Image
-              src="/images/logo-laci.webp"
-              alt="Laci Digital"
-              fill
-              sizes="40px"
-              className="object-contain rounded-full"
-              priority
-            />
+    <div className="min-h-screen bg-slate-100 flex flex-col items-center py-0 sm:py-8 px-0 sm:px-4">
+      {/* ── Main Column Wrapper ── */}
+      <div className="w-full max-w-md bg-white sm:rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden flex flex-col">
+        {/* ── Top green header (Sesuai lebar kolom) ── */}
+        <div className="bg-green-600 text-white px-6 pt-6 pb-5">
+          {/* Brand bar */}
+          <div className="flex items-center gap-3 mb-6">
+            <div className="relative w-10 h-10 shrink-0 bg-white rounded-full p-0.5 shadow-sm">
+              <Image
+                src="/images/logo-laci.webp"
+                alt="Laci Digital"
+                fill
+                sizes="40px"
+                className="object-contain rounded-full"
+                priority
+              />
+            </div>
+            <div>
+              <p className="font-bold text-sm leading-tight">Laci Digital</p>
+              <p className="text-green-200 text-[10px] mt-0.5 leading-none">
+                PC IPNU IPPNU Kab. Magetan
+              </p>
+            </div>
+            <div className="ml-auto">
+              <PresensiStatusBadge
+                presensiId={data.id}
+                initialPresensi={data}
+              />
+            </div>
           </div>
-          <div>
-            <p className="font-bold text-sm leading-tight">Laci Digital</p>
-            <p className="text-green-200 text-xs">PC IPNU IPPNU Kab. Magetan</p>
-          </div>
-          {/* Status badge – realtime */}
-          <div className="ml-auto">
-            <PresensiStatusBadge
-              presensiId={data.id}
-              initialPresensi={data}
-            />
-          </div>
-        </div>
 
-        {/* Event info */}
-        <div className="max-w-lg mx-auto px-4 pb-6">
-          <h1 className="text-xl font-bold leading-snug mb-3">
-            {capitalizeName(data.namaKegiatan)}
-          </h1>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            <div>
-              <p className="text-green-300 text-xs font-medium mb-0.5">
-                Penyelenggara
-              </p>
-              <p className="text-white font-medium text-sm leading-snug">
-                {capitalizeName(data.penyelenggara)}
-              </p>
-            </div>
-            <div>
-              <p className="text-green-300 text-xs font-medium mb-0.5">
-                Tempat
-              </p>
-              <p className="text-white font-medium text-sm leading-snug">
-                {capitalizeName(data.tempat)}
-              </p>
-            </div>
-            <div>
-              <p className="text-green-300 text-xs font-medium mb-0.5">
-                Tanggal
-              </p>
-              <p className="text-white font-medium text-sm">
-                {tanggalFormatted}
-              </p>
-            </div>
-            <div>
-              <p className="text-green-300 text-xs font-medium mb-0.5">Waktu</p>
-              <p className="text-white font-medium text-sm">
-                {data.jamMulai} – {data.jamSelesai} WIB
-              </p>
+          {/* Event info */}
+          <div className="space-y-4">
+            <h1 className="text-2xl font-black leading-tight tracking-tight">
+              {capitalizeName(data.namaKegiatan)}
+            </h1>
+            <div className="grid grid-cols-2 gap-4 border-t border-white/20 pt-4">
+              <div>
+                <p className="text-green-300 text-[10px] font-bold uppercase tracking-wider mb-1">
+                  Penyelenggara
+                </p>
+                <p className="text-white font-bold text-xs leading-tight">
+                  {capitalizeName(data.penyelenggara)}
+                </p>
+              </div>
+              <div>
+                <p className="text-green-300 text-[10px] font-bold uppercase tracking-wider mb-1">
+                  Tempat
+                </p>
+                <p className="text-white font-bold text-xs leading-tight">
+                  {capitalizeName(data.tempat)}
+                </p>
+              </div>
+              <div className="col-span-2 flex items-center gap-2 text-white/90 text-[11px] font-bold">
+                <span>{tanggalFormatted}</span>
+                <span className="opacity-40">•</span>
+                <span>
+                  {data.jamMulai} – {data.jamSelesai} WIB
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Wave divider */}
-        <div className="w-full overflow-hidden leading-none">
-          <svg
-            viewBox="0 0 1440 40"
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-full block"
-            preserveAspectRatio="none"
-          >
-            <path
-              d="M0,20 C360,40 1080,0 1440,20 L1440,40 L0,40 Z"
-              fill="#f8fafc"
-            />
-          </svg>
+        {/* ── Form area (Padding disamakan agar sejajar lurus) ── */}
+        <div className="px-6 py-6 bg-white">
+          <AttendanceForm presensi={{ ...data, statusOpen: isOpen }} />
         </div>
-      </div>
-
-      {/* ── Form area ── */}
-      <div className="flex-1 bg-slate-50">
-        <div className="max-w-lg mx-auto px-4 py-4 pb-10">
-          <AttendanceForm presensi={data} />
-        </div>
-      </div>
-
-      {/* ── Footer ── */}
-      <div className="text-center py-4 px-4 bg-slate-50 border-t border-slate-100">
-        <p className="text-xs text-slate-400">
-          © {new Date().getFullYear()} PC IPNU IPPNU Kabupaten Magetan ·{" "}
-          <span className="text-green-600 font-medium">Laci Digital</span>
-        </p>
       </div>
     </div>
   );
