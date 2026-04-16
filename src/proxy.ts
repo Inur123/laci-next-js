@@ -34,11 +34,15 @@ export default async function proxy(request: NextRequest) {
   let user: any = null;
   if (sessionCookie) {
     try {
-      // Selalu gunakan localhost untuk fetch internal agar menghindari SSL error di VPS
-      const res = await fetch(`http://localhost:3000/api/auth/get-session`, {
+      // Gunakan URL internal dari .env (jika ada) untuk menghindari SSL error di VPS
+      const internalUrl = process.env.BETTER_AUTH_URL_INTERNAL || "http://localhost:3000";
+      const res = await fetch(`${internalUrl}/api/auth/get-session`, {
         headers: {
-          cookie: request.headers.get("cookie") || "",
+          "cookie": request.headers.get("cookie") || "",
+          "x-forwarded-proto": request.headers.get("x-forwarded-proto") || "https",
+          "host": request.headers.get("host") || "laci.web.id",
         },
+        cache: 'no-store',
       });
 
       if (res.ok) {
@@ -50,6 +54,9 @@ export default async function proxy(request: NextRequest) {
       }
     } catch (err) {
       console.error("[Proxy Auth Error]:", err);
+      // Jika fetch gagal (e.g. timeout), jangan langsung tendang user.
+      // Kita biarkan dia lewat dulu dan biarkan Server Component yang validasi lebih akurat.
+      return NextResponse.next();
     }
   }
 

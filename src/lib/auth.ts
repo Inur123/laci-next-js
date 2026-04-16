@@ -29,9 +29,10 @@ export const auth = betterAuth({
   // Izinkan proxy (Nginx/Cloudflare)
   advanced: {
     useSecureCookies: process.env.NODE_ENV === "production",
+    cookiePrefix: "ipnu-laci", 
   },
-
-  // SANGAT PENTING untuk Production di balik Proxy
+  
+  // SANGAT PENTING untuk Production di balik Proxy VPS
   trustHost: true,
 
   // Email & Password Authentication
