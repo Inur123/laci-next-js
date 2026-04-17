@@ -17,17 +17,19 @@ import { Role } from "@prisma/client";
 export async function auth() {
   try {
     const user = await getCurrentUser();
+    
     if (!user) {
-      return null;
-    }
-
-    // Proteksi Dasar: Jika tidak aktif, anggap tidak terautentikasi
-    if ((user as any).isActive === false) {
       return null;
     }
 
     // Map Better Auth user to NextAuth session format
     const u = user as any;
+
+    // Proteksi Dasar: Jika tidak aktif, anggap tidak terautentikasi
+    if (u.isActive === false) {
+      return null;
+    }
+
     return {
       user: {
         id: u.id,

@@ -279,6 +279,8 @@ export async function getUserDetail(userId: string) {
       Latin: 0,
       Latpel: 0,
       Lakut: 0,
+      Diklatama: 0,
+      Diklatmad: 0,
     };
 
     (perkaderanList as any[]).forEach((p) => {
@@ -288,6 +290,8 @@ export async function getUserDetail(userId: string) {
       else if (decrypted === "LATIN") perkaderanCounts["Latin"]++;
       else if (decrypted === "LATPEL") perkaderanCounts["Latpel"]++;
       else if (decrypted === "LAKUT") perkaderanCounts["Lakut"]++;
+      else if (decrypted === "DIKLATAMA") perkaderanCounts["Diklatama"]++;
+      else if (decrypted === "DIKLATMAD") perkaderanCounts["Diklatmad"]++;
     });
 
     // Pendidikan Counts
@@ -340,6 +344,8 @@ export async function getUserDetail(userId: string) {
       Latin: 0,
       Latpel: 0,
       Lakut: 0,
+      Diklatama: 0,
+      Diklatmad: 0,
     },
     pendidikanCounts: (stats as any).pendidikanCounts || {
       "SD/MI": 0,

@@ -53,23 +53,29 @@ interface MonitoringStats {
       Latin: number;
       Latpel: number;
       Lakut: number;
+      Diklatama: number;
+      Diklatmad: number;
     };
     pendidikan?: {
       "SD/MI": number;
       "SMP/MTs": number;
       "SMA/MA/SMK": number;
-      "D1": number;
-      "D2": number;
-      "D3": number;
+      D1: number;
+      D2: number;
+      D3: number;
       "D4/S1": number;
-      "S2": number;
-      "S3": number;
+      S2: number;
+      S3: number;
     };
   };
   leaderboard: LeaderboardItem[];
 }
 
-export function DashboardMonitoring({ data }: { data: MonitoringStats | null }) {
+export function DashboardMonitoring({
+  data,
+}: {
+  data: MonitoringStats | null;
+}) {
   if (!data) return null;
   // Top 3 Winners Styling
   const getRankStyle = (index: number) => {
@@ -148,14 +154,15 @@ export function DashboardMonitoring({ data }: { data: MonitoringStats | null }) 
           <GraduationCap size={18} className="text-primary" />
           Total Perkaderan Wilayah
         </h3>
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
           {/* Makesta */}
           <div className="space-y-1.5 p-4 bg-purple-50/30 rounded-lg border border-purple-100 shadow-sm">
             <span className="text-[10px] font-bold text-purple-500 uppercase tracking-widest flex items-center gap-1">
               <GraduationCap size={12} /> Makesta
             </span>
             <div className="text-sm font-bold text-slate-700">
-              <NumberTicker value={data.global.perkaderan?.Makesta || 0} /> Makesta
+              <NumberTicker value={data.global.perkaderan?.Makesta || 0} />{" "}
+              Anggota
             </div>
           </div>
           {/* Lakmud */}
@@ -164,7 +171,8 @@ export function DashboardMonitoring({ data }: { data: MonitoringStats | null }) 
               <GraduationCap size={12} /> Lakmud
             </span>
             <div className="text-sm font-bold text-slate-700">
-              <NumberTicker value={data.global.perkaderan?.Lakmud || 0} /> Lakmud
+              <NumberTicker value={data.global.perkaderan?.Lakmud || 0} />{" "}
+              Anggota
             </div>
           </div>
           {/* Latin */}
@@ -173,7 +181,8 @@ export function DashboardMonitoring({ data }: { data: MonitoringStats | null }) 
               <GraduationCap size={12} /> Latin
             </span>
             <div className="text-sm font-bold text-slate-700">
-              <NumberTicker value={data.global.perkaderan?.Latin || 0} /> Alumni
+              <NumberTicker value={data.global.perkaderan?.Latin || 0} />{" "}
+              Anggota
             </div>
           </div>
           {/* Latpel */}
@@ -182,7 +191,8 @@ export function DashboardMonitoring({ data }: { data: MonitoringStats | null }) 
               <GraduationCap size={12} /> Latpel
             </span>
             <div className="text-sm font-bold text-slate-700">
-              <NumberTicker value={data.global.perkaderan?.Latpel || 0} /> Alumni
+              <NumberTicker value={data.global.perkaderan?.Latpel || 0} />{" "}
+              Anggota
             </div>
           </div>
           {/* Lakut */}
@@ -191,7 +201,28 @@ export function DashboardMonitoring({ data }: { data: MonitoringStats | null }) 
               <GraduationCap size={12} /> Lakut
             </span>
             <div className="text-sm font-bold text-slate-700">
-              <NumberTicker value={data.global.perkaderan?.Lakut || 0} /> Alumni
+              <NumberTicker value={data.global.perkaderan?.Lakut || 0} />{" "}
+              Anggota
+            </div>
+          </div>
+          {/* Diklatama */}
+          <div className="space-y-1.5 p-4 bg-orange-50/30 rounded-lg border border-orange-100 shadow-sm">
+            <span className="text-[10px] font-bold text-orange-500 uppercase tracking-widest flex items-center gap-1">
+              <GraduationCap size={12} /> Diklatama
+            </span>
+            <div className="text-sm font-bold text-slate-700">
+              <NumberTicker value={data.global.perkaderan?.Diklatama || 0} />{" "}
+              Anggota
+            </div>
+          </div>
+          {/* Diklatmad */}
+          <div className="space-y-1.5 p-4 bg-rose-50/30 rounded-lg border border-rose-100 shadow-sm">
+            <span className="text-[10px] font-bold text-rose-500 uppercase tracking-widest flex items-center gap-1">
+              <GraduationCap size={12} /> Diklatmad
+            </span>
+            <div className="text-sm font-bold text-slate-700">
+              <NumberTicker value={data.global.perkaderan?.Diklatmad || 0} />{" "}
+              Anggota
             </div>
           </div>
         </div>
@@ -218,11 +249,19 @@ export function DashboardMonitoring({ data }: { data: MonitoringStats | null }) 
               key={item.id}
               className={`space-y-1.5 p-4 bg-${item.color}-50/30 rounded-lg border border-${item.color}-100 shadow-sm flex flex-col justify-between`}
             >
-              <span className={`text-[10px] font-bold text-${item.color}-500 uppercase tracking-widest flex items-center gap-1`}>
+              <span
+                className={`text-[10px] font-bold text-${item.color}-500 uppercase tracking-widest flex items-center gap-1`}
+              >
                 <School size={12} /> {item.id}
               </span>
               <div className="text-sm font-bold text-slate-700">
-                <NumberTicker value={data.global.pendidikan?.[item.id as keyof typeof data.global.pendidikan] || 0} />
+                <NumberTicker
+                  value={
+                    data.global.pendidikan?.[
+                      item.id as keyof typeof data.global.pendidikan
+                    ] || 0
+                  }
+                />
               </div>
             </div>
           ))}
@@ -294,7 +333,9 @@ export function DashboardMonitoring({ data }: { data: MonitoringStats | null }) 
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full text-slate-400 bg-slate-50/50 rounded-lg border border-dashed border-slate-200 mx-4">
                     <Trophy className="w-10 h-10 mb-2 opacity-20" />
-                    <p className="text-sm font-medium">Belum ada data peringkat</p>
+                    <p className="text-sm font-medium">
+                      Belum ada data peringkat
+                    </p>
                     <p className="text-xs text-slate-400">
                       Menunggu aktivitas PAC
                     </p>
@@ -350,7 +391,9 @@ export function DashboardMonitoring({ data }: { data: MonitoringStats | null }) 
                     <div className="w-32 h-32 rounded-full border-4 border-slate-100 border-dashed flex items-center justify-center">
                       <PieIcon className="w-8 h-8 opacity-20" />
                     </div>
-                    <p className="text-xs font-medium mt-4">Data masih kosong</p>
+                    <p className="text-xs font-medium mt-4">
+                      Data masih kosong
+                    </p>
                   </div>
                 )}
               </div>

@@ -15,9 +15,11 @@ export default async function proxy(request: NextRequest) {
     pathname.startsWith("/login") || pathname.startsWith("/register");
 
   // OPTIMASI: Cek cookie dulu sebelum fetch
-  // Jika tidak ada cookie session, skip fetch (hemat ~200-400ms)
-  const sessionCookie = request.cookies.get("better-auth.session_token") 
-    || request.cookies.get("__Secure-better-auth.session_token");
+  // Cari cookie session secara fleksibel (karena prefix bisa bervariasi)
+  const allCookies = request.cookies.getAll();
+  const sessionCookie = allCookies.find(c => c.name.includes("session_token"));
+  
+
 
   // Jika di halaman auth dan TIDAK ada cookie → langsung lanjut (tidak perlu fetch)
   if (isOnAuthPage && !sessionCookie) {

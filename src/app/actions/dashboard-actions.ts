@@ -252,6 +252,12 @@ export async function getDashboardStats() {
           Lakut: (perkaderanStats as any[]).filter(
             (p) => decryptText(p.namaPerkaderan).toUpperCase() === "LAKUT",
           ).length,
+          Diklatama: (perkaderanStats as any[]).filter(
+            (p) => decryptText(p.namaPerkaderan).toUpperCase() === "DIKLATAMA",
+          ).length,
+          Diklatmad: (perkaderanStats as any[]).filter(
+            (p) => decryptText(p.namaPerkaderan).toUpperCase() === "DIKLATMAD",
+          ).length,
         },
         pendidikan: {
           "SD/MI":

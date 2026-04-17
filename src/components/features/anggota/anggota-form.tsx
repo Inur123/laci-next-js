@@ -758,13 +758,15 @@ export function AnggotaForm({ anggota, userRole }: AnggotaFormProps) {
                             {[
                               { id: "Makesta", label: "Makesta" },
                               { id: "Lakmud", label: "Lakmud" },
+                              { id: "Lakut", label: "Lakut" },
+                              { id: "Diklatama", label: "Diklatama" },
+                              { id: "Diklatmad", label: "Diklatmad" },
                               ...(jenisKelamin === "LAKI_LAKI"
                                 ? [{ id: "Latin", label: "Latin" }]
                                 : []),
                               ...(jenisKelamin === "PEREMPUAN"
                                 ? [{ id: "Latpel", label: "Latpel" }]
                                 : []),
-                              { id: "Lakut", label: "Lakut" },
                             ].map((opt) => {
                               const isSelectedElsewhere = perkaderans.some(
                                 (item, i) =>

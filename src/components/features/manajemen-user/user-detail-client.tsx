@@ -58,6 +58,8 @@ type UserDetail = {
     Latin: number;
     Latpel: number;
     Lakut: number;
+    Diklatama: number;
+    Diklatmad: number;
   };
   pendidikanCounts?: {
     "SD/MI": number;
@@ -413,50 +415,75 @@ export default function UserDetailClient({
                   <GraduationCap size={18} className="text-primary" />
                   Statistik Perkaderan
                 </h3>
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+                <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
                   {/* Makesta */}
-                  <div className="space-y-1.5 p-4 bg-purple-50/30 rounded-lg border border-purple-100">
-                    <span className="text-[10px] font-bold text-purple-500 uppercase tracking-widest flex items-center gap-1">
-                      <GraduationCap size={12} /> Makesta
+                  <div className="space-y-1.5 p-4 bg-purple-50/30 rounded-lg border border-purple-100 flex flex-col justify-between">
+                    <span className="text-[9px] font-bold text-purple-500 uppercase tracking-widest flex items-center gap-1">
+                      <GraduationCap size={12} className="shrink-0" /> Makesta
                     </span>
-                    <div className="text-sm font-medium text-slate-700">
-                      <NumberTicker value={currentUser.perkaderanCounts?.Makesta || 0} /> Makesta
+                    <div className="text-sm font-bold text-slate-700 flex items-center gap-1">
+                      <NumberTicker value={currentUser.perkaderanCounts?.Makesta || 0} />
+                      <span className="text-[10px] font-medium opacity-70">Anggota</span>
                     </div>
                   </div>
                   {/* Lakmud */}
-                  <div className="space-y-1.5 p-4 bg-emerald-50/30 rounded-lg border border-emerald-100">
-                    <span className="text-[10px] font-bold text-green-600 uppercase tracking-widest flex items-center gap-1">
-                      <GraduationCap size={12} /> Lakmud
+                  <div className="space-y-1.5 p-4 bg-emerald-50/30 rounded-lg border border-emerald-100 flex flex-col justify-between">
+                    <span className="text-[9px] font-bold text-green-600 uppercase tracking-widest flex items-center gap-1">
+                      <GraduationCap size={12} className="shrink-0" /> Lakmud
                     </span>
-                    <div className="text-sm font-medium text-slate-700">
-                      <NumberTicker value={currentUser.perkaderanCounts?.Lakmud || 0} /> Lakmud
+                    <div className="text-sm font-bold text-slate-700 flex items-center gap-1">
+                      <NumberTicker value={currentUser.perkaderanCounts?.Lakmud || 0} />
+                      <span className="text-[10px] font-medium opacity-70">Anggota</span>
                     </div>
                   </div>
                   {/* Latin */}
-                  <div className="space-y-1.5 p-4 bg-blue-50/30 rounded-lg border border-blue-100">
-                    <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest flex items-center gap-1">
-                      <GraduationCap size={12} /> Latin
+                  <div className="space-y-1.5 p-4 bg-blue-50/30 rounded-lg border border-blue-100 flex flex-col justify-between">
+                    <span className="text-[9px] font-bold text-blue-500 uppercase tracking-widest flex items-center gap-1">
+                      <GraduationCap size={12} className="shrink-0" /> Latin
                     </span>
-                    <div className="text-sm font-medium text-slate-700">
-                      <NumberTicker value={currentUser.perkaderanCounts?.Latin || 0} /> Alumni
+                    <div className="text-sm font-bold text-slate-700 flex items-center gap-1">
+                      <NumberTicker value={currentUser.perkaderanCounts?.Latin || 0} />
+                      <span className="text-[10px] font-medium opacity-70">Anggota</span>
                     </div>
                   </div>
                   {/* Latpel */}
-                  <div className="space-y-1.5 p-4 bg-cyan-50/30 rounded-lg border border-cyan-100">
-                    <span className="text-[10px] font-bold text-cyan-600 uppercase tracking-widest flex items-center gap-1">
-                      <GraduationCap size={12} /> Latpel
+                  <div className="space-y-1.5 p-4 bg-cyan-50/30 rounded-lg border border-cyan-100 flex flex-col justify-between">
+                    <span className="text-[9px] font-bold text-cyan-600 uppercase tracking-widest flex items-center gap-1">
+                      <GraduationCap size={12} className="shrink-0" /> Latpel
                     </span>
-                    <div className="text-sm font-medium text-slate-700">
-                      <NumberTicker value={currentUser.perkaderanCounts?.Latpel || 0} /> Alumni
+                    <div className="text-sm font-bold text-slate-700 flex items-center gap-1">
+                      <NumberTicker value={currentUser.perkaderanCounts?.Latpel || 0} />
+                      <span className="text-[10px] font-medium opacity-70">Anggota</span>
                     </div>
                   </div>
                   {/* Lakut */}
-                  <div className="space-y-1.5 p-4 bg-indigo-50/30 rounded-lg border border-indigo-100">
-                    <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest flex items-center gap-1">
-                      <GraduationCap size={12} /> Lakut
+                  <div className="space-y-1.5 p-4 bg-indigo-50/30 rounded-lg border border-indigo-100 flex flex-col justify-between">
+                    <span className="text-[9px] font-bold text-indigo-500 uppercase tracking-widest flex items-center gap-1">
+                      <GraduationCap size={12} className="shrink-0" /> Lakut
                     </span>
-                    <div className="text-sm font-medium text-slate-700">
-                      <NumberTicker value={currentUser.perkaderanCounts?.Lakut || 0} /> Alumni
+                    <div className="text-sm font-bold text-slate-700 flex items-center gap-1">
+                      <NumberTicker value={currentUser.perkaderanCounts?.Lakut || 0} />
+                      <span className="text-[10px] font-medium opacity-70">Anggota</span>
+                    </div>
+                  </div>
+                  {/* Diklatama */}
+                  <div className="space-y-1.5 p-4 bg-orange-50/30 rounded-lg border border-orange-100 flex flex-col justify-between">
+                    <span className="text-[9px] font-bold text-orange-500 uppercase tracking-widest flex items-center gap-1">
+                      <GraduationCap size={12} className="shrink-0" /> Diklatama
+                    </span>
+                    <div className="text-sm font-bold text-slate-700 flex items-center gap-1">
+                      <NumberTicker value={currentUser.perkaderanCounts?.Diklatama || 0} />
+                      <span className="text-[10px] font-medium opacity-70">Anggota</span>
+                    </div>
+                  </div>
+                  {/* Diklatmad */}
+                  <div className="space-y-1.5 p-4 bg-rose-50/30 rounded-lg border border-rose-100 flex flex-col justify-between">
+                    <span className="text-[9px] font-bold text-rose-500 uppercase tracking-widest flex items-center gap-1">
+                      <GraduationCap size={12} className="shrink-0" /> Diklatmad
+                    </span>
+                    <div className="text-sm font-bold text-slate-700 flex items-center gap-1">
+                      <NumberTicker value={currentUser.perkaderanCounts?.Diklatmad || 0} />
+                      <span className="text-[10px] font-medium opacity-70">Anggota</span>
                     </div>
                   </div>
                 </div>

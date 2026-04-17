@@ -150,9 +150,9 @@ export const auth = betterAuth({
                 "LOGIN" as LogAction,
                 "AUTH" as LogModule,
                 `User login ke sistem: ${user?.name || user?.email || "Unknown"}`,
-              );
+              ).catch((e) => console.log("[Auth Hook] Logging failed silently (DB connection issue)"));
             } catch (err) {
-              console.error("[Auth Hook] Background Login log failed:", err);
+              console.log("[Auth Hook] Background Login log failed silently");
             }
           })();
         },
@@ -176,14 +176,14 @@ export const auth = betterAuth({
                 "LOGOUT" as LogAction,
                 "AUTH" as LogModule,
                 `User logout dari sistem: ${user?.name || "Unknown"}`,
-              );
+              ).catch((e) => console.log("[Auth Hook] Logout logging failed silently"));
               
               await prisma.user.update({
                 where: { id: userId },
                 data: { lastLogoutAt: new Date() },
-              });
+              }).catch((e) => console.log("[Auth Hook] LastLogout update failed silently"));
             } catch (err) {
-              console.error("[Auth Hook] Background Logout task failed:", err);
+              console.log("[Auth Hook] Background Logout task failed silently");
             }
           })();
         },
