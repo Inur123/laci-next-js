@@ -64,6 +64,7 @@ export async function getAnggotaList(
         include: {
           user: { select: { name: true } },
           periode: { select: { nama: true } },
+          perkaderans: true,
         },
       }),
     ]);
@@ -74,6 +75,18 @@ export async function getAnggotaList(
       nia: item.nia ? decryptText(item.nia) : null,
       noHp: item.noHp ? decryptText(item.noHp) : null,
       jabatan: item.jabatan ? decryptText(item.jabatan) : null,
+      alamatLengkap: item.alamatLengkap ? decryptText(item.alamatLengkap) : null,
+      tempatLahir: item.tempatLahir ? decryptText(item.tempatLahir) : null,
+      hobi: item.hobi ? decryptText(item.hobi) : null,
+      noRfid: item.noRfid ? decryptText(item.noRfid) : null,
+      namaInstansiPendidikan: item.namaInstansiPendidikan
+        ? decryptText(item.namaInstansiPendidikan)
+        : null,
+      perkaderans: item.perkaderans.map((p) => ({
+        ...p,
+        namaPerkaderan: decryptText(p.namaPerkaderan),
+        tempat: decryptText(p.tempat),
+      })),
     }));
     return { data: decryptedData, total, totalPages: Math.ceil(total / limit) };
   }
@@ -84,6 +97,7 @@ export async function getAnggotaList(
     include: {
       user: { select: { name: true } },
       periode: { select: { nama: true } },
+      perkaderans: true,
     },
     take: 500,
   });
@@ -95,6 +109,18 @@ export async function getAnggotaList(
     nia: item.nia ? decryptText(item.nia) : null,
     noHp: item.noHp ? decryptText(item.noHp) : null,
     jabatan: item.jabatan ? decryptText(item.jabatan) : null,
+    alamatLengkap: item.alamatLengkap ? decryptText(item.alamatLengkap) : null,
+    tempatLahir: item.tempatLahir ? decryptText(item.tempatLahir) : null,
+    hobi: item.hobi ? decryptText(item.hobi) : null,
+    noRfid: item.noRfid ? decryptText(item.noRfid) : null,
+    namaInstansiPendidikan: item.namaInstansiPendidikan
+      ? decryptText(item.namaInstansiPendidikan)
+      : null,
+    perkaderans: item.perkaderans.map((p) => ({
+      ...p,
+      namaPerkaderan: decryptText(p.namaPerkaderan),
+      tempat: decryptText(p.tempat),
+    })),
   }));
 
   const lowerQuery = query.toLowerCase();

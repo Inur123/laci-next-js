@@ -68,6 +68,11 @@ type AnggotaItem = {
   namaInstansiPendidikan?: string | null;
   user?: { name?: string | null } | null;
   periode?: { nama?: string | null } | null;
+  perkaderans?: Array<{
+    namaPerkaderan: string;
+    tanggal: Date | string;
+    tempat: string;
+  }>;
 };
 
 import { UserFilterSelect } from "@/components/shared/user-filter-select";
@@ -317,8 +322,92 @@ export function AnggotaList({
         "No HP": item.noHp || "-",
         Email: item.email || "-",
         Jabatan: item.jabatan || "-",
-        Pendidikan: (item as any).jenjangPendidikan || "-",
-        "Sekolah/Kampus": (item as any).namaInstansiPendidikan || "-",
+        Pendidikan: item.jenjangPendidikan || "-",
+        "Sekolah/Kampus": item.namaInstansiPendidikan || "-",
+        Makesta:
+          item.perkaderans
+            ?.filter((p) => p.namaPerkaderan.toUpperCase() === "MAKESTA")
+            .map(
+              (p) =>
+                `${new Date(p.tanggal).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })} (${p.tempat})`,
+            )
+            .join(", ") || "-",
+        Lakmud:
+          item.perkaderans
+            ?.filter((p) => p.namaPerkaderan.toUpperCase() === "LAKMUD")
+            .map(
+              (p) =>
+                `${new Date(p.tanggal).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })} (${p.tempat})`,
+            )
+            .join(", ") || "-",
+        Lakut:
+          item.perkaderans
+            ?.filter((p) => p.namaPerkaderan.toUpperCase() === "LAKUT")
+            .map(
+              (p) =>
+                `${new Date(p.tanggal).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })} (${p.tempat})`,
+            )
+            .join(", ") || "-",
+        Diklatama:
+          item.perkaderans
+            ?.filter((p) => p.namaPerkaderan.toUpperCase() === "DIKLATAMA")
+            .map(
+              (p) =>
+                `${new Date(p.tanggal).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })} (${p.tempat})`,
+            )
+            .join(", ") || "-",
+        Diklatmad:
+          item.perkaderans
+            ?.filter((p) => p.namaPerkaderan.toUpperCase() === "DIKLATMAD")
+            .map(
+              (p) =>
+                `${new Date(p.tanggal).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })} (${p.tempat})`,
+            )
+            .join(", ") || "-",
+        Latin:
+          item.perkaderans
+            ?.filter((p) => p.namaPerkaderan.toUpperCase() === "LATIN")
+            .map(
+              (p) =>
+                `${new Date(p.tanggal).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })} (${p.tempat})`,
+            )
+            .join(", ") || "-",
+        Latpel:
+          item.perkaderans
+            ?.filter((p) => p.namaPerkaderan.toUpperCase() === "LATPEL")
+            .map(
+              (p) =>
+                `${new Date(p.tanggal).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })} (${p.tempat})`,
+            )
+            .join(", ") || "-",
         "No RFID": item.noRfid || "-",
         "Dibuat Oleh": item.user?.name || "-",
         Periode: item.periode?.nama || "-",
