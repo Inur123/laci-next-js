@@ -625,11 +625,11 @@ export function PengajuanBerkasList({
             <Table className="w-full table-fixed [&_td]:py-2 [&_th]:py-2">
               <TableHeader className="sticky top-0 bg-white z-10">
                 <TableRow>
-                  <TableHead className="w-[50px] bg-slate-50/40 text-center whitespace-nowrap">
+                  <TableHead className="w-[40px] bg-slate-50/40 text-center whitespace-nowrap">
                     No
                   </TableHead>
                   <TableHead
-                    className="w-[180px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    className="w-[140px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
                     onClick={() => handleSort("noSurat")}
                   >
                     <span className="inline-flex items-center">
@@ -639,7 +639,7 @@ export function PengajuanBerkasList({
                   </TableHead>
                   {isCabangView && (
                     <TableHead
-                      className="w-[160px] bg-slate-50/40 whitespace-nowrap pr-6 cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                      className="w-[130px] bg-slate-50/40 whitespace-nowrap pr-2 cursor-pointer select-none hover:bg-slate-100 transition-colors"
                       onClick={() => handleSort("penerima")}
                     >
                       <span className="inline-flex items-center">
@@ -648,11 +648,11 @@ export function PengajuanBerkasList({
                       </span>
                     </TableHead>
                   )}
-                  <TableHead className="w-[150px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors">
-                    Periode PAC
+                  <TableHead className="w-[110px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors">
+                    Periode
                   </TableHead>
                   <TableHead
-                    className="w-[120px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    className="w-[90px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
                     onClick={() => handleSort("penerima")}
                   >
                     <span className="inline-flex items-center">
@@ -661,7 +661,7 @@ export function PengajuanBerkasList({
                     </span>
                   </TableHead>
                   <TableHead
-                    className="w-[150px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    className="w-[110px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
                     onClick={() => handleSort("tanggal")}
                   >
                     <span className="inline-flex items-center">
@@ -670,7 +670,7 @@ export function PengajuanBerkasList({
                     </span>
                   </TableHead>
                   <TableHead
-                    className="w-[250px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    className="w-[160px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
                     onClick={() => handleSort("keperluan")}
                   >
                     <span className="inline-flex items-center">
@@ -679,7 +679,7 @@ export function PengajuanBerkasList({
                     </span>
                   </TableHead>
                   <TableHead
-                    className="w-[120px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    className="w-[100px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
                     onClick={() => handleSort("status")}
                   >
                     <span className="inline-flex items-center">
@@ -687,7 +687,7 @@ export function PengajuanBerkasList({
                       <SortIcon col="status" />
                     </span>
                   </TableHead>
-                  <TableHead className="w-[130px] text-right bg-slate-50/40 whitespace-nowrap">
+                  <TableHead className="w-[90px] text-right bg-slate-50/40 whitespace-nowrap">
                     Aksi
                   </TableHead>
                 </TableRow>
@@ -714,24 +714,24 @@ export function PengajuanBerkasList({
                         <TableCell className="text-center text-muted-foreground font-medium">
                           {(currentPage - 1) * 10 + index + 1}
                         </TableCell>
-                        <TableCell className="font-medium whitespace-nowrap">
+                        <TableCell className="font-medium whitespace-nowrap text-[13px] truncate max-w-[140px]" title={item.noSurat}>
                           {item.noSurat}
                         </TableCell>
                         {isCabangView && (
-                          <TableCell className="font-medium whitespace-nowrap">
+                          <TableCell className="font-medium whitespace-nowrap text-[13px] truncate max-w-[130px]" title={item.user?.name || ""}>
                             {item.user?.name
                               ? capitalizeName(item.user.name)
                               : "-"}
                           </TableCell>
                         )}
-                        <TableCell className="whitespace-nowrap font-medium">
+                        <TableCell className="whitespace-nowrap font-medium text-[13px]">
                           {item.periodePac?.nama || "-"}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
                           <Badge
                             variant="outline"
                             className={cn(
-                              "transition-colors",
+                              "transition-colors text-[11px] px-1.5 py-0",
                               penerimaConfig[
                                 item.penerima as keyof typeof penerimaConfig
                               ]?.className,
@@ -740,7 +740,7 @@ export function PengajuanBerkasList({
                             {item.penerima}
                           </Badge>
                         </TableCell>
-                        <TableCell className="whitespace-nowrap pr-8">
+                        <TableCell className="whitespace-nowrap pr-2 text-[13px]">
                           {new Date(item.tanggal).toLocaleDateString("id-ID", {
                             day: "2-digit",
                             month: "short",
@@ -748,7 +748,7 @@ export function PengajuanBerkasList({
                           })}
                         </TableCell>
                         <TableCell
-                          className="max-w-[250px] truncate"
+                          className="max-w-[160px] truncate text-[13px]"
                           title={item.keperluan}
                         >
                           {capitalizeName(item.keperluan)}
@@ -757,13 +757,13 @@ export function PengajuanBerkasList({
                           <Badge
                             variant="outline"
                             className={cn(
-                              "transition-colors",
+                              "transition-colors text-[11px] px-1.5 py-0",
                               statusConfig[
                                 item.status as keyof typeof statusConfig
                               ]?.className,
                             )}
                           >
-                            <StatusIcon className="w-3 h-3 mr-1" />
+                            <StatusIcon className="w-2.5 h-2.5 mr-1" />
                             {statusConfig[
                               item.status as keyof typeof statusConfig
                             ]?.label || item.status}
