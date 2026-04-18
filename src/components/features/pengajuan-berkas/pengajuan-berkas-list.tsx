@@ -670,7 +670,7 @@ export function PengajuanBerkasList({
                     </span>
                   </TableHead>
                   <TableHead
-                    className="bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    className="w-[250px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
                     onClick={() => handleSort("keperluan")}
                   >
                     <span className="inline-flex items-center">
@@ -748,7 +748,7 @@ export function PengajuanBerkasList({
                           })}
                         </TableCell>
                         <TableCell
-                          className="max-w-[300px] truncate"
+                          className="max-w-[250px] truncate"
                           title={item.keperluan}
                         >
                           {capitalizeName(item.keperluan)}
