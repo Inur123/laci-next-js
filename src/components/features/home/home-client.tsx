@@ -44,6 +44,7 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const router = useRouter();
 
@@ -90,6 +91,7 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
 
       // Show/hide scroll to top button
       setShowScrollTop(window.scrollY > 300);
+      setIsScrolled(window.scrollY > 20);
 
       const atBottom =
         window.innerHeight + window.scrollY >=
@@ -184,27 +186,53 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
       <div className="noise pointer-events-none fixed inset-0 -z-10"></div>
 
       {/* NAVBAR */}
-      <header className="sticky top-0 z-50 border-b border-slate-200/60 bg-white/75 backdrop-blur">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+      <header
+        className={cn(
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out",
+          isScrolled ? "py-0" : "py-4 sm:py-6",
+        )}
+      >
+        <nav
+          className={cn(
+            "mx-auto transition-all duration-700 cubic-bezier(0.4, 0, 0.2, 1) flex items-center justify-between",
+            isScrolled
+              ? "max-w-full border-b border-slate-200/60 bg-white/80 backdrop-blur-md px-4 py-3 sm:px-10 shadow-sm"
+              : "max-w-[92%] sm:max-w-7xl px-6 sm:px-8 py-3 bg-white/95 backdrop-blur-lg rounded-full border border-slate-200/50 shadow-[0_20px_50px_rgba(0,0,0,0.08)]",
+          )}
+        >
           {/* Logo */}
           <a
             href="#home"
-            className="flex items-center gap-3"
+            className="flex items-center gap-3 group"
             onClick={(e) => {
               e.preventDefault();
               goTo("home");
             }}
           >
-            <Image
-              src="/images/logo-laci.webp"
-              alt="Laci Digital"
-              width={40}
-              height={40}
-              className="h-10 w-10 rounded-xl object-contain shadow-[0_10px_30px_rgba(2,44,20,0.10)]"
-            />
+            <div className="relative">
+                <Image
+                  src="/images/logo-laci.webp"
+                  alt="Laci Digital"
+                  width={40}
+                  height={40}
+                  className={cn(
+                    "object-contain transition-all duration-500",
+                    isScrolled ? "h-8 w-8" : "h-10 w-10",
+                  )}
+                />
+            </div>
             <div className="leading-tight">
-              <p className="text-sm font-semibold">Laci Digital</p>
-              <p className="text-xs text-slate-500">PC IPNU IPPNU Magetan</p>
+              <p
+                className={cn(
+                  "font-bold transition-all duration-500 tracking-tight",
+                  isScrolled ? "text-sm" : "text-base sm:text-lg",
+                )}
+              >
+                Laci Digital
+              </p>
+              <p className="text-[10px] text-slate-500 font-medium">
+                PC IPNU IPPNU Magetan
+              </p>
             </div>
           </a>
 
@@ -264,11 +292,18 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
         {/* Mobile Dropdown Menu */}
         <div
           className={cn(
-            "absolute left-0 right-0 top-full z-50 border-t border-slate-200 bg-white shadow-lg md:hidden overflow-hidden transition-all duration-200",
+            "absolute left-0 right-0 top-full z-50 md:hidden overflow-hidden transition-all duration-300 ease-in-out",
             isMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0",
           )}
         >
-          <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
+          <div
+            className={cn(
+              "bg-white shadow-2xl transition-all duration-300",
+              isScrolled
+                ? "border-t border-slate-100 px-4 py-6"
+                : "mx-4 mt-2 rounded-[2rem] border border-slate-200/60 px-6 py-6",
+            )}
+          >
             <div className="flex flex-col space-y-1">
               {navLinks.map((link) => (
                 <button
@@ -305,7 +340,7 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
                   <Link
                     href="/register"
                     onClick={() => setIsMenuOpen(false)}
-                    className="rounded-xl bg-[#16a34a] px-4 py-2 text-center text-sm font-semibold text-white shadow-[0_10px_30_rgba(2,44,20,0.10)] hover:bg-[#15803d]"
+                    className="rounded-xl bg-[#16a34a] px-4 py-2.5 text-center text-sm font-bold text-white shadow-lg shadow-green-100 hover:bg-[#15803d]"
                   >
                     Daftar
                   </Link>
@@ -321,7 +356,7 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
           {/* HERO SECTION */}
           <section
             id="home"
-            className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16"
+            className="mx-auto max-w-7xl px-4 pt-28 pb-10 sm:px-6 lg:px-8 lg:pt-36 lg:pb-16"
           >
             <div className="grid items-center gap-10 lg:grid-cols-2">
               <div>
@@ -773,7 +808,7 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
                   alt="Laci Digital"
                   width={40}
                   height={40}
-                  className="h-10 w-10 rounded-xl object-contain shadow-[0_10px_30px_rgba(2,44,20,0.10)]"
+                  className="h-10 w-10 object-contain"
                 />
                 <div>
                   <p className="font-[family-name:var(--font-outfit)] font-bold text-xl uppercase tracking-wider text-white">
@@ -942,6 +977,7 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
 export function PublicLayout({ children }: { children: React.ReactNode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
 
@@ -953,7 +989,10 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
   ];
 
   useEffect(() => {
-    const handleScroll = () => setShowScrollTop(window.scrollY > 300);
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+      setIsScrolled(window.scrollY > 50);
+    };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -994,8 +1033,20 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
       <div className="noise pointer-events-none fixed inset-0 -z-10"></div>
 
       {/* NAVBAR — sama persis dengan home */}
-      <header className="sticky top-0 z-50 border-b border-slate-200/60 bg-white/75 backdrop-blur">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+      <header
+        className={cn(
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out",
+          isScrolled ? "py-0" : "py-4 sm:py-6",
+        )}
+      >
+        <nav
+          className={cn(
+            "mx-auto transition-all duration-700 cubic-bezier(0.4, 0, 0.2, 1) flex items-center justify-between",
+            isScrolled
+              ? "max-w-full border-b border-slate-200/60 bg-white/80 backdrop-blur-md px-4 py-3 sm:px-10 shadow-sm"
+              : "max-w-[92%] sm:max-w-7xl px-6 sm:px-8 py-3 bg-white/95 backdrop-blur-lg rounded-full border border-slate-200/50 shadow-[0_20px_50px_rgba(0,0,0,0.08)]",
+          )}
+        >
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
             <Image
@@ -1003,11 +1054,23 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
               alt="Laci Digital"
               width={40}
               height={40}
-              className="h-10 w-10 rounded-xl object-contain shadow-[0_10px_30px_rgba(2,44,20,0.10)]"
+              className={cn(
+                "object-contain transition-all duration-500",
+                isScrolled ? "h-8 w-8" : "h-10 w-10",
+              )}
             />
             <div className="leading-tight">
-              <p className="text-sm font-semibold">Laci Digital</p>
-              <p className="text-xs text-slate-500">PC IPNU IPPNU Magetan</p>
+              <p
+                className={cn(
+                  "font-bold transition-all duration-500 tracking-tight",
+                  isScrolled ? "text-sm" : "text-base sm:text-lg",
+                )}
+              >
+                Laci Digital
+              </p>
+              <p className="text-[10px] text-slate-500 font-medium">
+                PC IPNU IPPNU Magetan
+              </p>
             </div>
           </Link>
 
@@ -1064,11 +1127,18 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
         {/* Mobile Dropdown */}
         <div
           className={cn(
-            "absolute left-0 right-0 top-full z-50 border-t border-slate-200 bg-white shadow-lg md:hidden overflow-hidden transition-all duration-200",
+            "absolute left-0 right-0 top-full z-50 md:hidden overflow-hidden transition-all duration-300 ease-in-out",
             isMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0",
           )}
         >
-          <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
+          <div
+            className={cn(
+              "bg-white shadow-2xl transition-all duration-300",
+              isScrolled
+                ? "border-t border-slate-100 px-4 py-6"
+                : "mx-4 mt-2 rounded-[2rem] border border-slate-200/60 px-6 py-6",
+            )}
+          >
             <div className="flex flex-col space-y-1">
               {navLinks.map((link) => (
                 <button
@@ -1116,7 +1186,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* CONTENT */}
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 pt-24 sm:pt-32">{children}</main>
 
       {/* FOOTER — sama persis dengan home */}
       <footer
@@ -1155,7 +1225,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                   alt="Laci Digital"
                   width={40}
                   height={40}
-                  className="h-10 w-10 rounded-xl object-contain shadow-[0_10px_30px_rgba(2,44,20,0.10)]"
+                  className="h-10 w-10 object-contain"
                 />
                 <div>
                   <p className="font-[family-name:var(--font-outfit)] font-bold text-xl uppercase tracking-wider text-white">
