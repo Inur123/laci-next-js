@@ -370,7 +370,7 @@ export function AnggotaForm({ anggota, userRole }: AnggotaFormProps) {
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
               <div className="space-y-2">
                 <Label htmlFor="namaLengkap" className="font-semibold">
-                  Nama Pimpinan <span className="text-red-500">*</span>
+                  Nama Lengkap <span className="text-red-500">*</span>
                 </Label>
                 <div className="relative">
                   <User

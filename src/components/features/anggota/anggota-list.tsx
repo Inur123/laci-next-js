@@ -444,7 +444,7 @@ export function AnggotaList({
                     onClick={() => handleSort("namaLengkap")}
                   >
                     <span className="inline-flex items-center">
-                      Nama Pimpinan
+                      Nama
                       <SortIcon col="namaLengkap" />
                     </span>
                   </TableHead>
