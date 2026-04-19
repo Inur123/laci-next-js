@@ -60,9 +60,12 @@ interface AnggotaFormProps {
     email?: string | null;
     jabatan?: string | null;
     noRfid?: string | null;
+    pekerjaan?: string | null;
     hobi?: string | null;
-    jenjangPendidikan?: string | null;
-    namaInstansiPendidikan?: string | null;
+    pendidikans?: Array<{
+      jenjang: string;
+      namaSekolah: string;
+    }>;
     perkaderans?: Array<{
       namaPerkaderan: string;
       tanggal: Date | string;
@@ -94,6 +97,16 @@ export function AnggotaForm({ anggota, userRole }: AnggotaFormProps) {
       tempat: p.tempat,
     })) || [{ namaPerkaderan: "", tanggal: "", tempat: "" }],
   );
+
+  const [pendidikans, setPendidikans] = useState<
+    Array<{ jenjang: string; namaSekolah: string }>
+  >(
+    anggota?.pendidikans?.map((p) => ({
+      jenjang: p.jenjang,
+      namaSekolah: p.namaSekolah,
+    })) || [{ jenjang: "", namaSekolah: "" }],
+  );
+
   // Crop modal state
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [selectedFileMimeType, setSelectedFileMimeType] =
@@ -133,6 +146,21 @@ export function AnggotaForm({ anggota, userRole }: AnggotaFormProps) {
     const newPerkaderans = [...perkaderans];
     newPerkaderans[index] = { ...newPerkaderans[index], [field]: value };
     setPerkaderans(newPerkaderans);
+  };
+
+  const addPendidikan = () => {
+    if (pendidikans.length >= 4) return;
+    setPendidikans([...pendidikans, { jenjang: "", namaSekolah: "" }]);
+  };
+
+  const removePendidikan = (index: number) => {
+    setPendidikans(pendidikans.filter((_, i) => i !== index));
+  };
+
+  const updatePendidikan = (index: number, field: string, value: string) => {
+    const newPendidikans = [...pendidikans];
+    newPendidikans[index] = { ...newPendidikans[index], [field]: value };
+    setPendidikans(newPendidikans);
   };
 
   const handleFile = (file: File) => {
@@ -191,9 +219,15 @@ export function AnggotaForm({ anggota, userRole }: AnggotaFormProps) {
       (p) => p.namaPerkaderan.trim() !== "",
     );
 
+    // Filter: Wajibkan minimal Jenjang terisi
+    const activePendidikans = pendidikans.filter(
+      (p) => p.jenjang.trim() !== "",
+    );
+
     if (selectedDate) formData.set("tanggalLahir", selectedDate.toISOString());
     if (selectedFile) formData.set("foto", selectedFile);
     formData.set("perkaderans", JSON.stringify(activePerkaderans));
+    formData.set("pendidikans", JSON.stringify(activePendidikans));
 
     try {
       const result = anggota
@@ -526,6 +560,26 @@ export function AnggotaForm({ anggota, userRole }: AnggotaFormProps) {
                   placeholder="Pilih tanggal lahir"
                 />
               </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="alamatLengkap" className="font-semibold">
+                  Alamat Lengkap
+                </Label>
+                <div className="relative">
+                  <MapPin
+                    size={16}
+                    className="absolute left-3 top-3 text-slate-400"
+                  />
+                  <Textarea
+                    id="alamatLengkap"
+                    name="alamatLengkap"
+                    defaultValue={anggota?.alamatLengkap ?? ""}
+                    placeholder="Masukkan alamat domisili lengkap"
+                    rows={4}
+                    className="pl-10 resize-none pt-2.5"
+                  />
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -582,112 +636,167 @@ export function AnggotaForm({ anggota, userRole }: AnggotaFormProps) {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="font-semibold">Jenjang Pendidikan</Label>
-                <div className="relative">
-                  <School
-                    size={16}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10"
-                  />
-                  <Select
-                    name="jenjangPendidikan"
-                    defaultValue={anggota?.jenjangPendidikan ?? undefined}
-                  >
-                    <SelectTrigger className="w-full pl-10">
-                      <SelectValue placeholder="Pilih Jenjang" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="SD/MI" className="text-xs">
-                        SD / MI
-                      </SelectItem>
-                      <SelectItem value="SMP/MTs" className="text-xs">
-                        SMP / MTs
-                      </SelectItem>
-                      <SelectItem value="SMA/MA/SMK" className="text-xs">
-                        SMA / MA / SMK
-                      </SelectItem>
-                      <SelectItem value="D1" className="text-xs">
-                        D1
-                      </SelectItem>
-                      <SelectItem value="D2" className="text-xs">
-                        D2
-                      </SelectItem>
-                      <SelectItem value="D3" className="text-xs">
-                        D3
-                      </SelectItem>
-                      <SelectItem value="D4/S1" className="text-xs">
-                        D4 / S1
-                      </SelectItem>
-                      <SelectItem value="S2" className="text-xs">
-                        S2
-                      </SelectItem>
-                      <SelectItem value="S3" className="text-xs">
-                        S3
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+
 
               <div className="space-y-2">
-                <Label
-                  htmlFor="namaInstansiPendidikan"
-                  className="font-semibold"
-                >
-                  Nama Sekolah / Kampus
+                <Label htmlFor="pekerjaan" className="font-semibold">
+                  Pekerjaan
                 </Label>
                 <div className="relative">
-                  <School
+                  <Briefcase
                     size={16}
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
                   />
                   <Input
-                    id="namaInstansiPendidikan"
-                    name="namaInstansiPendidikan"
-                    defaultValue={anggota?.namaInstansiPendidikan ?? ""}
-                    placeholder="Contoh: MAN 1 Magetan"
+                    id="pekerjaan"
+                    name="pekerjaan"
+                    defaultValue={anggota?.pekerjaan ?? ""}
+                    placeholder="Contoh: Karyawan Swasta, Mahasiswa, dll"
                     className="pl-10"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2">
                 <Label htmlFor="hobi" className="font-semibold">
                   Hobi / Minat Bakat
                 </Label>
-                <Input
-                  id="hobi"
-                  name="hobi"
-                  defaultValue={anggota?.hobi ?? ""}
-                  placeholder="Misal: Desain Grafis, Olahraga, dll"
-                />
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="alamatLengkap" className="font-semibold">
-                  Alamat Lengkap
-                </Label>
                 <div className="relative">
-                  <MapPin
+                  <User
                     size={16}
-                    className="absolute left-3 top-3 text-slate-400"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 opacity-0"
                   />
-                  <Textarea
-                    id="alamatLengkap"
-                    name="alamatLengkap"
-                    defaultValue={anggota?.alamatLengkap ?? ""}
-                    placeholder="Masukkan alamat domisili lengkap"
-                    rows={4}
-                    className="pl-10 resize-none pt-2.5"
+                  <Input
+                    id="hobi"
+                    name="hobi"
+                    defaultValue={anggota?.hobi ?? ""}
+                    placeholder="Misal: Desain Grafis, Olahraga, dll"
                   />
                 </div>
               </div>
             </CardContent>
+
+            {/* Riwayat Pendidikan Inside Organisasi Card */}
+            <div className="border-t border-slate-100 bg-slate-50/30">
+              <div className="px-6 py-4 flex items-center justify-between">
+                <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                  <School
+                    size={16}
+                    className={
+                      userRole === "SEKRETARIS_CABANG"
+                        ? "text-blue-600"
+                        : "text-green-600"
+                    }
+                  />
+                  Riwayat Pendidikan
+                </h3>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addPendidikan}
+                  disabled={pendidikans.length >= 4}
+                  className={
+                    userRole === "SEKRETARIS_CABANG"
+                      ? "text-blue-600 border-blue-200 hover:bg-blue-50"
+                      : "text-green-600 border-green-200 hover:bg-green-50"
+                  }
+                >
+                  <Plus size={14} className="mr-1" /> Tambah
+                </Button>
+              </div>
+
+              <CardContent className="px-6 pb-6 pt-0">
+                {pendidikans.length === 0 ? (
+                  <div className="text-center py-6 border-2 border-dashed rounded-lg bg-white">
+                    <p className="text-[10px] text-slate-500 font-medium">
+                      Belum ada data pendidikan.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pendidikans.map((p, index) => (
+                      <div
+                        key={index}
+                        className="group relative grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-white hover:border-slate-300 transition-all shadow-sm pr-12"
+                      >
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removePendidikan(index)}
+                          className="absolute top-1/2 -translate-y-1/2 right-2 h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+
+                        <div className="space-y-1.5">
+                          <Label className="text-[10px] font-bold uppercase text-slate-500">
+                            Jenjang Pendidikan
+                          </Label>
+                          <Select
+                            value={p.jenjang}
+                            onValueChange={(val) =>
+                              updatePendidikan(index, "jenjang", val)
+                            }
+                          >
+                            <SelectTrigger className="h-9 w-full">
+                              <SelectValue placeholder="Pilih Jenjang" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[
+                                { id: "SD/MI", label: "SD/MI" },
+                                { id: "SMP/MTs", label: "SMP/MTs" },
+                                { id: "SMA/MA", label: "SMA/MA" },
+                                { id: "KULIAH", label: "KULIAH" },
+                              ].map((opt) => {
+                                const isSelectedElsewhere = pendidikans.some(
+                                  (item, i) =>
+                                    i !== index &&
+                                    item.jenjang?.toUpperCase() ===
+                                      opt.id.toUpperCase(),
+                                );
+                                return (
+                                  <SelectItem
+                                    key={opt.id}
+                                    value={opt.id}
+                                    disabled={isSelectedElsewhere}
+                                  >
+                                    {opt.label}
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-[10px] font-bold uppercase text-slate-500">
+                            Nama Sekolah / Kampus
+                          </Label>
+                          <Input
+                            value={p.namaSekolah}
+                            onChange={(e) =>
+                              updatePendidikan(
+                                index,
+                                "namaSekolah",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="Contoh: MAN 1 Magetan"
+                            className="h-9"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </div>
           </Card>
         </div>
 
-        {/* SIDEBAR BOTTOM / MOBILE BOTTOM: Perkaderan */}
-        <div className="lg:col-start-1 lg:row-start-2">
+        {/* SIDEBAR BOTTOM / MOBILE BOTTOM: Perkaderan & Pendidikan */}
+        <div className="lg:col-start-1 lg:row-start-2 space-y-6">
           <Card className="border-slate-200 shadow-sm">
             <CardHeader className="bg-slate-50 border-b pb-4">
               <div className="flex items-center justify-between">

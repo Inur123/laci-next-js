@@ -62,10 +62,13 @@ type AnggotaItem = {
   email?: string | null;
   jabatan?: string | null;
   noRfid?: string | null;
+  pekerjaan?: string | null;
   foto?: string | null;
   updatedAt?: Date | string | null;
-  jenjangPendidikan?: string | null;
-  namaInstansiPendidikan?: string | null;
+  pendidikans?: Array<{
+    jenjang: string;
+    namaSekolah: string;
+  }>;
   user?: { name?: string | null } | null;
   periode?: { nama?: string | null } | null;
   perkaderans?: Array<{
@@ -322,8 +325,11 @@ export function AnggotaList({
         "No HP": item.noHp || "-",
         Email: item.email || "-",
         Jabatan: item.jabatan || "-",
-        Pendidikan: item.jenjangPendidikan || "-",
-        "Sekolah/Kampus": item.namaInstansiPendidikan || "-",
+        Pekerjaan: item.pekerjaan || "-",
+        "SD/MI": item.pendidikans?.find(p => p.jenjang === "SD/MI")?.namaSekolah || "-",
+        "SMP/MTs": item.pendidikans?.find(p => p.jenjang === "SMP/MTs")?.namaSekolah || "-",
+        "SMA/MA": item.pendidikans?.find(p => p.jenjang === "SMA/MA")?.namaSekolah || "-",
+        "KULIAH": item.pendidikans?.find(p => p.jenjang === "KULIAH")?.namaSekolah || "-",
         Makesta:
           item.perkaderans
             ?.filter((p) => p.namaPerkaderan.toUpperCase() === "MAKESTA")

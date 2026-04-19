@@ -231,6 +231,7 @@ model Anggota {
   hobi          String?
   jabatan       String?
   noRfid        String?
+  pekerjaan     String?
   jenjangPendidikan      String?
   namaInstansiPendidikan String?
   createdAt     DateTime     @default(now())
@@ -238,8 +239,22 @@ model Anggota {
   periode       Periode      @relation(fields: [periodeId], references: [id], onDelete: Cascade)
   user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   perkaderans   Perkaderan[]
+  pendidikans   Pendidikan[]
 
   @@index([userId, periodeId])
+}
+
+model Pendidikan {
+  id          String   @id @default(cuid())
+  anggotaId   String
+  jenjang     String
+  namaSekolah String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  anggota Anggota @relation(fields: [anggotaId], references: [id], onDelete: Cascade)
+
+  @@index([anggotaId])
 }
 
 model Perkaderan {

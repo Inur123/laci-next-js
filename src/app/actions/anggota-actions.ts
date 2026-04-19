@@ -65,6 +65,7 @@ export async function getAnggotaList(
           user: { select: { name: true } },
           periode: { select: { nama: true } },
           perkaderans: true,
+          pendidikans: true,
         },
       }),
     ]);
@@ -75,10 +76,13 @@ export async function getAnggotaList(
       nia: item.nia ? decryptText(item.nia) : null,
       noHp: item.noHp ? decryptText(item.noHp) : null,
       jabatan: item.jabatan ? decryptText(item.jabatan) : null,
-      alamatLengkap: item.alamatLengkap ? decryptText(item.alamatLengkap) : null,
+      alamatLengkap: item.alamatLengkap
+        ? decryptText(item.alamatLengkap)
+        : null,
       tempatLahir: item.tempatLahir ? decryptText(item.tempatLahir) : null,
       hobi: item.hobi ? decryptText(item.hobi) : null,
       noRfid: item.noRfid ? decryptText(item.noRfid) : null,
+      pekerjaan: item.pekerjaan ? decryptText(item.pekerjaan) : null,
       namaInstansiPendidikan: item.namaInstansiPendidikan
         ? decryptText(item.namaInstansiPendidikan)
         : null,
@@ -86,6 +90,11 @@ export async function getAnggotaList(
         ...p,
         namaPerkaderan: decryptText(p.namaPerkaderan),
         tempat: decryptText(p.tempat),
+      })),
+      pendidikans: item.pendidikans.map((p) => ({
+        ...p,
+        jenjang: p.jenjang,
+        namaSekolah: decryptText(p.namaSekolah),
       })),
     }));
     return { data: decryptedData, total, totalPages: Math.ceil(total / limit) };
@@ -98,6 +107,7 @@ export async function getAnggotaList(
       user: { select: { name: true } },
       periode: { select: { nama: true } },
       perkaderans: true,
+      pendidikans: true,
     },
     take: 500,
   });
@@ -113,6 +123,7 @@ export async function getAnggotaList(
     tempatLahir: item.tempatLahir ? decryptText(item.tempatLahir) : null,
     hobi: item.hobi ? decryptText(item.hobi) : null,
     noRfid: item.noRfid ? decryptText(item.noRfid) : null,
+    pekerjaan: item.pekerjaan ? decryptText(item.pekerjaan) : null,
     namaInstansiPendidikan: item.namaInstansiPendidikan
       ? decryptText(item.namaInstansiPendidikan)
       : null,
@@ -120,6 +131,11 @@ export async function getAnggotaList(
       ...p,
       namaPerkaderan: decryptText(p.namaPerkaderan),
       tempat: decryptText(p.tempat),
+    })),
+    pendidikans: item.pendidikans.map((p) => ({
+      ...p,
+      jenjang: p.jenjang,
+      namaSekolah: decryptText(p.namaSekolah),
     })),
   }));
 
@@ -169,7 +185,7 @@ export async function getAnggotaById(id: string) {
 
   const item = await prisma.anggota.findUnique({
     where: { id },
-    include: { perkaderans: true },
+    include: { perkaderans: true, pendidikans: true },
   });
 
   if (!item) return null;
@@ -184,6 +200,7 @@ export async function getAnggotaById(id: string) {
     hobi: item.hobi ? decryptText(item.hobi) : null,
     jabatan: item.jabatan ? decryptText(item.jabatan) : null,
     noRfid: item.noRfid ? decryptText(item.noRfid) : null,
+    pekerjaan: item.pekerjaan ? decryptText(item.pekerjaan) : null,
     namaInstansiPendidikan: item.namaInstansiPendidikan
       ? decryptText(item.namaInstansiPendidikan)
       : null,
@@ -192,6 +209,11 @@ export async function getAnggotaById(id: string) {
       ...p,
       namaPerkaderan: decryptText(p.namaPerkaderan),
       tempat: decryptText(p.tempat),
+    })),
+    pendidikans: item.pendidikans.map((p) => ({
+      ...p,
+      jenjang: p.jenjang,
+      namaSekolah: decryptText(p.namaSekolah),
     })),
   };
 }
@@ -227,6 +249,7 @@ export async function createAnggota(formData: FormData) {
 
   try {
     const rawPerkaderans = formData.get("perkaderans") as string;
+    const rawPendidikans = formData.get("pendidikans") as string;
     const anggota = await prisma.anggota.create({
       data: {
         userId: session.user.id,
@@ -262,6 +285,9 @@ export async function createAnggota(formData: FormData) {
         noRfid: formData.get("noRfid")
           ? encryptText(formData.get("noRfid") as string)
           : null,
+        pekerjaan: formData.get("pekerjaan")
+          ? encryptText(formData.get("pekerjaan") as string)
+          : null,
         jenjangPendidikan:
           (formData.get("jenjangPendidikan") as string) || null,
         namaInstansiPendidikan: formData.get("namaInstansiPendidikan")
@@ -275,6 +301,14 @@ export async function createAnggota(formData: FormData) {
                 tempat: encryptText(p.tempat || "-"),
               }))
             : [],
+        },
+        pendidikans: {
+          create: rawPendidikans
+             ? JSON.parse(rawPendidikans).map((p: any) => ({
+                 jenjang: p.jenjang,
+                 namaSekolah: encryptText(p.namaSekolah || "-"),
+               }))
+             : [],
         },
       },
     });
@@ -320,6 +354,7 @@ export async function updateAnggota(id: string, formData: FormData) {
     }
 
     const rawPerkaderans = formData.get("perkaderans") as string;
+    const rawPendidikans = formData.get("pendidikans") as string;
 
     await prisma.anggota.update({
       where: { id },
@@ -355,6 +390,9 @@ export async function updateAnggota(id: string, formData: FormData) {
         noRfid: formData.get("noRfid")
           ? encryptText(formData.get("noRfid") as string)
           : null,
+        pekerjaan: formData.get("pekerjaan")
+          ? encryptText(formData.get("pekerjaan") as string)
+          : null,
         jenjangPendidikan:
           (formData.get("jenjangPendidikan") as string) || null,
         namaInstansiPendidikan: formData.get("namaInstansiPendidikan")
@@ -369,6 +407,15 @@ export async function updateAnggota(id: string, formData: FormData) {
                 tempat: encryptText(p.tempat || "-"),
               }))
             : [],
+        },
+        pendidikans: {
+          deleteMany: {},
+          create: rawPendidikans
+             ? JSON.parse(rawPendidikans).map((p: any) => ({
+                 jenjang: p.jenjang,
+                 namaSekolah: encryptText(p.namaSekolah || "-"),
+               }))
+             : [],
         },
       },
     });
@@ -490,7 +537,7 @@ export async function copyAnggotaToCurrentPeriode(anggotaIds: string[]) {
   try {
     const sourceAnggota = await prisma.anggota.findMany({
       where: { id: { in: anggotaIds } },
-      include: { perkaderans: true },
+      include: { perkaderans: true, pendidikans: true },
     });
 
     const createdCount = await prisma.$transaction(async (tx) => {
@@ -514,6 +561,7 @@ export async function copyAnggotaToCurrentPeriode(anggotaIds: string[]) {
             hobi: item.hobi,
             jabatan: item.jabatan,
             noRfid: item.noRfid,
+            pekerjaan: item.pekerjaan,
             jenjangPendidikan: item.jenjangPendidikan,
             namaInstansiPendidikan: item.namaInstansiPendidikan,
             perkaderans: {
@@ -521,6 +569,12 @@ export async function copyAnggotaToCurrentPeriode(anggotaIds: string[]) {
                 namaPerkaderan: p.namaPerkaderan,
                 tanggal: p.tanggal,
                 tempat: p.tempat,
+              })),
+            },
+            pendidikans: {
+              create: item.pendidikans.map((p) => ({
+                jenjang: p.jenjang,
+                namaSekolah: p.namaSekolah,
               })),
             },
           },

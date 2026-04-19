@@ -46,8 +46,11 @@ type AnggotaDetail = {
   noRfid?: string | null;
   alamatLengkap?: string | null;
   hobi?: string | null;
-  jenjangPendidikan?: string | null;
-  namaInstansiPendidikan?: string | null;
+  pendidikans?: Array<{
+    id: string;
+    jenjang: string;
+    namaSekolah: string;
+  }>;
   perkaderans?: Array<{
     id: string;
     namaPerkaderan: string;
@@ -256,16 +259,7 @@ export default function AnggotaDetailClient({
                 value={anggota.noRfid || "-"}
                 icon={<CreditCard size={14} />}
               />
-              <InfoItem
-                label="Jenjang Pendidikan"
-                value={anggota.jenjangPendidikan || "-"}
-                icon={<School size={14} />}
-              />
-              <InfoItem
-                label="Sekolah / Kampus"
-                value={anggota.namaInstansiPendidikan || "-"}
-                icon={<School size={14} />}
-              />
+
               <InfoItem
                 label="Hobi / Minat Bakat"
                 value={anggota.hobi || "-"}
@@ -356,6 +350,55 @@ export default function AnggotaDetailClient({
                           </span>
                           <p className="text-[10px] font-medium text-slate-600 truncate">
                             {p.tempat}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6 border-2 border-dashed rounded-lg bg-slate-50/50">
+                  <p className="text-[10px] text-slate-500 font-medium">
+                    Belum ada data.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* SIDEBAR BOTTOM / Mobile Bottom: Pendidikan */}
+        <div className="lg:col-start-1 lg:row-start-3">
+          <Card className="border-slate-200 shadow-sm mt-6 lg:mt-0">
+            <CardHeader className="bg-slate-50 border-b pb-3">
+              <CardTitle className="text-[12px] font-bold flex items-center gap-2">
+                <School size={14} className="text-primary" />
+                Riwayat Pendidikan
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4 pb-4 px-3">
+              {anggota.pendidikans && anggota.pendidikans.length > 0 ? (
+                <div className="space-y-3">
+                  {anggota.pendidikans.map((p, idx) => (
+                    <div
+                      key={p.id || idx}
+                      className="p-3 bg-slate-50/50 rounded-lg border border-slate-100 shadow-sm space-y-2"
+                    >
+                      <div className="space-y-0.5">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase">
+                          Jenjang
+                        </span>
+                        <p className="text-xs font-bold text-slate-800 leading-tight">
+                          {p.jenjang}
+                        </p>
+                      </div>
+                      <div className="pt-1.5 border-t border-slate-100/50">
+                        <div className="space-y-0.5">
+                          <span className="text-[8px] font-bold text-slate-400 uppercase">
+                            Sekolah / Kampus
+                          </span>
+                          <p className="text-[10px] font-medium text-slate-600 truncate">
+                            {p.namaSekolah}
                           </p>
                         </div>
                       </div>
