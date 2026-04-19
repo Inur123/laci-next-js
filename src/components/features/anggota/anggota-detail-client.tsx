@@ -273,6 +273,41 @@ export default function AnggotaDetailClient({
                 fullWidth
               />
             </CardContent>
+
+            {/* Riwayat Pendidikan Inside Organisasi Card */}
+            <div className="border-t border-slate-100 bg-slate-50/30">
+              <div className="px-6 py-4">
+                <h3 className="text-[12px] font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide">
+                  <School size={14} className="text-primary" />
+                  Riwayat Pendidikan
+                </h3>
+              </div>
+              <CardContent className="px-6 pb-6 pt-0">
+                {anggota.pendidikans && anggota.pendidikans.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {anggota.pendidikans.map((p, idx) => (
+                      <div
+                        key={p.id || idx}
+                        className="flex flex-col p-4 border border-slate-100 rounded-xl bg-white shadow-sm space-y-1.5 transition-all hover:shadow-md"
+                      >
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          {p.jenjang}
+                        </span>
+                        <p className="text-sm font-bold text-slate-700">
+                          {p.namaSekolah}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 border-2 border-dashed border-slate-200 rounded-xl bg-white">
+                    <p className="text-[10px] text-slate-500 font-medium tracking-wide">
+                      BELUM ADA DATA PENDIDIKAN
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </div>
           </Card>
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2 text-[10px] text-slate-400 font-bold uppercase tracking-widest border-t pt-4">
@@ -367,54 +402,7 @@ export default function AnggotaDetailClient({
           </Card>
         </div>
 
-        {/* SIDEBAR BOTTOM / Mobile Bottom: Pendidikan */}
-        <div className="lg:col-start-1 lg:row-start-3">
-          <Card className="border-slate-200 shadow-sm mt-6 lg:mt-0">
-            <CardHeader className="bg-slate-50 border-b pb-3">
-              <CardTitle className="text-[12px] font-bold flex items-center gap-2">
-                <School size={14} className="text-primary" />
-                Riwayat Pendidikan
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4 pb-4 px-3">
-              {anggota.pendidikans && anggota.pendidikans.length > 0 ? (
-                <div className="space-y-3">
-                  {anggota.pendidikans.map((p, idx) => (
-                    <div
-                      key={p.id || idx}
-                      className="p-3 bg-slate-50/50 rounded-lg border border-slate-100 shadow-sm space-y-2"
-                    >
-                      <div className="space-y-0.5">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase">
-                          Jenjang
-                        </span>
-                        <p className="text-xs font-bold text-slate-800 leading-tight">
-                          {p.jenjang}
-                        </p>
-                      </div>
-                      <div className="pt-1.5 border-t border-slate-100/50">
-                        <div className="space-y-0.5">
-                          <span className="text-[8px] font-bold text-slate-400 uppercase">
-                            Sekolah / Kampus
-                          </span>
-                          <p className="text-[10px] font-medium text-slate-600 truncate">
-                            {p.namaSekolah}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-6 border-2 border-dashed rounded-lg bg-slate-50/50">
-                  <p className="text-[10px] text-slate-500 font-medium">
-                    Belum ada data.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+
       </div>
 
       <ConfirmModal
