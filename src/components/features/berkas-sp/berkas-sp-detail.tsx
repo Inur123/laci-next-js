@@ -58,6 +58,54 @@ const organisasiConfig: Record<string, { label: string; className: string }> = {
   },
 };
 
+const getStatusBadge = (tanggalBerakhir: Date) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const end = new Date(tanggalBerakhir);
+  end.setHours(0, 0, 0, 0);
+
+  const diffTime = end.getTime() - today.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) {
+    return (
+      <Badge
+        variant="outline"
+        className="bg-rose-50 text-rose-700 border-rose-200 text-[10px] leading-3 h-5 px-1.5 font-medium whitespace-nowrap"
+      >
+        Kedaluwarsa (Lewat {Math.abs(diffDays)} Hari)
+      </Badge>
+    );
+  } else if (diffDays === 0) {
+    return (
+      <Badge
+        variant="outline"
+        className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] leading-3 h-5 px-1.5 font-semibold whitespace-nowrap animate-pulse"
+      >
+        Berakhir Hari Ini!
+      </Badge>
+    );
+  } else if (diffDays <= 30) {
+    return (
+      <Badge
+        variant="outline"
+        className="bg-orange-50 text-orange-700 border-orange-200 text-[10px] leading-3 h-5 px-1.5 whitespace-nowrap"
+      >
+        Hampir Habis (Sisa {diffDays} Hari)
+      </Badge>
+    );
+  } else {
+    return (
+      <Badge
+        variant="outline"
+        className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] leading-3 h-5 px-1.5 whitespace-nowrap"
+      >
+        Aktif (Sisa {diffDays} Hari)
+      </Badge>
+    );
+  }
+};
+
 export function BerkasSPDetail({ berkasSP }: BerkasSPDetailProps) {
   const router = useRouter();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -189,9 +237,12 @@ export function BerkasSPDetail({ berkasSP }: BerkasSPDetailProps) {
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
                   <Calendar className="w-3 h-3" /> Tanggal Berakhir
                 </p>
-                <p className="font-medium mt-1">
-                  {formatDate(new Date(berkasSP.tanggalBerakhir), "PPPP")}
-                </p>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2 mt-1">
+                  <p className="font-medium">
+                    {formatDate(new Date(berkasSP.tanggalBerakhir), "PPPP")}
+                  </p>
+                  {getStatusBadge(berkasSP.tanggalBerakhir)}
+                </div>
               </div>
 
               <div>

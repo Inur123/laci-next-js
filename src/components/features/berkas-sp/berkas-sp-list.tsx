@@ -89,6 +89,54 @@ const organisasiConfig: Record<string, { label: string; className: string }> = {
   },
 };
 
+const getStatusBadge = (tanggalBerakhir: Date) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const end = new Date(tanggalBerakhir);
+  end.setHours(0, 0, 0, 0);
+
+  const diffTime = end.getTime() - today.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) {
+    return (
+      <Badge
+        variant="outline"
+        className="bg-rose-50 text-rose-700 border-rose-200 mt-1 text-[10px] leading-3 h-5 px-1.5 font-medium whitespace-nowrap"
+      >
+        Kedaluwarsa (Lewat {Math.abs(diffDays)} Hari)
+      </Badge>
+    );
+  } else if (diffDays === 0) {
+    return (
+      <Badge
+        variant="outline"
+        className="bg-amber-50 text-amber-700 border-amber-200 mt-1 text-[10px] leading-3 h-5 px-1.5 font-semibold whitespace-nowrap animate-pulse"
+      >
+        Berakhir Hari Ini!
+      </Badge>
+    );
+  } else if (diffDays <= 30) {
+    return (
+      <Badge
+        variant="outline"
+        className="bg-orange-50 text-orange-700 border-orange-200 mt-1 text-[10px] leading-3 h-5 px-1.5 whitespace-nowrap"
+      >
+        Hampir Habis (Sisa {diffDays} Hari)
+      </Badge>
+    );
+  } else {
+    return (
+      <Badge
+        variant="outline"
+        className="bg-emerald-50 text-emerald-700 border-emerald-200 mt-1 text-[10px] leading-3 h-5 px-1.5 whitespace-nowrap"
+      >
+        Aktif (Sisa {diffDays} Hari)
+      </Badge>
+    );
+  }
+};
+
 export function BerkasSPList({
   berkasSPList: initialBerkasSPList,
   userRole,
@@ -116,7 +164,12 @@ export function BerkasSPList({
   const [orgFilter, setOrgFilter] = useState("ALL");
 
   // Sort state
-  type SortKey = "nama" | "tanggalMulai" | "tanggalBerakhir" | "organisasi" | "catatan";
+  type SortKey =
+    | "nama"
+    | "tanggalMulai"
+    | "tanggalBerakhir"
+    | "organisasi"
+    | "catatan";
   type SortDir = "asc" | "desc";
   const [sortKey, setSortKey] = useState<SortKey | null>("tanggalMulai");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -132,10 +185,14 @@ export function BerkasSPList({
 
   const SortIcon = ({ col }: { col: SortKey }) => {
     if (sortKey !== col)
-      return <ArrowUpDown className="ml-1.5 h-3.5 w-3.5 text-slate-400 inline-block" />;
-    return sortDir === "asc"
-      ? <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
-      : <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />;
+      return (
+        <ArrowUpDown className="ml-1.5 h-3.5 w-3.5 text-slate-400 inline-block" />
+      );
+    return sortDir === "asc" ? (
+      <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+    ) : (
+      <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+    );
   };
 
   const sortedData = [...data].sort((a, b) => {
@@ -548,6 +605,9 @@ export function BerkasSPList({
                       <SortIcon col="tanggalBerakhir" />
                     </span>
                   </TableHead>
+                  <TableHead className="w-[150px] bg-slate-50/40 whitespace-nowrap">
+                    Status
+                  </TableHead>
                   <TableHead
                     className="bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
                     onClick={() => handleSort("catatan")}
@@ -563,11 +623,12 @@ export function BerkasSPList({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedData.filter((item) => !optimisticHiddenIds.includes(item.id))
-                  .length === 0 ? (
+                {sortedData.filter(
+                  (item) => !optimisticHiddenIds.includes(item.id),
+                ).length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={7}
+                      colSpan={8}
                       className="h-32 text-center text-muted-foreground"
                     >
                       {searchTerm || orgFilter !== "ALL"
@@ -615,20 +676,24 @@ export function BerkasSPList({
                           )}
                         </TableCell>
                         <TableCell className="whitespace-nowrap pr-6">
-                          {new Date(berkas.tanggalBerakhir).toLocaleDateString(
-                            "id-ID",
-                            {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            },
-                          )}
+                          {new Date(
+                            berkas.tanggalBerakhir,
+                          ).toLocaleDateString("id-ID", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {getStatusBadge(berkas.tanggalBerakhir)}
                         </TableCell>
                         <TableCell
                           className="truncate max-w-[400px] whitespace-nowrap"
                           title={berkas.catatan || ""}
                         >
-                          {berkas.catatan ? capitalizeName(berkas.catatan) : "-"}
+                          {berkas.catatan
+                            ? capitalizeName(berkas.catatan)
+                            : "-"}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
@@ -675,7 +740,7 @@ export function BerkasSPList({
                 {/* Pagination Row - integrated into table body */}
                 {totalPages >= 1 && (
                   <TableRow className="hover:bg-transparent border-t bg-white">
-                    <TableCell colSpan={7} className="p-0">
+                    <TableCell colSpan={8} className="p-0">
                       <div className="flex items-center justify-center sm:justify-between px-4 py-2">
                         <p className="text-xs text-muted-foreground hidden sm:block">
                           Menampilkan{" "}
@@ -774,7 +839,7 @@ export function BerkasSPList({
         onClose={() => setConfirmDeleteId(null)}
         onConfirm={handleDelete}
         title="Hapus Berkas SP?"
-        description={`Apakah Anda yakin ingin menghapus berkas SP milik "${capitalizeName(data.find(b => b.id === confirmDeleteId)?.nama || "")}"? Tindakan ini tidak dapat dibatalkan dan file terkait akan dihapus secara permanen.`}
+        description={`Apakah Anda yakin ingin menghapus berkas SP milik "${capitalizeName(data.find((b) => b.id === confirmDeleteId)?.nama || "")}"? Tindakan ini tidak dapat dibatalkan dan file terkait akan dihapus secara permanen.`}
         variant="destructive"
         loading={false}
       />
