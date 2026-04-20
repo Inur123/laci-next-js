@@ -169,7 +169,8 @@ export function BerkasSPList({
     | "tanggalMulai"
     | "tanggalBerakhir"
     | "organisasi"
-    | "catatan";
+    | "catatan"
+    | "status";
   type SortDir = "asc" | "desc";
   const [sortKey, setSortKey] = useState<SortKey | null>("tanggalMulai");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -199,9 +200,10 @@ export function BerkasSPList({
     if (!sortKey) return 0;
     let aVal: string | number = "";
     let bVal: string | number = "";
-    if (sortKey === "tanggalMulai" || sortKey === "tanggalBerakhir") {
-      aVal = new Date(a[sortKey]).getTime();
-      bVal = new Date(b[sortKey]).getTime();
+    if (sortKey === "tanggalMulai" || sortKey === "tanggalBerakhir" || sortKey === "status") {
+      const targetKey = sortKey === "status" ? "tanggalBerakhir" : sortKey;
+      aVal = new Date(a[targetKey]).getTime();
+      bVal = new Date(b[targetKey]).getTime();
     } else {
       aVal = (a[sortKey] ?? "").toString().toLowerCase();
       bVal = (b[sortKey] ?? "").toString().toLowerCase();
@@ -605,8 +607,14 @@ export function BerkasSPList({
                       <SortIcon col="tanggalBerakhir" />
                     </span>
                   </TableHead>
-                  <TableHead className="w-[150px] bg-slate-50/40 whitespace-nowrap">
-                    Status
+                  <TableHead
+                    className="w-[150px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    onClick={() => handleSort("status")}
+                  >
+                    <span className="inline-flex items-center">
+                      Status
+                      <SortIcon col="status" />
+                    </span>
                   </TableHead>
                   <TableHead
                     className="bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
