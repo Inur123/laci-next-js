@@ -8,6 +8,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { createLog } from "@/lib/log-activity";
 import { isPresensiOpen as checkIsPresensiOpen } from "@/lib/presensi-utils";
 import { format } from "date-fns";
+import { notifyRealtime } from "@/lib/realtime";
 
 /**
  * Get List of Presensi Events
@@ -283,6 +284,23 @@ export async function submitPresensiData(
         instansi: instansi || null,
       },
     });
+
+    // Notifikasi Realtime untuk update List & Detail
+    // Kita kirim model "PresensiData" agar Detail Page Refresh
+    // Kita kirim type "log" + module "PRESENSI" agar List Page Refresh (Counter)
+    notifyRealtime({
+      type: "mutation",
+      model: "PresensiData",
+      action: "create",
+      presensiId: presensiId, // Extra info untuk mempermudah filter
+    }).catch(() => {});
+
+    notifyRealtime({
+      type: "log",
+      module: "PRESENSI",
+      action: "CREATE",
+      entityId: presensiId, // Mengacu ke ID Presensi (Event), bukan Data (Record)
+    }).catch(() => {});
 
     return {
       success: "Berhasil melakukan presensi!",

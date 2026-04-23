@@ -68,6 +68,7 @@ import Link from "next/link";
 import {
   deletePresensi,
   updatePresensiStatus,
+  getPresensiList,
 } from "@/app/actions/presensi-actions";
 import { isPresensiOpen } from "@/lib/presensi-utils";
 import { toast } from "sonner";
@@ -93,6 +94,9 @@ export function PresensiList({
   );
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const realtimeTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   // Real-time tick to update status badges every second
   const [, setTick] = useState(0);
@@ -120,27 +124,30 @@ export function PresensiList({
   useEffect(() => {
     const handleRealtime = (event: Event) => {
       const detail = (event as CustomEvent).detail;
-      if (
-        detail.type === "log" &&
-        detail.module === "PRESENSI_DATA" &&
-        detail.action === "CREATE" &&
-        detail.entityId
-      ) {
-        setData((prev) =>
-          prev.map((item) => {
-            if (item.id === detail.entityId) {
-              const currentCount = item._count?.dataPresensi ?? 0;
-              return {
-                ...item,
-                _count: {
-                  ...item._count,
-                  dataPresensi: currentCount + 1,
-                },
-              };
-            }
-            return item;
-          }),
-        );
+      if (!detail) return;
+
+      const detailModel = detail.model?.toLowerCase();
+      const detailAction = detail.action?.toLowerCase();
+      const detailType = detail.type;
+      const detailModule = detail.module;
+
+      // Cek apakah event ini relevan untuk halaman Presensi
+      const isPresensiMutation =
+        detailType === "mutation" &&
+        (detailModel === "presensidata" || detailModel === "presensi");
+      const isPresensiLog =
+        detailType === "log" &&
+        (detailModule === "PRESENSI" || detailModule === "AGENDA_KEGIATAN");
+
+      if (isPresensiMutation || isPresensiLog) {
+        // Debounce refresh agar tidak membombardir server jika banyak join sekaligus
+        if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
+        realtimeTimerRef.current = setTimeout(() => {
+          realtimeTimerRef.current = null;
+          getPresensiList().then((freshData) => {
+            if (freshData) setData(freshData);
+          });
+        }, 500);
       }
     };
 
@@ -526,7 +533,7 @@ export function PresensiList({
                               className="flex items-center cursor-pointer text-slate-700"
                             >
                               <Pencil className="w-4 h-4 mr-2 shrink-0" />
-                              Edit Kegiatan
+                              Edit
                             </Link>
                           </DropdownMenuItem>
 

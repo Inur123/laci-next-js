@@ -80,11 +80,9 @@ export function AttendanceForm({ presensi }: AttendanceFormProps) {
   }, [currentPresensi]);
 
   /**
-   * TRIPLE PROTECTION: Realtime listener + Polling Fallback
+   * TRIPLE PROTECTION: Global Realtime Listener + Automatic Tick
    */
   useEffect(() => {
-    let source: EventSource | null = new EventSource("/api/realtime");
-
     const refreshData = async () => {
       try {
         const fresh = await getPresensiDetail(presensi.id);
@@ -98,36 +96,35 @@ export function AttendanceForm({ presensi }: AttendanceFormProps) {
       } catch {}
     };
 
-    const handleEvent = (event: MessageEvent) => {
-      try {
-        if (!event.data || event.data === "{}") return;
-        const detail = JSON.parse(event.data);
-        if (detail.type !== "mutation" || detail.model !== "Presensi") return;
+    const handleRealtime = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      if (!detail) return;
 
+      const detailType = detail.type?.toLowerCase();
+      const detailModel = detail.model?.toLowerCase();
+      const detailModule = detail.module;
+
+      // Refresh jika ada perubahan pada event Presensi (via Mutation atau Log)
+      const isPresensiMutation =
+        detailType === "mutation" && detailModel === "presensi";
+      const isPresensiLog =
+        detailType === "log" &&
+        (detailModule === "PRESENSI" || detailModule === "AGENDA_KEGIATAN");
+
+      if (isPresensiMutation || isPresensiLog) {
         // Debounce Realtime update
         if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
-        realtimeTimerRef.current = setTimeout(refreshData, 400);
-      } catch {}
+        realtimeTimerRef.current = setTimeout(refreshData, 500);
+      }
     };
 
-    source.onmessage = handleEvent;
-    source.onerror = () => {
-      if (source) source.close();
-      source = null;
-      // Reconnect after 5 seconds
-      setTimeout(() => {
-        if (!source) {
-          source = new EventSource("/api/realtime");
-          source.onmessage = handleEvent;
-        }
-      }, 5000);
-    };
+    window.addEventListener("laci-realtime", handleRealtime);
 
-    // Polling backup setiap 60 detik
+    // Polling backup setiap 60 detik (sebagai pengaman terakhir)
     const pollingInterval = setInterval(refreshData, 60000);
 
     return () => {
-      if (source) source.close();
+      window.removeEventListener("laci-realtime", handleRealtime);
       clearInterval(pollingInterval);
       if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
     };

@@ -208,9 +208,27 @@ export function PresensiDetail({
       const detail = (event as CustomEvent).detail as {
         type?: string;
         model?: string;
+        module?: string;
+        action?: string;
+        presensiId?: string;
+        entityId?: string;
       };
-      if (!detail || detail.type !== "mutation") return;
-      if (detail.model !== "PresensiData") return;
+
+      // 1. Cek via Mutation (Prisma Middleware)
+      const isMutation =
+        detail.type === "mutation" &&
+        (detail.model?.toLowerCase() === "presensidata" ||
+          detail.model?.toLowerCase() === "presensi");
+
+      // 2. Cek via Log (Manual Notification)
+      const isLog =
+        detail.type === "log" &&
+        detail.module === "PRESENSI" &&
+        (detail.action === "CREATE" || detail.action === "UPDATE") &&
+        (detail.entityId === presensi.id || detail.presensiId === presensi.id);
+
+      if (!isMutation && !isLog) return;
+
       if (realtimeTimerRef.current) return;
       realtimeTimerRef.current = setTimeout(() => {
         realtimeTimerRef.current = null;

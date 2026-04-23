@@ -15,25 +15,35 @@ export function PresensiStatusBadge({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const source = new EventSource("/api/realtime");
+    const handleRealtime = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      if (!detail) return;
 
-    source.onmessage = (event) => {
-      try {
-        const detail = JSON.parse(event.data || "{}");
-        if (detail.type !== "mutation" || detail.model !== "Presensi") return;
+      const detailType = detail.type?.toLowerCase();
+      const detailModel = detail.model?.toLowerCase();
+      const detailModule = detail.module;
+
+      // Refresh jika ada perubahan pada event Presensi (via Mutation atau Log)
+      const isPresensiMutation =
+        detailType === "mutation" && detailModel === "presensi";
+      const isPresensiLog =
+        detailType === "log" &&
+        (detailModule === "PRESENSI" || detailModule === "AGENDA_KEGIATAN");
+
+      if (isPresensiMutation || isPresensiLog) {
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(async () => {
           timerRef.current = null;
           const fresh = await getPresensiDetail(presensiId);
           if (fresh) setPresensi(fresh);
         }, 400);
-      } catch {}
+      }
     };
 
-    source.onerror = () => source.close();
+    window.addEventListener("laci-realtime", handleRealtime);
 
     return () => {
-      source.close();
+      window.removeEventListener("laci-realtime", handleRealtime);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [presensiId]);
