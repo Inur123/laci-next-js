@@ -233,7 +233,7 @@ export function PengajuanBerkasForm({
         setIsSubmitting(false);
       } else {
         toast.success(result.success);
-        router.push("/dashboard/pengajuan-berkas");
+        router.push("/dashboard/pengajuan-berkas?confetti=true");
         router.refresh();
       }
     } catch (error) {

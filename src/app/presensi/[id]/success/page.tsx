@@ -16,6 +16,7 @@ import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ConfettiEffect } from "@/components/shared/confetti-effect";
 
 const capitalizeName = (name: string) => {
   if (!name) return "";
@@ -50,6 +51,7 @@ export default async function PresensiSuccessPage({
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col items-center py-0 sm:py-8 px-0 sm:px-4">
+      <ConfettiEffect />
       {/* ── Main Column Wrapper (Full Mobile, Card Desktop) ── */}
       <div className="w-full max-w-md bg-white sm:rounded-[32px] shadow-2xl shadow-slate-200/50 overflow-hidden min-h-screen sm:min-h-0 flex flex-col">
         {/* Success Icon Area */}

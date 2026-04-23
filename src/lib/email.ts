@@ -2,6 +2,7 @@ import nodemailer from "nodemailer";
 import { decryptFile } from "./encryption";
 import { downloadFromR2 } from "./storage-r2";
 import prisma from "@/lib/prisma";
+import { notifyRealtime } from "./realtime";
 
 // Create SMTP transporter
 const transporter = nodemailer.createTransport({
@@ -33,6 +34,8 @@ export interface SendEmailOptions {
   emailType?: "VERIFICATION" | "VERIFIED_SUCCESS" | "PENGAJUAN_USER" | "PENGAJUAN_ADMIN" | "PENGAJUAN_STATUS";
   /** Extra metadata to store in log (JSON serializable) */
   emailMetadata?: Record<string, unknown>;
+  /** Update an existing log instead of creating a new one */
+  existingLogId?: string;
 }
 
 /**
@@ -46,6 +49,7 @@ export async function sendEmail({
   attachments,
   emailType,
   emailMetadata,
+  existingLogId,
 }: SendEmailOptions): Promise<{ success: boolean; error?: string }> {
   // Create log entry first (PENDING)
   let logId: string | null = null;
@@ -61,9 +65,13 @@ export async function sendEmail({
         },
       });
       logId = log.id;
+      // Realtime: Notif ada log baru (PENDING)
+      notifyRealtime({ model: "LogEmail", type: "mutation", id: log.id });
     } catch (logError) {
       console.error("[EMAIL-LOG] Failed to create log entry:", logError);
     }
+  } else if (existingLogId) {
+    logId = existingLogId;
   }
 
   try {
@@ -88,6 +96,8 @@ export async function sendEmail({
           where: { id: logId },
           data: { status: "SENT" },
         });
+        // Realtime: Notif status berubah jadi SENT
+        notifyRealtime({ model: "LogEmail", type: "mutation", id: logId });
       } catch (updateErr) {
         console.error("[EMAIL-LOG] Failed to update log:", updateErr);
       }
@@ -106,6 +116,8 @@ export async function sendEmail({
           where: { id: logId },
           data: { status: "FAILED", errorMessage },
         });
+        // Realtime: Notif status berubah jadi FAILED
+        notifyRealtime({ model: "LogEmail", type: "mutation", id: logId });
       } catch (updateErr) {
         console.error("[EMAIL-LOG] Failed to update log:", updateErr);
       }

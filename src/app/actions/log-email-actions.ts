@@ -174,25 +174,18 @@ export async function retryEmail(logId: string) {
       },
     });
 
-    // Rebuild and send email in background
-    rebuildAndSendEmail(log).then(async (result) => {
-      // Update original log based on result manually when it finishes
-      try {
-        await prisma.logEmail.update({
-          where: { id: logId },
-          data: {
-            status: result.success ? "SENT" : "FAILED",
-            errorMessage: result.error || null,
-          },
-        });
-      } catch (updateErr) {
-        console.error("[RETRY-BG] Failed to update original log:", updateErr);
-      }
-    }).catch((err) => {
-      console.error("[RETRY-BG] Critical error in background retry:", err);
-    });
+    // Realtime: Update status ke PENDING di UI
+    const { notifyRealtime } = await import("@/lib/realtime");
+    notifyRealtime({ model: "LogEmail", type: "mutation", id: logId });
 
-    return { success: true, message: "Proses pengiriman ulang dimulai" };
+    // Rebuild and send email (Now waiting for it instead of background)
+    const result = await rebuildAndSendEmail(log, logId);
+    
+    return { 
+      success: result.success, 
+      message: result.success ? "Email berhasil dikirim ulang" : "Gagal mengirim ulang",
+      error: result.error
+    };
   } catch (error) {
     await prisma.logEmail.update({
       where: { id: logId },
@@ -210,16 +203,21 @@ export async function retryEmail(logId: string) {
 
 /**
  * Rebuild and resend email based on logged type
- * Does NOT use emailType param to avoid creating duplicate log
+ * Now supports existingLogId to update the original log
  */
 async function rebuildAndSendEmail(log: {
   to: string;
   subject: string;
   type: EmailType;
   metadata: string | null;
-}): Promise<{ success: boolean; error?: string }> {
+}, existingLogId?: string): Promise<{ success: boolean; error?: string }> {
   const { sendEmail } = await import("@/lib/email");
   const metadata = log.metadata ? JSON.parse(log.metadata) : {};
+
+  const commonOptions = {
+    to: log.to,
+    existingLogId, // Mastiin log lama yang diupdate
+  };
 
   switch (log.type) {
     case "VERIFICATION": {
@@ -235,11 +233,10 @@ async function rebuildAndSendEmail(log: {
       const text = verificationEmailText({ name, otp: newOtp });
 
       return sendEmail({
-        to: log.to,
+        ...commonOptions,
         subject: log.subject,
         html,
         text,
-        // No emailType to avoid duplicate log
       });
     }
 
@@ -258,7 +255,7 @@ async function rebuildAndSendEmail(log: {
       const text = verifiedSuccessEmailText({ name });
 
       return sendEmail({
-        to: log.to,
+        ...commonOptions,
         subject: log.subject,
         html,
         text,
@@ -268,10 +265,8 @@ async function rebuildAndSendEmail(log: {
     case "PENGAJUAN_USER":
     case "PENGAJUAN_ADMIN":
     case "PENGAJUAN_STATUS": {
-      // For pengajuan emails, we can't fully reconstruct the content
-      // So we just resend with the original subject as a simple notification
       return sendEmail({
-        to: log.to,
+        ...commonOptions,
         subject: `[Kirim Ulang] ${log.subject}`,
         html: `<p>Email ini dikirim ulang oleh administrator. Silakan cek email sebelumnya atau hubungi Sekretaris Cabang untuk informasi lebih lanjut.</p>`,
         text: `Email ini dikirim ulang oleh administrator. Silakan cek email sebelumnya atau hubungi Sekretaris Cabang.`,
