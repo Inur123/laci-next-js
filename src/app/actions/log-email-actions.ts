@@ -130,14 +130,12 @@ export async function getEmailLogs(
   );
 
   return {
-    data: data.map(
-      (log) => ({
-        ...log,
-        createdAt: log.createdAt.toISOString(),
-        updatedAt: log.updatedAt.toISOString(),
-        isVerified: verificationMap[log.to] || false,
-      }),
-    ),
+    data: data.map((log) => ({
+      ...log,
+      createdAt: log.createdAt.toISOString(),
+      updatedAt: log.updatedAt.toISOString(),
+      isVerified: verificationMap[log.to] || false,
+    })),
     total,
     totalPages: Math.ceil(total / perPage),
     currentPage: page,
@@ -180,11 +178,13 @@ export async function retryEmail(logId: string) {
 
     // Rebuild and send email (Now waiting for it instead of background)
     const result = await rebuildAndSendEmail(log, logId);
-    
-    return { 
-      success: result.success, 
-      message: result.success ? "Email berhasil dikirim ulang" : "Gagal mengirim ulang",
-      error: result.error
+
+    return {
+      success: result.success,
+      message: result.success
+        ? "Email berhasil dikirim ulang"
+        : "Gagal mengirim ulang",
+      error: result.error,
     };
   } catch (error) {
     await prisma.logEmail.update({
@@ -205,12 +205,16 @@ export async function retryEmail(logId: string) {
  * Rebuild and resend email based on logged type
  * Now supports existingLogId to update the original log
  */
-async function rebuildAndSendEmail(log: {
-  to: string;
-  subject: string;
-  type: EmailType;
-  metadata: string | null;
-}, existingLogId?: string): Promise<{ success: boolean; error?: string }> {
+async function rebuildAndSendEmail(
+  log: {
+    to: string;
+    subject: string;
+    type: EmailType;
+    metadata: string | null;
+    createdAt: Date;
+  },
+  existingLogId?: string,
+): Promise<{ success: boolean; error?: string }> {
   const { sendEmail } = await import("@/lib/email");
   const metadata = log.metadata ? JSON.parse(log.metadata) : {};
 
@@ -262,14 +266,107 @@ async function rebuildAndSendEmail(log: {
       });
     }
 
-    case "PENGAJUAN_USER":
-    case "PENGAJUAN_ADMIN":
-    case "PENGAJUAN_STATUS": {
+    case "PENGAJUAN_USER": {
+      const { pengajuanBerkasUserTemplate, pengajuanBerkasUserText } =
+        await import("@/lib/email-templates/pengajuan-berkas");
+
+      const submissionDate = new Date(log.createdAt).toLocaleDateString(
+        "id-ID",
+        {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        },
+      );
+
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        process.env.BETTER_AUTH_URL ||
+        "http://localhost:3000";
+      // Metadata might contain original submission ID, if not we fallback or use a safe link
+      const submissionId = metadata.submissionId || metadata.id || "";
+      const detailUrl = `${baseUrl}/dashboard/pengajuan-berkas/${submissionId}`;
+
+      const props = {
+        pacName: metadata.pacName || "PAC",
+        userName: metadata.userName || "Rekan/Rekanita",
+        noSurat: metadata.noSurat || "-",
+        email: log.to,
+        submissionDate,
+        detailUrl,
+      };
+
       return sendEmail({
         ...commonOptions,
-        subject: `[Kirim Ulang] ${log.subject}`,
-        html: `<p>Email ini dikirim ulang oleh administrator. Silakan cek email sebelumnya atau hubungi Sekretaris Cabang untuk informasi lebih lanjut.</p>`,
-        text: `Email ini dikirim ulang oleh administrator. Silakan cek email sebelumnya atau hubungi Sekretaris Cabang.`,
+        subject: log.subject,
+        html: pengajuanBerkasUserTemplate(props),
+        text: pengajuanBerkasUserText(props),
+      });
+    }
+
+    case "PENGAJUAN_ADMIN": {
+      const { pengajuanBerkasAdminTemplate, pengajuanBerkasAdminText } =
+        await import("@/lib/email-templates/pengajuan-berkas");
+
+      const submissionDate = new Date(log.createdAt).toLocaleDateString(
+        "id-ID",
+        {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        },
+      );
+
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        process.env.BETTER_AUTH_URL ||
+        "http://localhost:3000";
+      const submissionId = metadata.submissionId || metadata.id || "";
+      const detailUrl = `${baseUrl}/dashboard/pengajuan-berkas/${submissionId}`;
+
+      const props = {
+        pacName: metadata.pacName || "PAC",
+        userName: metadata.userName || "Pimpinan",
+        noSurat: metadata.noSurat || "-",
+        email: metadata.userEmail || log.to,
+        submissionDate,
+        detailUrl,
+      };
+
+      return sendEmail({
+        ...commonOptions,
+        subject: log.subject,
+        html: pengajuanBerkasAdminTemplate(props),
+        text: pengajuanBerkasAdminText(props),
+      });
+    }
+
+    case "PENGAJUAN_STATUS": {
+      const { pengajuanBerkasStatusTemplate, pengajuanBerkasStatusText } = 
+        await import("@/lib/email-templates/pengajuan-berkas-status");
+      
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || "http://localhost:3000";
+      const submissionId = metadata.submissionId || metadata.id || "";
+      const detailUrl = `${baseUrl}/dashboard/pengajuan-berkas/${submissionId}`;
+
+      const props = {
+        userName: metadata.userName || "Rekan/Rekanita",
+        pacName: metadata.pacName || "PAC",
+        noSurat: metadata.noSurat || "-",
+        status: (metadata.status === "DITERIMA" ? "DITERIMA" : "DITOLAK") as "DITERIMA" | "DITOLAK",
+        alasanPenolakan: metadata.alasanPenolakan || metadata.keterangan || undefined,
+        detailUrl
+      };
+
+      return sendEmail({
+        ...commonOptions,
+        subject: log.subject,
+        html: pengajuanBerkasStatusTemplate(props),
+        text: pengajuanBerkasStatusText(props),
       });
     }
 
@@ -296,7 +393,7 @@ export async function resendVerificationOTP(email: string) {
 
   const { auth } = await import("@/lib/auth");
   const { headers } = await import("next/headers");
-  
+
   // Use Better Auth's official API to generate OTP
   // This ensures it's correctly stored in their internal tables with correct format
   try {
@@ -312,10 +409,10 @@ export async function resendVerificationOTP(email: string) {
       return { success: false, error: "Gagal membuat kode OTP dari sistem" };
     }
 
-    // After calling generateEmailOTP, Better Auth will automatically 
+    // After calling generateEmailOTP, Better Auth will automatically
     // trigger our sendVerificationOTP hook in lib/auth.ts, which will
     // send the email and log it. So we don't need to call sendVerificationEmail here.
-    
+
     return { success: true, message: "OTP baru telah dikirim oleh sistem" };
   } catch (err) {
     console.error("[RESEND-OTP-AUTH] Failed to trigger BA OTP:", err);
