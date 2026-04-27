@@ -162,6 +162,7 @@ async function PengajuanContent({
     ipnu: 0,
     ippnu: 0,
     bersama: 0,
+    cbpKpp: 0,
     pending: 0,
     diterima: 0,
     ditolak: 0,

@@ -63,6 +63,7 @@ export async function GET(request: Request) {
           ipnu: allPengajuan.filter((p) => p.penerima === "IPNU").length,
           ippnu: allPengajuan.filter((p) => p.penerima === "IPPNU").length,
           bersama: allPengajuan.filter((p) => p.penerima === "BERSAMA").length,
+          cbpKpp: allPengajuan.filter((p) => p.penerima === "CBP_KPP").length,
           pending: allPengajuan.filter((p) => p.status === "PENDING").length,
           diterima: allPengajuan.filter((p) => p.status === "DITERIMA").length,
           ditolak: allPengajuan.filter((p) => p.status === "DITOLAK").length,

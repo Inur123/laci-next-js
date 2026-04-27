@@ -291,6 +291,7 @@ export function PengajuanBerkasForm({
                     <SelectItem value="IPNU">IPNU</SelectItem>
                     <SelectItem value="IPPNU">IPPNU</SelectItem>
                     <SelectItem value="BERSAMA">BERSAMA</SelectItem>
+                    <SelectItem value="CBP_KPP">CBP KPP</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

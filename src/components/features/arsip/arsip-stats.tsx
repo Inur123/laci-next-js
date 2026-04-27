@@ -20,6 +20,7 @@ type ArsipStatsProps = {
     ipnu: number;
     ippnu: number;
     bersama: number;
+    cbpkpp: number;
   };
 };
 
@@ -54,7 +55,7 @@ export function ArsipStats({ stats: initialStats }: ArsipStatsProps) {
 
   if (!stats) return null;
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
       {/* Total Surat */}
       <Card className="h-[85px] flex flex-col justify-between p-3 shadow-none border-slate-200">
         <div className="flex items-center justify-between">
@@ -176,6 +177,28 @@ export function ArsipStats({ stats: initialStats }: ArsipStatsProps) {
         <div className="text-xl font-bold text-blue-600 leading-none">
           <NumberTicker
             value={stats.bersama}
+            formatter={(val) =>
+              new Intl.NumberFormat("id-ID", {
+                notation: "compact",
+                compactDisplay: "short",
+                maximumFractionDigits: 1,
+              }).format(val)
+            }
+          />
+        </div>
+      </Card>
+
+      {/* Total CBP/KPP */}
+      <Card className="h-[85px] flex flex-col justify-between p-3 shadow-none border-orange-100 bg-orange-50/5">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-bold text-orange-700 uppercase">
+            CBP/KPP
+          </span>
+          <Shield className="h-4 w-4 text-orange-600" />
+        </div>
+        <div className="text-xl font-bold text-orange-700 leading-none">
+          <NumberTicker
+            value={stats.cbpkpp}
             formatter={(val) =>
               new Intl.NumberFormat("id-ID", {
                 notation: "compact",

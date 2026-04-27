@@ -145,7 +145,7 @@ export async function getPengajuanBerkass(
         periodeCabang: true,
       },
       orderBy: {
-        createdAt: "desc",
+        tanggal: "desc",
       },
       skip: (page - 1) * limit,
       take: limit,
@@ -174,7 +174,7 @@ export async function getPengajuanBerkass(
       periodePac: true,
       periodeCabang: true,
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { tanggal: "desc" },
     take: 500, // Safety limit for in-memory search
   });
 
@@ -278,7 +278,7 @@ export async function getVerifikasiPengajuanForCabang(
         periodeCabang: true,
       },
       orderBy: {
-        createdAt: "desc",
+        tanggal: "desc",
       },
       skip: (page - 1) * limit,
       take: limit,
@@ -314,7 +314,7 @@ export async function getVerifikasiPengajuanForCabang(
       periodePac: true,
       periodeCabang: true,
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { tanggal: "desc" },
     take: 500, // Safety limit for in-memory search
   });
 
@@ -534,6 +534,7 @@ export async function getPengajuanBerkasStatsForReferensi() {
   const ipnu = allPengajuan.filter((p) => p.penerima === "IPNU").length;
   const ippnu = allPengajuan.filter((p) => p.penerima === "IPPNU").length;
   const bersama = allPengajuan.filter((p) => p.penerima === "BERSAMA").length;
+  const cbpKpp = allPengajuan.filter((p) => p.penerima === "CBP_KPP").length;
   const pending = allPengajuan.filter((p) => p.status === "PENDING").length;
   const diterima = allPengajuan.filter((p) => p.status === "DITERIMA").length;
   const ditolak = allPengajuan.filter((p) => p.status === "DITOLAK").length;
@@ -543,6 +544,7 @@ export async function getPengajuanBerkasStatsForReferensi() {
     ipnu,
     ippnu,
     bersama,
+    cbpKpp,
     pending,
     diterima,
     ditolak,
@@ -782,7 +784,7 @@ export async function createPengajuanBerkas(formData: FormData) {
     });
 
     revalidatePath("/dashboard/pengajuan-berkas", "page");
-    revalidatePath("/dashboard", "layout"); 
+    revalidatePath("/dashboard", "layout");
 
     // Log activity
     createLog(
@@ -1103,6 +1105,7 @@ export async function getPengajuanBerkasStats(userId?: string) {
   const ipnu = allPengajuan.filter((p) => p.penerima === "IPNU").length;
   const ippnu = allPengajuan.filter((p) => p.penerima === "IPPNU").length;
   const bersama = allPengajuan.filter((p) => p.penerima === "BERSAMA").length;
+  const cbpKpp = allPengajuan.filter((p) => p.penerima === "CBP_KPP").length;
 
   const pending = allPengajuan.filter((p) => p.status === "PENDING").length;
   const diterima = allPengajuan.filter((p) => p.status === "DITERIMA").length;
@@ -1113,6 +1116,7 @@ export async function getPengajuanBerkasStats(userId?: string) {
     ipnu,
     ippnu,
     bersama,
+    cbpKpp,
     pending,
     diterima,
     ditolak,

@@ -26,9 +26,9 @@ export function ArsipSkeleton() {
         <Skeleton className="h-10 w-full sm:w-32 rounded-md" />
       </div>
 
-      {/* Stats Skeleton (6 Cards) */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
-        {[...Array(6)].map((_, i) => (
+      {/* Stats Skeleton (7 Cards) */}
+      <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
+        {[...Array(7)].map((_, i) => (
           <div
             key={i}
             className="h-[85px] p-3 border rounded-xl flex flex-col justify-between"

@@ -325,6 +325,7 @@ export function ArsipSuratForm({ arsipSurat, userRole }: ArsipSuratFormProps) {
                     <SelectItem value="IPNU">IPNU</SelectItem>
                     <SelectItem value="IPPNU">IPPNU</SelectItem>
                     <SelectItem value="BERSAMA">BERSAMA</SelectItem>
+                    <SelectItem value="CBP_KPP">CBP/KPP</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

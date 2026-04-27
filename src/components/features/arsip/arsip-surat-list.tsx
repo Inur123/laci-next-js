@@ -91,7 +91,13 @@ export function ArsipSuratList({
   const [jenisFilter, setJenisFilter] = useState("ALL");
 
   // Sort state
-  type SortKey = "tanggal" | "noSurat" | "pengirimPenerima" | "perihal" | "organisasi" | "jenisSurat";
+  type SortKey =
+    | "tanggal"
+    | "noSurat"
+    | "pengirimPenerima"
+    | "perihal"
+    | "organisasi"
+    | "jenisSurat";
   type SortDir = "asc" | "desc";
   const [sortKey, setSortKey] = useState<SortKey | null>("tanggal");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -107,10 +113,14 @@ export function ArsipSuratList({
 
   const SortIcon = ({ col }: { col: SortKey }) => {
     if (sortKey !== col)
-      return <ArrowUpDown className="ml-1.5 h-3.5 w-3.5 text-slate-400 inline-block" />;
-    return sortDir === "asc"
-      ? <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
-      : <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />;
+      return (
+        <ArrowUpDown className="ml-1.5 h-3.5 w-3.5 text-slate-400 inline-block" />
+      );
+    return sortDir === "asc" ? (
+      <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+    ) : (
+      <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+    );
   };
 
   const sortedData = [...data].sort((a, b) => {
@@ -285,12 +295,30 @@ export function ArsipSuratList({
             result.failed > 0 ? ` (${result.failed} baris gagal)` : ""
           }`,
         );
-        logImport("ARSIP_SURAT", result.success, result.failed); // Fire and forget
+
+        // PRINT ERROR KE CONSOLE SUPAYA USER BISA CEK
+        if (result.failed > 0) {
+          console.group("❌ Detail Import Gagal");
+          result.failedRows.forEach((err) => console.error(err));
+          console.groupEnd();
+          toast.warning(
+            "Beberapa baris gagal. Cek Console (F12) untuk detailnya.",
+          );
+        }
+
+        logImport("ARSIP_SURAT", result.success, result.failed);
       } else {
         toast.error(`Semua baris gagal. ${result.failedRows[0] ?? ""}`);
       }
 
       fetchData(searchTerm, orgFilter, jenisFilter, currentPage);
+
+      // Trigger manual event agar Statistik (ArsipStats) ikutan refresh
+      window.dispatchEvent(
+        new CustomEvent("laci-realtime", {
+          detail: { type: "mutation", model: "ArsipSurat" },
+        }),
+      );
     } catch (err) {
       console.error("Import error:", err);
       toast.error("Gagal membaca file. Pastikan format .xlsx benar.");
@@ -344,7 +372,13 @@ export function ArsipSuratList({
     let allData = data;
     if (totalItems > data.length) {
       try {
-        const result = await getArsipSurats(searchTerm, orgFilter, jenisFilter, 1, 9999);
+        const result = await getArsipSurats(
+          searchTerm,
+          orgFilter,
+          jenisFilter,
+          1,
+          9999,
+        );
         allData = result.data as DecryptedArsipSurat[];
       } catch {
         toast.error("Gagal mengambil semua data untuk export");
@@ -357,7 +391,9 @@ export function ArsipSuratList({
         No: index + 1,
         "No. Surat": item.noSurat,
         "Jenis Surat": item.jenisSurat,
-        Organisasi: item.organisasi || "-",
+        Organisasi: item.organisasi
+          ? organisasiConfig[item.organisasi]?.label || item.organisasi
+          : "-",
         Tanggal: new Date(item.tanggal).toLocaleDateString("id-ID", {
           day: "numeric",
           month: "long",
@@ -425,6 +461,11 @@ export function ArsipSuratList({
         className:
           "bg-indigo-100/80 text-indigo-700 border-indigo-200 hover:bg-indigo-200/80",
       },
+      CBP_KPP: {
+        label: "CBP_KPP",
+        className:
+          "bg-orange-100/80 text-orange-700 border-orange-200 hover:bg-orange-200/80",
+      },
     };
 
   const jenisSuratConfig: Record<string, { label: string; className: string }> =
@@ -472,6 +513,7 @@ export function ArsipSuratList({
               <SelectItem value="IPNU">IPNU</SelectItem>
               <SelectItem value="IPPNU">IPPNU</SelectItem>
               <SelectItem value="BERSAMA">BERSAMA</SelectItem>
+              <SelectItem value="CBP_KPP">CBP KPP</SelectItem>
             </SelectContent>
           </Select>
         </div>

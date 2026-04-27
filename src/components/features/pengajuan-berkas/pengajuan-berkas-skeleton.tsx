@@ -31,8 +31,8 @@ export function PengajuanBerkasSkeleton({
       </div>
 
       {/* Stats Skeleton */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
-        {[...Array(7)].map((_, i) => (
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[...Array(8)].map((_, i) => (
           <div
             key={i}
             className="h-[85px] p-3 border rounded-xl bg-card flex flex-col justify-between"

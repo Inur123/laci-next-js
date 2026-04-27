@@ -200,6 +200,7 @@ enum Organisasi {
   IPNU
   IPPNU
   BERSAMA
+  CBP_KPP
 }
 
 enum StatusPengajuan {
@@ -212,6 +213,7 @@ enum PenerimaSurat {
   IPNU
   IPPNU
   BERSAMA
+  CBP_KPP
 }
 
 model Anggota {

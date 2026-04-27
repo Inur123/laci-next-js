@@ -86,6 +86,11 @@ const penerimaConfig: Record<string, { label: string; className: string }> = {
     className:
       "bg-indigo-100/80 text-indigo-700 border-indigo-200 hover:bg-indigo-200/80",
   },
+  CBP_KPP: {
+    label: "CBP KPP",
+    className:
+      "bg-amber-100/80 text-amber-700 border-amber-200 hover:bg-amber-200/80",
+  },
 };
 
 export function PengajuanBerkasDetail({

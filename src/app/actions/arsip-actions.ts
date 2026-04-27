@@ -83,7 +83,7 @@ export async function getArsipSurats(
       prisma.arsipSurat.findMany({
         where: whereClause,
         orderBy: {
-          createdAt: "desc",
+          tanggal: "desc",
         },
         skip: (page - 1) * limit,
         take: limit,
@@ -111,7 +111,7 @@ export async function getArsipSurats(
   const arsipSurats = await prisma.arsipSurat.findMany({
     where: whereClause,
     orderBy: {
-      createdAt: "desc",
+      tanggal: "desc",
     },
     take: 500, // Safety limit for in-memory search
   });
@@ -168,7 +168,7 @@ export async function getArsipStats() {
     periodeId: periodeAktif.id,
   };
 
-  const [total, masuk, keluar, ipnu, ippnu, bersama] = await Promise.all([
+  const [total, masuk, keluar, ipnu, ippnu, bersama, cbpkpp] = await Promise.all([
     prisma.arsipSurat.count({ where: whereBase }),
     prisma.arsipSurat.count({
       where: { ...whereBase, jenisSurat: "MASUK" },
@@ -185,6 +185,9 @@ export async function getArsipStats() {
     prisma.arsipSurat.count({
       where: { ...whereBase, organisasi: "BERSAMA" },
     }),
+    prisma.arsipSurat.count({
+      where: { ...whereBase, organisasi: "CBP_KPP" as any },
+    }),
   ]);
 
   return {
@@ -194,6 +197,7 @@ export async function getArsipStats() {
     ipnu,
     ippnu,
     bersama,
+    cbpkpp,
   };
 }
 
@@ -502,7 +506,9 @@ export async function downloadArsipFile(id: string) {
  * - Format Indonesia: "15 Januari 2025"
  */
 function parseFlexibleDate(raw: string): Date | null {
-  const s = raw.trim();
+  // Bersihkan karakter aneh dan spasi berlebih
+  // Hapus nama hari (Minggu, Senin, dst) dan koma jika ada di depan
+  let s = raw.trim().replace(/^[a-zA-Z]+,\s*/, ""); 
 
   // ISO YYYY-MM-DD
   if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s);
@@ -528,11 +534,15 @@ function parseFlexibleDate(raw: string): Date | null {
     november: "11",
     desember: "12",
   };
-  const parts = s.toLowerCase().split(" ");
+  
+  const parts = s.toLowerCase().split(/\s+/);
   if (parts.length === 3) {
+    const day = parts[0].padStart(2, "0");
     const month = BULAN[parts[1]];
+    const year = parts[2];
+    
     if (month) {
-      const d = new Date(`${parts[2]}-${month}-${parts[0].padStart(2, "0")}`);
+      const d = new Date(`${year}-${month}-${day}`);
       if (!isNaN(d.getTime())) return d;
     }
   }
@@ -571,103 +581,79 @@ export async function bulkImportArsipSurat(
   let success = 0;
   let failed = 0;
   const failedRows: string[] = [];
+  const dataToInsert: any[] = [];
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
-    const rowLabel = `Baris ${i + 2}`; // +2: header on row 1
+    const rowLabel = `Baris ${i + 2}`;
 
     try {
       // Validasi field wajib
-      if (!row.noSurat?.trim()) {
+      if (!row.noSurat?.trim() || !row.jenisSurat?.trim() || !row.tanggal?.trim() || !row.pengirimPenerima?.trim() || !row.perihal?.trim()) {
         failed++;
-        failedRows.push(`${rowLabel}: No. Surat kosong`);
-        continue;
-      }
-      if (!row.jenisSurat?.trim()) {
-        failed++;
-        failedRows.push(`${rowLabel}: Jenis Surat kosong`);
-        continue;
-      }
-      if (!row.tanggal?.trim()) {
-        failed++;
-        failedRows.push(`${rowLabel}: Tanggal kosong`);
-        continue;
-      }
-      if (!row.pengirimPenerima?.trim()) {
-        failed++;
-        failedRows.push(`${rowLabel}: Pengirim/Penerima kosong`);
-        continue;
-      }
-      if (!row.perihal?.trim()) {
-        failed++;
-        failedRows.push(`${rowLabel}: Perihal kosong`);
+        failedRows.push(`${rowLabel}: Ada kolom wajib yang kosong`);
         continue;
       }
 
-      // Validasi Jenis Surat enum
+      // Validasi Jenis Surat
       const jenisSuratUpper = row.jenisSurat.trim().toUpperCase();
-      if (!Object.values(JenisSurat).includes(jenisSuratUpper as JenisSurat)) {
+      if (!["MASUK", "KELUAR"].includes(jenisSuratUpper)) {
         failed++;
-        failedRows.push(
-          `${rowLabel}: Jenis Surat tidak valid "${row.jenisSurat}" (harus MASUK atau KELUAR)`,
-        );
+        failedRows.push(`${rowLabel}: Jenis Surat harus MASUK atau KELUAR`);
         continue;
       }
 
-      // Validasi Organisasi enum (opsional)
+      // Parse tanggal
+      const tanggal = parseFlexibleDate(row.tanggal);
+      if (!tanggal) {
+        failed++;
+        failedRows.push(`${rowLabel}: Format tanggal "${row.tanggal}" tidak valid`);
+        continue;
+      }
+
+      // Validasi Organisasi
       let organisasi: Organisasi | null = null;
       if (row.organisasi?.trim()) {
-        const orgUpper = row.organisasi.trim().toUpperCase();
+        let orgUpper = row.organisasi.trim().toUpperCase().replace(/\//g, "_"); // Handle CBP/KPP -> CBP_KPP
         if (Object.values(Organisasi).includes(orgUpper as Organisasi)) {
           organisasi = orgUpper as Organisasi;
         }
-        // Jika tidak valid, biarkan null (tidak gagal)
       }
 
-      // Parse tanggal — mendukung: YYYY-MM-DD, DD/MM/YYYY, "15 Februari 2026"
-      const tanggal = parseFlexibleDate(row.tanggal);
-
-      if (!tanggal) {
-        failed++;
-        failedRows.push(
-          `${rowLabel}: Format tanggal tidak dikenali "${row.tanggal}"`,
-        );
-        continue;
-      }
-
-      await prisma.arsipSurat.create({
-        data: {
-          userId: session.user.id,
-          periodeId: periodeAktif.id,
-          noSurat: encryptText(row.noSurat.trim()),
-          jenisSurat: jenisSuratUpper as JenisSurat,
-          organisasi,
-          tanggal,
-          pengirimPenerima: encryptText(row.pengirimPenerima.trim()),
-          perihal: encryptText(row.perihal.trim()),
-          deskripsi: row.deskripsi?.trim()
-            ? encryptText(row.deskripsi.trim())
-            : null,
-          file: null,
-        },
+      // Siapkan data terenkripsi
+      dataToInsert.push({
+        userId: session.user.id,
+        periodeId: periodeAktif.id,
+        noSurat: encryptText(row.noSurat.trim()),
+        jenisSurat: jenisSuratUpper as JenisSurat,
+        organisasi,
+        tanggal,
+        pengirimPenerima: encryptText(row.pengirimPenerima.trim()),
+        perihal: encryptText(row.perihal.trim()),
+        deskripsi: row.deskripsi?.trim() ? encryptText(row.deskripsi.trim()) : null,
+        file: null,
       });
-
-      success++;
     } catch (err) {
       failed++;
       failedRows.push(`${rowLabel}: ${(err as Error).message}`);
     }
   }
 
-  // Log activity
-  if (success > 0) {
-    createLog(
-      "CREATE",
-      "ARSIP_SURAT",
-      `Import Excel: ${success} arsip surat berhasil diimport`,
-    );
-    revalidatePath("/dashboard/arsip/surat", "page");
-    revalidatePath("/dashboard", "layout"); 
+  // Tembak sekaligus ke DB
+  if (dataToInsert.length > 0) {
+    try {
+      await prisma.arsipSurat.createMany({
+        data: dataToInsert,
+      });
+      success = dataToInsert.length;
+      
+      createLog("CREATE", "ARSIP_SURAT", `Import Excel: ${success} arsip berhasil diimport`);
+      revalidatePath("/dashboard/arsip/surat", "page");
+      revalidatePath("/dashboard", "layout");
+    } catch (err) {
+      console.error("Bulk insert error:", err);
+      return { error: "Gagal menyimpan data ke database. Cek koneksi internet/DB." };
+    }
   }
 
   return { success, failed, failedRows };

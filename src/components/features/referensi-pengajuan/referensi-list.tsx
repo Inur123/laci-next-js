@@ -107,6 +107,10 @@ const penerimaConfig: Record<string, { label: string; className: string }> = {
     label: "BERSAMA",
     className: "bg-indigo-100/80 text-indigo-700 border-indigo-200 hover:bg-indigo-200/80",
   },
+  CBP_KPP: {
+    label: "CBP KPP",
+    className: "bg-amber-100/80 text-amber-700 border-amber-200 hover:bg-amber-200/80",
+  },
 };
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -340,6 +344,7 @@ export function ReferensiPengajuanList({
               <SelectItem value="IPNU">IPNU</SelectItem>
               <SelectItem value="IPPNU">IPPNU</SelectItem>
               <SelectItem value="BERSAMA">BERSAMA</SelectItem>
+              <SelectItem value="CBP_KPP">CBP KPP</SelectItem>
             </SelectContent>
           </Select>
         </div>

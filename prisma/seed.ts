@@ -4,21 +4,23 @@ import { auth } from "../src/lib/auth";
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = "lacipelajarnumagetan@gmail.com";
+  const email = "pelajarnumagetan@gmail.com";
   const password = "password";
   const userId = "ipnuippnu-admin-cabang";
 
-  console.log("Memulai proses seeding untuk Admin Cabang...");
+  console.log("🧹 Membersihkan data lama di database...");
 
-  // 1. Bersihkan dulu data lama jika ada untuk email ini
-  // Kita hapus secara manual agar tidak ada konflik unik
-  const existingUser = await prisma.user.findUnique({ where: { email } });
-  if (existingUser) {
-    await prisma.account.deleteMany({ where: { userId: existingUser.id } });
-    await prisma.session.deleteMany({ where: { userId: existingUser.id } });
-    await prisma.user.delete({ where: { id: existingUser.id } });
-    console.log("   ✓ Menghapus data admin lama untuk sinkronisasi ulang.");
-  }
+  // Hapus semua data transaksi & periode
+  await prisma.arsipSurat.deleteMany();
+  await prisma.berkasSP.deleteMany();
+  await prisma.berkasPimpinan.deleteMany();
+  await prisma.pengajuanBerkas.deleteMany();
+  await prisma.periode.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.user.deleteMany();
+
+  console.log("🚀 Memulai proses seeding Admin Cabang...");
 
   // 2. Gunakan API SignUp Better Auth agar Hashing Password OTOMATIS Sesuai Standar Better Auth
   // Ini menghindari error 'undefined' atau hashing yang tidak cocok
@@ -61,7 +63,7 @@ async function main() {
   ]);
 
   // 4. Seed Allowed Origins (PENTING untuk CORS/Auth)
-  const domains = ["localhost", "pelajarnumagetan.or.id"];
+  const domains = ["localhost", "laci.pelajarnumagetan.or.id"];
   for (const domain of domains) {
     await prisma.allowedOrigin.upsert({
       where: { domain },

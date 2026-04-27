@@ -69,7 +69,7 @@ export async function getBerkasSPs(
       prisma.berkasSP.findMany({
         where: whereClause,
         orderBy: {
-          createdAt: "desc",
+          tanggalMulai: "desc",
         },
         skip: (page - 1) * limit,
         take: limit,
@@ -92,7 +92,7 @@ export async function getBerkasSPs(
   // 2. Search Path: Fetch all matching org, decrypt, filter by query, manually paginate
   const allBerkas = await prisma.berkasSP.findMany({
     where: whereClause,
-    orderBy: { createdAt: "desc" },
+    orderBy: { tanggalMulai: "desc" },
     take: 500, // Safety limit for in-memory search
   });
 
@@ -480,25 +480,16 @@ export async function bulkImportBerkasSP(
   let success = 0;
   let failed = 0;
   const failedRows: string[] = [];
+  const dataToInsert: any[] = [];
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     const rowLabel = `Baris ${i + 2}`;
 
     try {
-      if (!row.nama?.trim()) {
+      if (!row.nama?.trim() || !row.tanggalMulai?.trim() || !row.tanggalBerakhir?.trim()) {
         failed++;
-        failedRows.push(`${rowLabel}: Nama Pimpinan kosong`);
-        continue;
-      }
-      if (!row.tanggalMulai?.trim()) {
-        failed++;
-        failedRows.push(`${rowLabel}: Tanggal Mulai kosong`);
-        continue;
-      }
-      if (!row.tanggalBerakhir?.trim()) {
-        failed++;
-        failedRows.push(`${rowLabel}: Tanggal Berakhir kosong`);
+        failedRows.push(`${rowLabel}: Ada kolom wajib yang kosong`);
         continue;
       }
 
@@ -519,70 +510,60 @@ export async function bulkImportBerkasSP(
         if (orgMatch) organisasi = orgMatch;
       }
 
-      const berkas = await prisma.berkasSP.create({
-        data: {
-          userId: session.user.id,
-          periodeId: periodeAktif.id,
-          organisasi,
-          nama: encryptText(row.nama.trim()),
-          tanggalMulai: dateMulai,
-          tanggalBerakhir: dateBerakhir,
-          catatan: row.catatan ? encryptText(row.catatan.trim()) : null,
-        },
+      dataToInsert.push({
+        userId: session.user.id,
+        periodeId: periodeAktif.id,
+        organisasi,
+        nama: encryptText(row.nama.trim()),
+        tanggalMulai: dateMulai,
+        tanggalBerakhir: dateBerakhir,
+        catatan: row.catatan ? encryptText(row.catatan.trim()) : null,
       });
-
-      createLog(
-        "CREATE",
-        "BERKAS_SP",
-        `Import Berkas SP: ${row.nama.trim()}`,
-        berkas.id,
-      );
-
-      success++;
     } catch (err) {
-      console.error(`Import error at row ${i}:`, err);
       failed++;
       failedRows.push(`${rowLabel}: Internal error`);
     }
   }
 
-  revalidatePath("/dashboard/berkas-sp", "page");
+  if (dataToInsert.length > 0) {
+    try {
+      await prisma.berkasSP.createMany({
+        data: dataToInsert,
+      });
+      success = dataToInsert.length;
+      createLog("CREATE", "BERKAS_SP", `Import Excel: ${success} berkas SP berhasil diimport`);
+      revalidatePath("/dashboard/berkas-sp", "page");
+    } catch (err) {
+      console.error("Bulk insert error Berkas SP:", err);
+      return { error: "Gagal menyimpan data ke database." };
+    }
+  }
 
   return { success, failed, failedRows };
 }
 
 function parseFlexibleDate(raw: string): Date | null {
-  const s = raw.trim();
+  let s = raw.trim().replace(/^[a-zA-Z]+,\s*/, ""); 
 
-  // ISO YYYY-MM-DD
   if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s);
 
-  // DD/MM/YYYY
   if (/^\d{2}\/\d{2}\/\d{4}/.test(s)) {
     const [d, m, y] = s.split("/");
     return new Date(`${y}-${m}-${d}`);
   }
 
-  // Format Indonesia: "15 Februari 2026"
   const BULAN: Record<string, string> = {
-    januari: "01",
-    februari: "02",
-    maret: "03",
-    april: "04",
-    mei: "05",
-    juni: "06",
-    juli: "07",
-    agustus: "08",
-    september: "09",
-    oktober: "10",
-    november: "11",
-    desember: "12",
+    januari: "01", februari: "02", maret: "03", april: "04", mei: "05", juni: "06",
+    juli: "07", agustus: "08", september: "09", oktober: "10", november: "11", desember: "12",
   };
-  const parts = s.toLowerCase().split(" ");
+  
+  const parts = s.toLowerCase().split(/\s+/);
   if (parts.length === 3) {
-    const month = BULAN[parts[1].toLowerCase()];
+    const day = parts[0].padStart(2, "0");
+    const month = BULAN[parts[1]];
+    const year = parts[2];
     if (month) {
-      const d = new Date(`${parts[2]}-${month}-${parts[0].padStart(2, "0")}`);
+      const d = new Date(`${year}-${month}-${day}`);
       if (!isNaN(d.getTime())) return d;
     }
   }

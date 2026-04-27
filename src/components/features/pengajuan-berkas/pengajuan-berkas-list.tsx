@@ -125,6 +125,11 @@ const penerimaConfig: Record<string, { label: string; className: string }> = {
     className:
       "bg-indigo-100/80 text-indigo-700 border-indigo-200 hover:bg-indigo-200/80",
   },
+  CBP_KPP: {
+    label: "CBP KPP",
+    className:
+      "bg-amber-100/80 text-amber-700 border-amber-200 hover:bg-amber-200/80",
+  },
 };
 
 export function PengajuanBerkasList({
@@ -467,13 +472,14 @@ export function PengajuanBerkasList({
       const row: Record<string, string | number> = {
         No: index + 1,
         "No Surat": item.noSurat,
-        Penerima: item.penerima,
+        Penerima: penerimaConfig[item.penerima]?.label || item.penerima,
         Tanggal: new Date(item.tanggal).toLocaleDateString("id-ID", {
           day: "numeric",
           month: "long",
           year: "numeric",
         }),
         Keperluan: item.keperluan,
+        Deskripsi: item.deskripsi || "-",
         Status:
           statusConfig[item.status as keyof typeof statusConfig]?.label ||
           item.status,
@@ -586,6 +592,7 @@ export function PengajuanBerkasList({
               <SelectItem value="IPNU">IPNU</SelectItem>
               <SelectItem value="IPPNU">IPPNU</SelectItem>
               <SelectItem value="BERSAMA">BERSAMA</SelectItem>
+              <SelectItem value="CBP_KPP">CBP KPP</SelectItem>
             </SelectContent>
           </Select>
         </div>

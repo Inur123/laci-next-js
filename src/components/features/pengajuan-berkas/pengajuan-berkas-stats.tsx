@@ -19,6 +19,7 @@ type PengajuanBerkasStatsProps = {
     ipnu: number;
     ippnu: number;
     bersama: number;
+    cbpKpp: number;
     pending: number;
     diterima: number;
     ditolak: number;
@@ -64,7 +65,7 @@ export function PengajuanBerkasStats({
   }, [userId]);
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       {/* Total Pengajuan */}
       <Card className="h-[85px] flex flex-col justify-between p-3 shadow-none border-slate-200">
         <div className="flex items-center justify-between">
@@ -142,6 +143,28 @@ export function PengajuanBerkasStats({
         <div className="text-xl font-bold text-blue-600 leading-none">
           <NumberTicker
             value={stats.bersama}
+            formatter={(val) =>
+              new Intl.NumberFormat("id-ID", {
+                notation: "compact",
+                compactDisplay: "short",
+                maximumFractionDigits: 1,
+              }).format(val)
+            }
+          />
+        </div>
+      </Card>
+
+      {/* CBP KPP */}
+      <Card className="h-[85px] flex flex-col justify-between p-3 shadow-none border-amber-100 bg-amber-50/5">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-bold text-amber-700 uppercase">
+            CBP KPP
+          </span>
+          <Shield className="h-4 w-4 text-amber-500" />
+        </div>
+        <div className="text-xl font-bold text-amber-600 leading-none">
+          <NumberTicker
+            value={stats.cbpKpp}
             formatter={(val) =>
               new Intl.NumberFormat("id-ID", {
                 notation: "compact",

@@ -233,6 +233,11 @@ export function BerkasPimpinanList({
           `${result.success} berkas berhasil diimport!${result.failed > 0 ? ` (${result.failed} baris gagal)` : ""}`,
         );
         logImport("BERKAS_PIMPINAN", result.success, result.failed); // Fire and forget
+        window.dispatchEvent(
+          new CustomEvent("laci-realtime", {
+            detail: { type: "mutation", model: "BerkasPimpinan" },
+          }),
+        );
       } else {
         toast.error(`Semua baris gagal. ${result.failedRows[0] ?? ""}`);
       }

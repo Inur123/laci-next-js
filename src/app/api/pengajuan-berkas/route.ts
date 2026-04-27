@@ -139,7 +139,7 @@ export async function GET(request: Request) {
  *             required: [noSurat, penerima, tanggal, keperluan, file]
  *             properties:
  *               noSurat: { type: string }
- *               penerima: { type: string, enum: [IPNU, IPPNU, BERSAMA] }
+ *               penerima: { type: string, enum: [IPNU, IPPNU, BERSAMA, CBP_KPP] }
  *               tanggal: { type: string, format: date-time }
  *               keperluan: { type: string }
  *               deskripsi: { type: string }

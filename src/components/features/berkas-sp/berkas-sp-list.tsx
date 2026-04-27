@@ -357,6 +357,11 @@ export function BerkasSPList({
           }`,
         );
         logImport("BERKAS_SP", result.success, result.failed); // Fire and forget
+        window.dispatchEvent(
+          new CustomEvent("laci-realtime", {
+            detail: { type: "mutation", model: "BerkasSP" },
+          }),
+        );
       } else {
         toast.error(`Semua baris gagal. ${result.failedRows[0] ?? ""}`);
       }
