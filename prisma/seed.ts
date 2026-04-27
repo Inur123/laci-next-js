@@ -63,7 +63,11 @@ async function main() {
   ]);
 
   // 4. Seed Allowed Origins (PENTING untuk CORS/Auth)
-  const domains = ["localhost", "laci.pelajarnumagetan.or.id"];
+  const domains = [
+    "localhost",
+    "laci.pelajarnumagetan.or.id",
+    "pelajarnumagetan.or.id",
+  ];
   for (const domain of domains) {
     await prisma.allowedOrigin.upsert({
       where: { domain },
