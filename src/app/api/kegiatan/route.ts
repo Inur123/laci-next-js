@@ -1,21 +1,11 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { decryptText } from "@/lib/encryption"; // Gunakan nama fungsi yang benar
 
 export async function GET(request: Request) {
   try {
-    // 1. Ambil Origin dari yang mangkap (Blogger/Lainnya)
     const origin = request.headers.get("origin") || "";
 
-    // 2. Cek apakah domain ini ada di daftar AllowedOrigin (Hasil Seeding tadi)
-    const isAllowed = await prisma.allowedOrigin.findFirst({
-      where: {
-        domain: {
-          contains: origin.replace(/^https?:\/\//, ""), // Bersihkan https:// nya
-        },
-      },
-    });
-
-    // 3. Ambil data kegiatan
     const data = await prisma.agendaKegiatan.findMany({
       include: {
         user: {
@@ -33,9 +23,10 @@ export async function GET(request: Request) {
       success: true,
       data: data.map((item) => ({
         id: item.id,
-        judul: item.judul,
-        deskripsi: item.deskripsi,
-        lokasi: item.lokasi,
+        // Dekripsi data menggunakan decryptText
+        judul: decryptText(item.judul),
+        deskripsi: item.deskripsi ? decryptText(item.deskripsi) : null,
+        lokasi: item.lokasi ? decryptText(item.lokasi) : null,
         warna: item.warna,
         tanggal_mulai: item.tanggalMulai,
         tanggal_selesai: item.tanggalSelesai,
