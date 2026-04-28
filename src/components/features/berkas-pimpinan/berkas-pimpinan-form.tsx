@@ -24,6 +24,9 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { isPdf, isImage } from "@/lib/encryption";
+import { getBerkasPimpinanDownloadToken } from "@/app/actions/berkas-pimpinan-actions";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Smartphone } from "lucide-react";
 
 type BerkasPimpinanFormProps = {
   berkas?: {
@@ -74,8 +77,16 @@ export function BerkasPimpinanForm({
 
   const [isPdfLoading, setIsPdfLoading] = useState(true);
   const [isImageLoading, setIsImageLoading] = useState(true);
-
   const [isDragging, setIsDragging] = useState(false);
+  const [downloadToken, setDownloadToken] = useState<string | null>(null);
+  const isMobile = useIsMobile();
+
+  // Fetch token for PDF preview/open
+  useEffect(() => {
+    if (berkas?.id && isPdf(berkas.file)) {
+      getBerkasPimpinanDownloadToken(berkas.id).then(setDownloadToken).catch(console.error);
+    }
+  }, [berkas?.id, berkas?.file]);
 
   const validateFile = (file: File): string | null => {
     if (file.size > MAX_FILE_SIZE) {
@@ -363,12 +374,12 @@ export function BerkasPimpinanForm({
                               }`}
                               title="Buka file"
                             >
-                              <a
-                                href={`/api/berkas-pimpinan/download/${berkas.id}?preview=true`}
-                                target="_blank"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </a>
+                               <a
+                                 href={`/api/berkas-pimpinan/download/${berkas.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
+                                 target="_blank"
+                               >
+                                 <Eye className="w-4 h-4" />
+                               </a>
                             </Button>
                           )}
                           <Button
@@ -436,7 +447,7 @@ export function BerkasPimpinanForm({
                       asChild
                     >
                       <a
-                        href={`/api/berkas-pimpinan/download/${berkas?.id}?preview=true`}
+                        href={`/api/berkas-pimpinan/download/${berkas?.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
                         target="_blank"
                       >
                         <ExternalLink className="w-3 h-3 mr-1" />
@@ -444,28 +455,57 @@ export function BerkasPimpinanForm({
                       </a>
                     </Button>
                   </div>
-                  <div className="w-full h-[750px] bg-white relative">
-                    {isPdfLoading && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/50 z-10">
-                        <Spinner className="h-8 w-8 mb-2 text-primary" />
-                        <p className="text-[10px] text-muted-foreground animate-pulse">
-                          Memuat...
+                  <div className="w-full min-h-[150px] md:h-[750px] bg-white relative">
+                    {isMobile ? (
+                      <div className="flex flex-col items-center justify-center p-8 text-center bg-slate-50/50 h-full">
+                        <div className="p-3 bg-white rounded-full shadow-sm mb-3">
+                          <Smartphone className="w-6 h-6 text-primary" />
+                        </div>
+                        <p className="text-xs font-medium text-slate-700 mb-1">
+                          Pratinjau PDF di Mobile
                         </p>
+                        <p className="text-[10px] text-slate-500 mb-4 max-w-[200px]">
+                          Untuk kenyamanan terbaik, silakan buka PDF di layar penuh
+                        </p>
+                        <Button 
+                          asChild 
+                          size="sm" 
+                          className="h-8 px-4 text-[10px] shadow-sm"
+                        >
+                          <a
+                            href={`/api/berkas-pimpinan/download/${berkas?.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
+                            target="_blank"
+                          >
+                            <ExternalLink className="w-3 h-3 mr-1.5" />
+                            Buka PDF Sekarang
+                          </a>
+                        </Button>
                       </div>
+                    ) : (
+                      <>
+                        {isPdfLoading && (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/50 z-10">
+                            <Spinner className="h-8 w-8 mb-2 text-primary" />
+                            <p className="text-[10px] text-muted-foreground animate-pulse">
+                              Memuat...
+                            </p>
+                          </div>
+                        )}
+                        <object
+                          data={`/api/berkas-pimpinan/download/${berkas?.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}#view=FitH`}
+                          type="application/pdf"
+                          width="100%"
+                          height="100%"
+                          onLoad={() => setIsPdfLoading(false)}
+                        >
+                          <iframe
+                            src={`/api/berkas-pimpinan/download/${berkas?.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
+                            className="w-full h-full border-none"
+                            title="PDF Preview"
+                          />
+                        </object>
+                      </>
                     )}
-                    <object
-                      data={`/api/berkas-pimpinan/download/${berkas?.id}?preview=true#view=FitH`}
-                      type="application/pdf"
-                      width="100%"
-                      height="100%"
-                      onLoad={() => setIsPdfLoading(false)}
-                    >
-                      <iframe
-                        src={`/api/berkas-pimpinan/download/${berkas?.id}?preview=true`}
-                        className="w-full h-full border-none"
-                        title="PDF Preview"
-                      />
-                    </object>
                   </div>
                 </div>
               </div>

@@ -23,6 +23,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DatePicker } from "@/components/ui/date-picker";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { getBerkasSPDownloadToken } from "@/app/actions/berkas-sp-actions";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Smartphone } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -63,6 +66,15 @@ export function BerkasSPForm({ berkasSP, userRole }: BerkasSPFormProps) {
 
   const [isPdfLoading, setIsPdfLoading] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
+  const [downloadToken, setDownloadToken] = useState<string | null>(null);
+  const isMobile = useIsMobile();
+
+  // Fetch token for PDF preview/open
+  useEffect(() => {
+    if (berkasSP?.id && berkasSP.file?.toLowerCase().endsWith(".pdf.enc")) {
+      getBerkasSPDownloadToken(berkasSP.id).then(setDownloadToken).catch(console.error);
+    }
+  }, [berkasSP?.id, berkasSP?.file]);
 
   const capitalizeName = (name: string) => {
     if (!name) return "";
@@ -416,12 +428,12 @@ export function BerkasSPForm({ berkasSP, userRole }: BerkasSPFormProps) {
                               }`}
                               title="Buka file"
                             >
-                              <a
-                                href={`/api/berkas-sp/download/${berkasSP.id}?preview=true`}
-                                target="_blank"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </a>
+                               <a
+                                 href={`/api/berkas-sp/download/${berkasSP.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
+                                 target="_blank"
+                               >
+                                 <Eye className="w-4 h-4" />
+                               </a>
                             </Button>
                           )}
                           <Button
@@ -489,8 +501,8 @@ export function BerkasSPForm({ berkasSP, userRole }: BerkasSPFormProps) {
                         className="h-6 px-2 text-[10px] text-primary hover:text-primary hover:bg-primary/5"
                         asChild
                       >
-                        <a
-                          href={`/api/berkas-sp/download/${berkasSP.id}?preview=true`}
+                         <a
+                          href={`/api/berkas-sp/download/${berkasSP.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
                           target="_blank"
                         >
                           <ExternalLink className="w-3 h-3 mr-1" />
@@ -498,29 +510,58 @@ export function BerkasSPForm({ berkasSP, userRole }: BerkasSPFormProps) {
                         </a>
                       </Button>
                     </div>
-                    <div className="w-full h-[750px] bg-white relative">
-                      {isPdfLoading && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/50 z-10">
-                          <Spinner className="h-8 w-8 mb-3 text-primary" />
-                          <p className="text-sm text-muted-foreground animate-pulse">
-                            Memuat...
+                    <div className="w-full min-h-[150px] md:h-[750px] bg-white relative">
+                      {isMobile ? (
+                        <div className="flex flex-col items-center justify-center p-8 text-center bg-slate-50/50 h-full">
+                          <div className="p-3 bg-white rounded-full shadow-sm mb-3">
+                            <Smartphone className="w-6 h-6 text-primary" />
+                          </div>
+                          <p className="text-xs font-medium text-slate-700 mb-1">
+                            Pratinjau PDF di Mobile
                           </p>
+                          <p className="text-[10px] text-slate-500 mb-4 max-w-[200px]">
+                            Untuk kenyamanan terbaik, silakan buka PDF di layar penuh
+                          </p>
+                          <Button 
+                            asChild 
+                            size="sm" 
+                            className="h-8 px-4 text-[10px] shadow-sm"
+                          >
+                            <a
+                              href={`/api/berkas-sp/download/${berkasSP.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
+                              target="_blank"
+                            >
+                              <ExternalLink className="w-3 h-3 mr-1.5" />
+                              Buka PDF Sekarang
+                            </a>
+                          </Button>
                         </div>
+                      ) : (
+                        <>
+                          {isPdfLoading && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/50 z-10">
+                              <Spinner className="h-8 w-8 mb-3 text-primary" />
+                              <p className="text-sm text-muted-foreground animate-pulse">
+                                Memuat...
+                              </p>
+                            </div>
+                          )}
+                          <object
+                            data={`/api/berkas-sp/download/${berkasSP.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}#view=FitH`}
+                            type="application/pdf"
+                            width="100%"
+                            height="100%"
+                            className="w-full h-full"
+                            onLoad={() => setIsPdfLoading(false)}
+                          >
+                            <iframe
+                              src={`/api/berkas-sp/download/${berkasSP.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
+                              className="w-full h-full border-none"
+                              title="PDF Preview"
+                            />
+                          </object>
+                        </>
                       )}
-                      <object
-                        data={`/api/berkas-sp/download/${berkasSP.id}?preview=true#view=FitH`}
-                        type="application/pdf"
-                        width="100%"
-                        height="100%"
-                        className="w-full h-full"
-                        onLoad={() => setIsPdfLoading(false)}
-                      >
-                        <iframe
-                          src={`/api/berkas-sp/download/${berkasSP.id}?preview=true`}
-                          className="w-full h-full border-none"
-                          title="PDF Preview"
-                        />
-                      </object>
                     </div>
                   </div>
                 </div>

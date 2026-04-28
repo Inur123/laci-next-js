@@ -24,6 +24,7 @@ import {
   AlertCircle,
   Eye,
   ExternalLink,
+  Smartphone,
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -32,6 +33,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { isPdf, isImage } from "@/lib/encryption";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { getArsipDownloadToken } from "@/app/actions/arsip-actions";
 
 type ArsipSuratFormProps = {
   arsipSurat?: {
@@ -83,8 +86,16 @@ export function ArsipSuratForm({ arsipSurat, userRole }: ArsipSuratFormProps) {
 
   const [isPdfLoading, setIsPdfLoading] = useState(true);
   const [isImageLoading, setIsImageLoading] = useState(true);
-
   const [isDragging, setIsDragging] = useState(false);
+  const [downloadToken, setDownloadToken] = useState<string | null>(null);
+  const isMobile = useIsMobile();
+
+  // Fetch token for PDF preview/open
+  useEffect(() => {
+    if (arsipSurat?.id && isPdf(arsipSurat.file)) {
+      getArsipDownloadToken(arsipSurat.id).then(setDownloadToken).catch(console.error);
+    }
+  }, [arsipSurat?.id, arsipSurat?.file]);
 
   const capitalizeName = (name: string) => {
     if (!name) return "";
@@ -489,7 +500,7 @@ export function ArsipSuratForm({ arsipSurat, userRole }: ArsipSuratFormProps) {
                             title="Buka file"
                           >
                             <a
-                              href={`/api/arsip/download/${arsipSurat.id}?preview=true`}
+                              href={`/api/arsip/download/${arsipSurat.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
                               target="_blank"
                             >
                               <Eye className="w-4 h-4" />
@@ -548,7 +559,7 @@ export function ArsipSuratForm({ arsipSurat, userRole }: ArsipSuratFormProps) {
                               asChild
                             >
                               <a
-                                href={`/api/arsip/download/${arsipSurat.id}?preview=true`}
+                                href={`/api/arsip/download/${arsipSurat.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
                                 target="_blank"
                               >
                                 <ExternalLink className="w-3 h-3 mr-1" />
@@ -556,28 +567,57 @@ export function ArsipSuratForm({ arsipSurat, userRole }: ArsipSuratFormProps) {
                               </a>
                             </Button>
                           </div>
-                          <div className="w-full h-[750px] bg-white relative">
-                            {isPdfLoading && (
-                              <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/50 z-10">
-                                <Spinner className="h-8 w-8 mb-2 text-primary" />
-                                <p className="text-[10px] text-muted-foreground animate-pulse">
-                                  Memuat...
+                          <div className="w-full min-h-[150px] md:h-[750px] bg-white relative">
+                            {isMobile ? (
+                              <div className="flex flex-col items-center justify-center p-8 text-center bg-slate-50/50 h-full">
+                                <div className="p-3 bg-white rounded-full shadow-sm mb-3">
+                                  <Smartphone className="w-6 h-6 text-primary" />
+                                </div>
+                                <p className="text-xs font-medium text-slate-700 mb-1">
+                                  Pratinjau PDF di Mobile
                                 </p>
+                                <p className="text-[10px] text-slate-500 mb-4 max-w-[200px]">
+                                  Untuk kenyamanan terbaik, silakan buka PDF di layar penuh
+                                </p>
+                                <Button
+                                  asChild
+                                  size="sm"
+                                  className="h-8 px-4 text-[10px] shadow-sm"
+                                >
+                                  <a
+                                    href={`/api/arsip/download/${arsipSurat.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
+                                    target="_blank"
+                                  >
+                                    <ExternalLink className="w-3 h-3 mr-1.5" />
+                                    Buka PDF Sekarang
+                                  </a>
+                                </Button>
                               </div>
+                            ) : (
+                              <>
+                                {isPdfLoading && (
+                                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/50 z-10">
+                                    <Spinner className="h-8 w-8 mb-2 text-primary" />
+                                    <p className="text-[10px] text-muted-foreground animate-pulse">
+                                      Memuat...
+                                    </p>
+                                  </div>
+                                )}
+                                <object
+                                  data={`/api/arsip/download/${arsipSurat.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}#view=FitH`}
+                                  type="application/pdf"
+                                  width="100%"
+                                  height="100%"
+                                  onLoad={() => setIsPdfLoading(false)}
+                                >
+                                  <iframe
+                                    src={`/api/arsip/download/${arsipSurat.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
+                                    className="w-full h-full border-none"
+                                    title="PDF Preview"
+                                  />
+                                </object>
+                              </>
                             )}
-                            <object
-                              data={`/api/arsip/download/${arsipSurat.id}?preview=true#view=FitH`}
-                              type="application/pdf"
-                              width="100%"
-                              height="100%"
-                              onLoad={() => setIsPdfLoading(false)}
-                            >
-                              <iframe
-                                src={`/api/arsip/download/${arsipSurat.id}?preview=true`}
-                                className="w-full h-full border-none"
-                                title="PDF Preview"
-                              />
-                            </object>
                           </div>
                         </div>
                       )}

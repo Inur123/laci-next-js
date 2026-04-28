@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { downloadPengajuanFile } from "@/app/actions/pengajuan-berkas-actions";
-import { getOriginalExtension } from "@/lib/encryption";
+import { getOriginalExtension, verifyDownloadToken } from "@/lib/encryption";
 import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -11,35 +11,52 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth();
+    const { id } = await params;
+    const token = request.nextUrl.searchParams.get("token");
 
-    if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    let isAuthorized = false;
+
+    // Check Token First (for mobile/external viewers)
+    if (token) {
+      const verifiedId = verifyDownloadToken(token);
+      if (verifiedId && verifiedId === id) {
+        isAuthorized = true;
+      }
     }
 
-    const { id } = await params;
-
-    // Get pengajuan info
+    // Await params and get pengajuan info
     const pengajuan = await prisma.pengajuanBerkas.findUnique({
-      where: { id },
+      where: { id: id },
     });
 
     if (!pengajuan || !pengajuan.file) {
       return new NextResponse("File not found", { status: 404 });
     }
 
-    // Check access
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    });
+    // Check Session if not authorized by token
+    if (!isAuthorized) {
+      const session = await auth();
 
-    if (
-      pengajuan.userId !== session.user.id &&
-      user?.role !== "SEKRETARIS_CABANG"
-    ) {
-      return new NextResponse("Unauthorized", { status: 403 });
+      if (!session?.user) {
+        return new NextResponse("Unauthorized", { status: 401 });
+      }
+
+      // Check access
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { role: true },
+      });
+
+      if (
+        pengajuan.userId !== session.user.id &&
+        user?.role !== "SEKRETARIS_CABANG"
+      ) {
+        return new NextResponse("Unauthorized", { status: 403 });
+      }
+      isAuthorized = true;
     }
+    
+
 
     // Download and decrypt file
     const decryptedBuffer = await downloadPengajuanFile(id);

@@ -8,6 +8,7 @@ import {
   encryptFile,
   decryptFile,
   generateEncryptedFilename,
+  generateDownloadToken as createToken,
 } from "@/lib/encryption";
 import { revalidatePath, revalidateTag } from "next/cache";
 
@@ -1157,4 +1158,33 @@ export async function downloadPengajuanFile(id: string) {
   }
 
   return decryptFile(encryptedBuffer);
+}
+
+/**
+ * Get a temporary download token for a pengajuan file
+ */
+export async function getPengajuanDownloadToken(id: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const pengajuan = await prisma.pengajuanBerkas.findUnique({
+    where: { id },
+  });
+
+  if (!pengajuan) throw new Error("Pengajuan tidak ditemukan");
+
+  // Check access
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true },
+  });
+
+  if (
+    pengajuan.userId !== session.user.id &&
+    user?.role !== "SEKRETARIS_CABANG"
+  ) {
+    throw new Error("Unauthorized");
+  }
+
+  return createToken(id);
 }

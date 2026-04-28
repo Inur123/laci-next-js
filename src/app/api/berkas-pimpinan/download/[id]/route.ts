@@ -4,7 +4,7 @@ import {
   downloadBerkasPimpinanFile,
   getBerkasPimpinanById,
 } from "@/app/actions/berkas-pimpinan-actions";
-import { getOriginalExtension } from "@/lib/encryption";
+import { getOriginalExtension, verifyDownloadToken } from "@/lib/encryption";
 
 export const dynamic = "force-dynamic";
 
@@ -13,13 +13,28 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth();
+    const { id } = await params;
+    const token = request.nextUrl.searchParams.get("token");
 
-    if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    let isAuthorized = false;
+
+    // Check Token First (for mobile/external viewers)
+    if (token) {
+      const verifiedId = verifyDownloadToken(token);
+      if (verifiedId && verifiedId === id) {
+        isAuthorized = true;
+      }
     }
 
-    const { id } = await params;
+    // Check Session if not authorized by token
+    if (!isAuthorized) {
+      const session = await auth();
+
+      if (!session?.user) {
+        return new NextResponse("Unauthorized", { status: 401 });
+      }
+      isAuthorized = true;
+    }
 
     // Get berkas info
     const berkas = await getBerkasPimpinanById(id);

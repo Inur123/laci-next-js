@@ -186,6 +186,36 @@ export function getDisplayFilename(
 }
 
 /**
+ * Generate a short-lived download token for mobile/external viewers
+ */
+export function generateDownloadToken(id: string): string {
+  // Token valid for 5 minutes (enough for external viewer to fetch)
+  const expiry = Date.now() + 5 * 60 * 1000;
+  return encryptText(`${id}:${expiry}`);
+}
+
+/**
+ * Verify a download token and return the ID if valid
+ */
+export function verifyDownloadToken(token: string): string | null {
+  try {
+    const decrypted = decryptText(token);
+    if (!decrypted) return null;
+    
+    const [id, expiryStr] = decrypted.split(":");
+    const expiry = parseInt(expiryStr);
+    
+    if (isNaN(expiry) || expiry < Date.now()) {
+      return null;
+    }
+    
+    return id;
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
  * Generate a hash for sensitive data to allow unique checks without decryption
  */
 export function generateHash(text: string): string {

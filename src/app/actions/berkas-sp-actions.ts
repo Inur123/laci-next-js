@@ -9,6 +9,7 @@ import {
   encryptFile,
   decryptFile,
   generateEncryptedFilename,
+  generateDownloadToken as createToken,
 } from "@/lib/encryption";
 
 
@@ -570,4 +571,21 @@ function parseFlexibleDate(raw: string): Date | null {
 
   const d = new Date(s);
   return isNaN(d.getTime()) ? null : d;
+}
+
+/**
+ * Get a temporary download token for a berkas SP file
+ */
+export async function getBerkasSPDownloadToken(id: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  // Check if user owns this berkas
+  const berkas = await prisma.berkasSP.findFirst({
+    where: { id, userId: session.user.id },
+  });
+
+  if (!berkas) throw new Error("Berkas tidak ditemukan");
+
+  return createToken(id);
 }

@@ -8,6 +8,7 @@ import {
   encryptFile,
   decryptFile,
   generateEncryptedFilename,
+  generateDownloadToken as createToken,
 } from "@/lib/encryption";
 import { revalidatePath, revalidateTag } from "next/cache";
 
@@ -657,4 +658,21 @@ export async function bulkImportArsipSurat(
   }
 
   return { success, failed, failedRows };
+}
+
+/**
+ * Get a temporary download token for an arsip file
+ */
+export async function getArsipDownloadToken(id: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  // Check if user owns this arsip
+  const arsip = await prisma.arsipSurat.findFirst({
+    where: { id, userId: session.user.id },
+  });
+
+  if (!arsip) throw new Error("Arsip tidak ditemukan");
+
+  return createToken(id);
 }

@@ -1,8 +1,7 @@
 import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
-import { downloadArsipFile } from "@/app/actions/arsip-actions";
-import { getArsipSuratById } from "@/app/actions/arsip-actions";
-import { getOriginalExtension } from "@/lib/encryption";
+import { downloadArsipFile, getArsipSuratById } from "@/app/actions/arsip-actions";
+import { getOriginalExtension, verifyDownloadToken } from "@/lib/encryption";
 
 export const dynamic = "force-dynamic";
 
@@ -11,14 +10,26 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth();
+    const { id } = await params;
+    const token = request.nextUrl.searchParams.get("token");
+    let isAuthorized = false;
 
-    if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    // Check Token First (for mobile/external viewers)
+    if (token) {
+      const verifiedId = verifyDownloadToken(token);
+      if (verifiedId && verifiedId === id) {
+        isAuthorized = true;
+      }
     }
 
-    // Await params
-    const { id } = await params;
+    // Check Session if not authorized by token
+    if (!isAuthorized) {
+      const session = await auth();
+      if (!session?.user) {
+        return new NextResponse("Unauthorized", { status: 401 });
+      }
+      isAuthorized = true;
+    }
 
     // Get arsip surat info
     const arsip = await getArsipSuratById(id);

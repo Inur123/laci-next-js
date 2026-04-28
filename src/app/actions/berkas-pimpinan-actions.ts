@@ -10,6 +10,7 @@ import {
   encryptFile,
   decryptFile,
   generateEncryptedFilename,
+  generateDownloadToken as createToken,
 } from "@/lib/encryption";
 
 import { BerkasPimpinan } from "@prisma/client";
@@ -493,4 +494,21 @@ export async function getBerkasPimpinanStats() {
     total,
     bulanIni,
   };
+}
+
+/**
+ * Get a temporary download token for a berkas pimpinan file
+ */
+export async function getBerkasPimpinanDownloadToken(id: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  // Check if user owns this berkas
+  const berkas = await prisma.berkasPimpinan.findFirst({
+    where: { id, userId: session.user.id },
+  });
+
+  if (!berkas) throw new Error("Berkas tidak ditemukan");
+
+  return createToken(id);
 }

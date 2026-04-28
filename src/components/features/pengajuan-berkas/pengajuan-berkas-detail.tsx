@@ -26,6 +26,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ConfirmModal } from "@/components/shared/confirm-modal";
 import { Spinner } from "@/components/ui/spinner";
 import { getDisplayFilename, isPdf, isImage } from "@/lib/encryption";
+import { getPengajuanDownloadToken } from "@/app/actions/pengajuan-berkas-actions";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Smartphone } from "lucide-react";
+import React, { useEffect } from "react";
 
 type PengajuanDetail = {
   id: string;
@@ -111,6 +115,19 @@ export function PengajuanBerkasDetail({
 
   const [isPdfLoading, setIsPdfLoading] = useState(true);
   const [isImageLoading, setIsImageLoading] = useState(true);
+  const [downloadToken, setDownloadToken] = useState<string | null>(null);
+  const isMobile = useIsMobile();
+
+  // Determine file type for preview
+  const showPdfPreview = isPdf(pengajuan.file);
+  const showImagePreview = isImage(pengajuan.file);
+
+  // Fetch token for PDF preview/open
+  useEffect(() => {
+    if (pengajuan.id && showPdfPreview) {
+      getPengajuanDownloadToken(pengajuan.id).then(setDownloadToken).catch(console.error);
+    }
+  }, [pengajuan.id, showPdfPreview]);
 
   // Confirm Modal States
   const [confirmApproveOpen, setConfirmApproveOpen] = useState(false);
@@ -166,9 +183,7 @@ export function PengajuanBerkasDetail({
     }
   };
 
-  // Determine file type for preview
-  const showPdfPreview = isPdf(pengajuan.file);
-  const showImagePreview = isImage(pengajuan.file);
+
 
   return (
     <div className="space-y-6">
@@ -478,7 +493,7 @@ export function PengajuanBerkasDetail({
                   className="flex-1 md:flex-none"
                 >
                   <a
-                    href={`/api/pengajuan-berkas/download/${pengajuan.id}?preview=true`}
+                    href={`/api/pengajuan-berkas/download/${pengajuan.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
                     target="_blank"
                   >
                     <Eye className="w-4 h-4 mr-2" />
@@ -486,7 +501,7 @@ export function PengajuanBerkasDetail({
                   </a>
                 </Button>
                 <Button asChild className="flex-1 md:flex-none">
-                  <a href={`/api/pengajuan-berkas/download/${pengajuan.id}`}>
+                  <a href={`/api/pengajuan-berkas/download/${pengajuan.id}${downloadToken ? `?token=${downloadToken}` : ""}`}>
                     <Download className="w-4 h-4 mr-2" />
                     Download
                   </a>
@@ -509,7 +524,7 @@ export function PengajuanBerkasDetail({
                     asChild
                   >
                     <a
-                      href={`/api/pengajuan-berkas/download/${pengajuan.id}?preview=true`}
+                      href={`/api/pengajuan-berkas/download/${pengajuan.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
                       target="_blank"
                     >
                       <ExternalLink className="w-3 h-3 mr-1" />
@@ -520,29 +535,57 @@ export function PengajuanBerkasDetail({
 
                 <div className="w-full bg-slate-50 border rounded-lg overflow-hidden relative">
                   {showPdfPreview && (
-                    <div className="w-full h-[750px] bg-white relative">
-                      {isPdfLoading && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/50 z-10">
-                          <Spinner className="h-8 w-8 mb-3 text-primary" />
-                          <p className="text-sm text-muted-foreground animate-pulse">
-                            Memuat...
+                     <div className="w-full min-h-[200px] md:h-[750px] bg-white relative">
+                      {isMobile ? (
+                        <div className="flex flex-col items-center justify-center p-12 text-center bg-slate-50/50 h-full">
+                          <div className="p-4 bg-white rounded-full shadow-sm mb-4">
+                            <Smartphone className="w-8 h-8 text-primary" />
+                          </div>
+                          <h3 className="text-sm font-semibold text-slate-800 mb-2">
+                            Pratinjau PDF di Mobile
+                          </h3>
+                          <p className="text-xs text-slate-500 mb-6 max-w-[240px] leading-relaxed">
+                            Browser mobile tidak dapat menampilkan PDF secara langsung. Klik tombol di bawah untuk membuka file.
                           </p>
+                          <Button 
+                            asChild 
+                            className="shadow-md hover:shadow-lg transition-all"
+                          >
+                            <a
+                              href={`/api/pengajuan-berkas/download/${pengajuan.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
+                              target="_blank"
+                            >
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              Buka PDF Sekarang
+                            </a>
+                          </Button>
                         </div>
+                      ) : (
+                        <>
+                          {isPdfLoading && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/50 z-10">
+                              <Spinner className="h-8 w-8 mb-3 text-primary" />
+                              <p className="text-sm text-muted-foreground animate-pulse">
+                                Memuat...
+                              </p>
+                            </div>
+                          )}
+                          <object
+                            data={`/api/pengajuan-berkas/download/${pengajuan.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}#view=FitH`}
+                            type="application/pdf"
+                            width="100%"
+                            height="100%"
+                            className="w-full h-full"
+                            onLoad={() => setIsPdfLoading(false)}
+                          >
+                            <iframe
+                              src={`/api/pengajuan-berkas/download/${pengajuan.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
+                              className="w-full h-full border-none"
+                              title="PDF Preview"
+                            />
+                          </object>
+                        </>
                       )}
-                      <object
-                        data={`/api/pengajuan-berkas/download/${pengajuan.id}?preview=true#view=FitH`}
-                        type="application/pdf"
-                        width="100%"
-                        height="100%"
-                        className="w-full h-full"
-                        onLoad={() => setIsPdfLoading(false)}
-                      >
-                        <iframe
-                          src={`/api/pengajuan-berkas/download/${pengajuan.id}?preview=true`}
-                          className="w-full h-full border-none"
-                          title="PDF Preview"
-                        />
-                      </object>
                     </div>
                   )}
 
