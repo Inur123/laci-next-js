@@ -18,9 +18,9 @@ const hijriMonthsIndonesian = [
   "Rajab",
   "Sya'ban", // ← Ejaan Indonesia (bukan Sha'ban)
   "Ramadan",
-  "Syawal", // ← Ejaan Indonesia (bukan Shawwal)
-  "Zulkaidah",
-  "Zulhijah",
+  "Syawal",
+  "Dzulqaidah",
+  "Dzulhijjah",
 ];
 
 interface DateDisplayProps {
@@ -56,7 +56,7 @@ export function DateDisplay({ themeClass = "theme-pac" }: DateDisplayProps) {
         year: "numeric",
       }).format(now);
 
-      const masehiShort = `${dayName}, ${dateStr}`;
+      const masehiShort = `${dayName}, ${dateStr} M`;
 
       // Format Hijri - Custom Indonesian spelling
       const hijriDate = moment();
