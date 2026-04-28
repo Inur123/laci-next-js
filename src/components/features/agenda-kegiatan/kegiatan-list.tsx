@@ -418,15 +418,15 @@ export function KegiatanList({
       {/* Table Section */}
       <div className="relative">
         <div className="rounded-md border">
-          <div className="overflow-x-auto">
-            <Table className="w-full table-fixed [&_td]:py-2 [&_th]:py-2">
+          <div className="overflow-x-auto pb-2">
+            <Table className="w-full [&_td]:py-3 [&_th]:py-3">
               <TableHeader className="sticky top-0 bg-white z-10">
                 <TableRow>
                   <TableHead className="w-[50px] text-center bg-slate-50/40 whitespace-nowrap">
                     No
                   </TableHead>
                   <TableHead
-                    className="bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    className="min-w-[200px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
                     onClick={() => handleSort("judul")}
                   >
                     <span className="inline-flex items-center">
@@ -435,7 +435,7 @@ export function KegiatanList({
                     </span>
                   </TableHead>
                   <TableHead
-                    className="w-[180px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    className="min-w-[160px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
                     onClick={() => handleSort("tanggalMulai")}
                   >
                     <span className="inline-flex items-center">
@@ -444,7 +444,7 @@ export function KegiatanList({
                     </span>
                   </TableHead>
                   <TableHead
-                    className="w-[200px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    className="min-w-[180px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
                     onClick={() => handleSort("lokasi")}
                   >
                     <span className="inline-flex items-center">
@@ -453,7 +453,7 @@ export function KegiatanList({
                     </span>
                   </TableHead>
                   <TableHead
-                    className="w-[150px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    className="min-w-[140px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
                     onClick={() => handleSort("status")}
                   >
                     <span className="inline-flex items-center">
@@ -510,7 +510,7 @@ export function KegiatanList({
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap text-sm text-slate-600">
+                          <TableCell className="text-sm text-slate-600">
                             <div className="flex flex-col">
                               <span className="font-medium text-slate-900">
                                 {new Date(item.tanggalMulai).toLocaleDateString(
@@ -609,7 +609,7 @@ export function KegiatanList({
                 {totalPages >= 1 && (
                   <TableRow className="hover:bg-transparent border-t bg-white">
                     <TableCell colSpan={6} className="p-0">
-                      <div className="flex items-center justify-center sm:justify-between px-4 py-2">
+                      <div className="flex items-center justify-start sm:justify-between px-4 py-2">
                         <p className="text-xs text-muted-foreground hidden sm:block">
                           Menampilkan{" "}
                           <span className="font-medium text-slate-700">
@@ -625,7 +625,7 @@ export function KegiatanList({
                           </span>{" "}
                           kegiatan
                         </p>
-                        <Pagination className="mx-0 w-auto scale-90 sm:scale-100 origin-right">
+                        <Pagination className="mx-0 w-auto scale-90 sm:scale-100 origin-left">
                           <PaginationContent>
                             <PaginationItem>
                               <PaginationPrevious

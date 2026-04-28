@@ -138,7 +138,7 @@ export function CopyMemberDialog({ userRole }: { userRole: string }) {
         <Button
           variant="outline"
           className={cn(
-            "h-9 px-4 text-sm bg-white shadow-sm transition-all duration-200",
+            "w-full sm:w-auto h-9 px-4 text-sm bg-white shadow-sm transition-all duration-200",
             isCabang
               ? "border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
               : "border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700",

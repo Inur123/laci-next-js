@@ -24,6 +24,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
 import { resendOTP } from "@/app/actions/auth-actions";
+import { cn } from "@/lib/utils";
 import { ImageCropModal } from "@/components/shared/image-crop-modal";
 
 const capitalizeName = (name: string) => {
@@ -587,23 +588,24 @@ export default function ProfilePage({ user }: { user: Session["user"] }) {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t">
                 <Button
                   variant="outline"
                   type="button"
                   onClick={() => router.back()}
-                  className="hover:bg-slate-100 transition-all duration-200"
+                  className="flex-1 sm:flex-none sm:min-w-[100px] hover:bg-slate-100 transition-all duration-200"
                 >
                   Batal
                 </Button>
                 <Button
                   type="submit"
                   disabled={loading}
-                  className={`px-8 text-white shadow-md hover:shadow-xl transition-all duration-200 ${
+                  className={cn(
+                    "flex-1 sm:flex-none sm:px-8 text-white shadow-md hover:shadow-xl transition-all duration-200",
                     user.role === "SEKRETARIS_CABANG"
                       ? "bg-blue-600 hover:bg-blue-700"
-                      : "bg-green-600 hover:bg-green-700"
-                  }`}
+                      : "bg-green-600 hover:bg-green-700",
+                  )}
                 >
                   {loading ? (
                     <>

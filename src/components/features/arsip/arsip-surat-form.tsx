@@ -325,7 +325,7 @@ export function ArsipSuratForm({ arsipSurat, userRole }: ArsipSuratFormProps) {
                     <SelectItem value="IPNU">IPNU</SelectItem>
                     <SelectItem value="IPPNU">IPPNU</SelectItem>
                     <SelectItem value="BERSAMA">BERSAMA</SelectItem>
-                    <SelectItem value="CBP_KPP">CBP/KPP</SelectItem>
+                    <SelectItem value="CBP_KPP">CBP KPP</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -398,7 +398,9 @@ export function ArsipSuratForm({ arsipSurat, userRole }: ArsipSuratFormProps) {
                   id="perihal"
                   name="perihal"
                   defaultValue={
-                    arsipSurat?.perihal ? capitalizeName(arsipSurat.perihal) : ""
+                    arsipSurat?.perihal
+                      ? capitalizeName(arsipSurat.perihal)
+                      : ""
                   }
                   placeholder="Perihal / singkat isi surat"
                 />

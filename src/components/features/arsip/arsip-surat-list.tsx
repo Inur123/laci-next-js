@@ -782,7 +782,7 @@ export function ArsipSuratList({
                 {totalPages >= 1 && (
                   <TableRow className="hover:bg-transparent border-t bg-slate-50/30">
                     <TableCell colSpan={8} className="p-0">
-                      <div className="flex items-center justify-center sm:justify-between px-4 py-2">
+                      <div className="flex items-center justify-start sm:justify-between px-4 py-2">
                         <p className="text-xs text-muted-foreground hidden sm:block">
                           Menampilkan{" "}
                           <span className="font-medium text-slate-700">
@@ -798,7 +798,7 @@ export function ArsipSuratList({
                           </span>{" "}
                           arsip
                         </p>
-                        <Pagination className="mx-0 w-auto scale-90 sm:scale-100 origin-right">
+                        <Pagination className="mx-0 w-auto scale-90 sm:scale-100 origin-left">
                           <PaginationContent>
                             <PaginationItem>
                               <PaginationPrevious

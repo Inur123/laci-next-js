@@ -128,28 +128,28 @@ export function KegiatanCalendar({ kegiatanList }: KegiatanCalendarProps) {
   return (
     <div className="border rounded-xl bg-white shadow-sm overflow-hidden">
       {/* Custom Header */}
-      <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b bg-slate-50/50">
-        <div>
-          <h3 className="text-lg font-semibold text-slate-900">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b bg-slate-50/50">
+        <div className="flex flex-col min-w-0">
+          <h3 className="text-sm sm:text-lg font-bold text-slate-900 leading-tight truncate">
             Kalender Kegiatan
           </h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="hidden xs:block text-[10px] sm:text-sm text-muted-foreground mt-0.5 truncate">
             Lihat jadwal kegiatan organisasi
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0 ml-2">
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8"
+            className="h-7 w-7 sm:h-9 sm:w-9 bg-white"
             onClick={handlePrev}
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="h-8 text-xs font-medium min-w-[80px]"
+            className="h-7 sm:h-9 text-[10px] sm:text-xs font-bold px-2 sm:px-4 bg-white shadow-sm"
             onClick={handleToday}
           >
             Hari Ini
@@ -157,10 +157,10 @@ export function KegiatanCalendar({ kegiatanList }: KegiatanCalendarProps) {
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8"
+            className="h-7 w-7 sm:h-9 sm:w-9 bg-white"
             onClick={handleNext}
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </Button>
         </div>
       </div>
