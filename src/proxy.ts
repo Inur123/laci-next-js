@@ -14,6 +14,11 @@ export default async function proxy(request: NextRequest) {
   const isOnAuthPage =
     pathname.startsWith("/login") || pathname.startsWith("/register");
 
+  // Ambil domain dari header Nginx (agar tidak perlu hardcode domain)
+  const proto = request.headers.get("x-forwarded-proto") || "https";
+  const host = request.headers.get("host") || request.nextUrl.host;
+  const origin = `${proto}://${host}`;
+
   // OPTIMASI: Cek cookie dulu sebelum fetch
   // Cari cookie session secara fleksibel (karena prefix bisa bervariasi)
   const allCookies = request.cookies.getAll();
@@ -28,8 +33,7 @@ export default async function proxy(request: NextRequest) {
 
   // Jika di dashboard dan TIDAK ada cookie → langsung redirect login
   if (isOnDashboard && !sessionCookie) {
-    const loginUrl = new URL("/login", "https://laci.pelajarnumagetan.or.id");
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(new URL("/login", origin));
   }
 
   // Hanya fetch session jika ada cookie (artinya mungkin sudah login)
@@ -43,7 +47,7 @@ export default async function proxy(request: NextRequest) {
         headers: {
           "cookie": request.headers.get("cookie") || "",
           "x-forwarded-proto": request.headers.get("x-forwarded-proto") || "https",
-          "host": request.headers.get("host") || "laci.web.id",
+          "host": request.headers.get("host") || host,
         },
         cache: 'no-store',
       });
@@ -73,11 +77,11 @@ export default async function proxy(request: NextRequest) {
   // 1. Dashboard: cek login dan status aktif
   if (isOnDashboard) {
     if (!session || !user) {
-      return NextResponse.redirect(new URL("/login", "https://laci.pelajarnumagetan.or.id"));
+      return NextResponse.redirect(new URL("/login", origin));
     }
 
     if (user.isActive === false) {
-      const loginUrl = new URL("/login", "https://laci.pelajarnumagetan.or.id");
+      const loginUrl = new URL("/login", origin);
       loginUrl.searchParams.set("error", "account_inactive");
       return NextResponse.redirect(loginUrl);
     }
@@ -92,7 +96,7 @@ export default async function proxy(request: NextRequest) {
     if (user.isActive === false) {
       return NextResponse.next(); // Biarkan tetap di halaman login/register
     }
-    return NextResponse.redirect(new URL("/dashboard", "https://laci.pelajarnumagetan.or.id"));
+    return NextResponse.redirect(new URL("/dashboard", origin));
   }
 
   return NextResponse.next();

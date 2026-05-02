@@ -14,7 +14,7 @@ export const auth = betterAuth({
   // Redirect error autentikasi ke halaman login
   pages: {
     signIn: "/login",
-    error: "https://laci.pelajarnumagetan.or.id/login",
+    error: `${process.env.BETTER_AUTH_URL}/login`,
   },
 
   // Izinkan auto-link akun jika email Google cocok dengan akun yang sudah terdaftar
@@ -214,9 +214,6 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET!,
 });
 
-// LOG DEBUG UNTUK VPS
-console.warn(`[Better Auth] ENV BETTER_AUTH_URL: ${process.env.BETTER_AUTH_URL || "KOSONG"}`);
-console.warn(`[Better Auth] FINAL baseURL: ${auth.options.baseURL}`);
 
 
 export type Session = typeof auth.$Infer.Session;

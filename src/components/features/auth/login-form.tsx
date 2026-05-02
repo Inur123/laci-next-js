@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import LoginClient from "@/components/features/auth/login-client";
-import { Suspense } from "react";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
@@ -13,11 +12,6 @@ import { useRouter } from "next/navigation";
 import { verifyRecaptchaAction } from "@/app/actions/recaptcha-actions";
 
 export default function LoginForm() {
-  // DEBUG UNTUK CEK URL DI BROWSER
-  if (typeof window !== "undefined") {
-    console.warn("[Client Auth] Active baseURL:", (authClient as any).baseURL);
-  }
-
   return (
     <div className="h-screen w-full grid lg:grid-cols-2 overflow-hidden">
       {/* Left Side - Branding */}
@@ -91,16 +85,8 @@ export default function LoginForm() {
             </p>
           </div>
 
-          <Suspense
-            fallback={
-              <div className="h-48 flex items-center justify-center">
-                <Loader2 className="w-6 h-6 animate-spin text-green-600" />
-              </div>
-            }
-          >
-            <LoginClient />
-            <LoginWithRecaptcha />
-          </Suspense>
+          <LoginClient />
+          <LoginWithRecaptcha />
 
           <div className="text-center text-sm text-slate-600 pb-2">
             Belum punya akun?{" "}
@@ -298,8 +284,8 @@ function LoginWithRecaptcha() {
           try {
             await authClient.signIn.social({
               provider: "google",
-              callbackURL: "https://laci.pelajarnumagetan.or.id/dashboard?login=success",
-              errorCallbackURL: "https://laci.pelajarnumagetan.or.id/login?error=unregistered",
+              callbackURL: `${window.location.origin}/dashboard?login=success`,
+              errorCallbackURL: `${window.location.origin}/login?error=unregistered`,
             });
           } catch (err) {
             console.error("Google login error:", err);
