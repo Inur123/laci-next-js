@@ -215,6 +215,7 @@ export const auth = betterAuth({
 });
 
 // LOG DEBUG UNTUK VPS
+console.warn(`[Better Auth] ENV BETTER_AUTH_URL: ${process.env.BETTER_AUTH_URL || "KOSONG"}`);
 console.warn(`[Better Auth] FINAL baseURL: ${auth.options.baseURL}`);
 
 
