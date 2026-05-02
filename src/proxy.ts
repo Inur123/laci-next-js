@@ -37,7 +37,7 @@ export default async function proxy(request: NextRequest) {
   if (sessionCookie) {
     try {
       // Gunakan URL internal dari .env (jika ada) untuk menghindari SSL error di VPS
-      const internalUrl = process.env.BETTER_AUTH_URL_INTERNAL || "http://localhost:3000";
+      const internalUrl = process.env.BETTER_AUTH_URL_INTERNAL || "https://laci.pelajarnumagetan.or.id";
       const res = await fetch(`${internalUrl}/api/auth/get-session`, {
         headers: {
           "cookie": request.headers.get("cookie") || "",

@@ -808,7 +808,7 @@ export async function createPengajuanBerkas(formData: FormData) {
         {
           userName: freshUser.name || "User",
           pacName: freshUser.name || "PAC",
-          detailUrl: `${process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || "http://localhost:3000"}/dashboard/pengajuan-berkas/${pengajuan.id}`,
+          detailUrl: `${process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || "https://laci.pelajarnumagetan.or.id"}/dashboard/pengajuan-berkas/${pengajuan.id}`,
           noSurat: noSurat,
         },
         encryptedFilePath
@@ -1038,7 +1038,7 @@ export async function updateStatusPengajuan(
       pacName: pengajuan.user.name || "PAC",
       status: status === "DITERIMA" ? "DITERIMA" : "DITOLAK",
       alasanPenolakan: alasanPenolakan,
-      detailUrl: `${process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || "http://localhost:3000"}/dashboard/pengajuan-berkas/${id}`,
+      detailUrl: `${process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || "https://laci.pelajarnumagetan.or.id"}/dashboard/pengajuan-berkas/${id}`,
       noSurat: decryptText(pengajuan.noSurat),
     }).catch((err) => {
       console.error("[STATUS-UPDATE-NOTIF] Gagal mengirim email:", err);

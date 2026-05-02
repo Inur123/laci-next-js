@@ -203,7 +203,7 @@ export const auth = betterAuth({
 
   // Trust proxy for production
   trustedOrigins: [
-    "http://localhost:3000",
+    "https://laci.pelajarnumagetan.or.id",
     "http://localhost:3001",
     process.env.BETTER_AUTH_URL || "",
   ].filter(Boolean),

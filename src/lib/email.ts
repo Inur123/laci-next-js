@@ -162,7 +162,7 @@ const getBaseUrl = () => {
   if (process.env.BETTER_AUTH_URL) return process.env.BETTER_AUTH_URL;
   if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
   if (process.env.NEXTAUTH_URL) return process.env.NEXTAUTH_URL;
-  return "http://localhost:3000";
+  return process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || "https://laci.pelajarnumagetan.or.id";
 };
 
 /**
