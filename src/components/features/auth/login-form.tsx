@@ -13,6 +13,11 @@ import { useRouter } from "next/navigation";
 import { verifyRecaptchaAction } from "@/app/actions/recaptcha-actions";
 
 export default function LoginForm() {
+  // DEBUG UNTUK CEK URL DI BROWSER
+  if (typeof window !== "undefined") {
+    console.warn("[Client Auth] Active baseURL:", (authClient as any).baseURL);
+  }
+
   return (
     <div className="h-screen w-full grid lg:grid-cols-2 overflow-hidden">
       {/* Left Side - Branding */}

@@ -26,10 +26,10 @@ export const auth = betterAuth({
     },
   },
 
-  // Izinkan proxy (Nginx/Cloudflare)
+  // Izinkan proxy (Nginx/Cloudflare) & PAKSA HTTPS di Production
   advanced: {
-    useSecureCookies: process.env.NODE_ENV === "production",
-    cookiePrefix: "ipnu-laci", 
+    useSecureCookies: true,
+    cookiePrefix: "ipnu-laci",
   },
   
   // Paksa pakai baseURL hardcode, jangan percaya header host dari Nginx
