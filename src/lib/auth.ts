@@ -14,7 +14,7 @@ export const auth = betterAuth({
   // Redirect error autentikasi ke halaman login
   pages: {
     signIn: "/login",
-    error: "/login",
+    error: "https://laci.pelajarnumagetan.or.id/login",
   },
 
   // Izinkan auto-link akun jika email Google cocok dengan akun yang sudah terdaftar
