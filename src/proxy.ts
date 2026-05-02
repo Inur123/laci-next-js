@@ -28,7 +28,8 @@ export default async function proxy(request: NextRequest) {
 
   // Jika di dashboard dan TIDAK ada cookie → langsung redirect login
   if (isOnDashboard && !sessionCookie) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const loginUrl = new URL("/login", "https://laci.pelajarnumagetan.or.id");
+    return NextResponse.redirect(loginUrl);
   }
 
   // Hanya fetch session jika ada cookie (artinya mungkin sudah login)
@@ -72,11 +73,11 @@ export default async function proxy(request: NextRequest) {
   // 1. Dashboard: cek login dan status aktif
   if (isOnDashboard) {
     if (!session || !user) {
-      return NextResponse.redirect(new URL("/login", request.url));
+      return NextResponse.redirect(new URL("/login", "https://laci.pelajarnumagetan.or.id"));
     }
 
     if (user.isActive === false) {
-      const loginUrl = new URL("/login", request.url);
+      const loginUrl = new URL("/login", "https://laci.pelajarnumagetan.or.id");
       loginUrl.searchParams.set("error", "account_inactive");
       return NextResponse.redirect(loginUrl);
     }
@@ -91,7 +92,7 @@ export default async function proxy(request: NextRequest) {
     if (user.isActive === false) {
       return NextResponse.next(); // Biarkan tetap di halaman login/register
     }
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL("/dashboard", "https://laci.pelajarnumagetan.or.id"));
   }
 
   return NextResponse.next();
