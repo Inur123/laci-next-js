@@ -209,7 +209,7 @@ export const auth = betterAuth({
   ].filter(Boolean),
 
   // Base URL harus absolut
-  baseURL: process.env.BETTER_AUTH_URL || "https://laci.pelajarnumagetan.or.id",
+  baseURL: "https://laci.pelajarnumagetan.or.id",
 
   secret: process.env.BETTER_AUTH_SECRET!,
 });
