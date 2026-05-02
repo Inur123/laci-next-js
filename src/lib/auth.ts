@@ -32,8 +32,8 @@ export const auth = betterAuth({
     cookiePrefix: "ipnu-laci", 
   },
   
-  // SANGAT PENTING untuk Production di balik Proxy VPS
-  trustHost: true,
+  // Paksa pakai baseURL hardcode, jangan percaya header host dari Nginx
+  trustHost: false,
 
   // Email & Password Authentication
   emailAndPassword: {
