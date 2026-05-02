@@ -298,7 +298,8 @@ function LoginWithRecaptcha() {
           try {
             await authClient.signIn.social({
               provider: "google",
-              callbackURL: "/dashboard?login=success",
+              callbackURL: "https://laci.pelajarnumagetan.or.id/dashboard?login=success",
+              errorCallbackURL: "https://laci.pelajarnumagetan.or.id/login?error=unregistered",
             });
           } catch (err) {
             console.error("Google login error:", err);

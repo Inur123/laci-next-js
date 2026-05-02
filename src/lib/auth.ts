@@ -14,7 +14,7 @@ export const auth = betterAuth({
   // Redirect error autentikasi ke halaman login
   pages: {
     signIn: "/login",
-    error: "/login",
+    error: "https://laci.pelajarnumagetan.or.id/login",
   },
 
   // Izinkan auto-link akun jika email Google cocok dengan akun yang sudah terdaftar
@@ -32,8 +32,8 @@ export const auth = betterAuth({
     cookiePrefix: "ipnu-laci",
   },
   
-  // Paksa pakai baseURL hardcode, jangan percaya header host dari Nginx
-  trustHost: false,
+  // Percaya header Host dari Nginx (Nginx mengirim Host: laci.pelajarnumagetan.or.id)
+  trustHost: true,
 
   // Email & Password Authentication
   emailAndPassword: {

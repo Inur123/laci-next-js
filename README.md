@@ -76,7 +76,7 @@ Laci Digital menerapkan standar keamanan terbaru untuk melindungi data organisas
 - **Database**: PostgreSQL with Prisma ORM
 - **Auth**: Better Auth
 - **Styling**: Tailwind CSS & Shadcn UI
-- **Realtime**: Laravel Reverb / WebSocket Integration
+- **Realtime**: WebSocket Integration
 
 ## 📄 Akses & Privasi
 
