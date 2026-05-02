@@ -1,8 +1,10 @@
 import { createAuthClient } from "better-auth/react";
 import { emailOTPClient } from "better-auth/client/plugins";
 
+const PRODUCTION_DOMAIN = "https://laci.pelajarnumagetan.or.id";
+
 export const authClient = createAuthClient({
-  baseURL: "https://laci.pelajarnumagetan.or.id",
+  baseURL: PRODUCTION_DOMAIN,
   user: {
     additionalFields: {
       role: {

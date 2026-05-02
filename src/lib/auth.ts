@@ -6,6 +6,8 @@ import { sendVerificationEmail } from "./email";
 import { createLogManual } from "./log-activity";
 import { LogAction, LogModule } from "@prisma/client";
 
+const PRODUCTION_DOMAIN = "https://laci.pelajarnumagetan.or.id";
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
@@ -14,7 +16,7 @@ export const auth = betterAuth({
   // Redirect error autentikasi ke halaman login
   pages: {
     signIn: "/login",
-    error: "https://laci.pelajarnumagetan.or.id/login",
+    error: `${PRODUCTION_DOMAIN}/login`,
   },
 
   // Izinkan auto-link akun jika email Google cocok dengan akun yang sudah terdaftar
@@ -209,7 +211,7 @@ export const auth = betterAuth({
   ].filter(Boolean),
 
   // Base URL harus absolut
-  baseURL: "https://laci.pelajarnumagetan.or.id",
+  baseURL: PRODUCTION_DOMAIN,
 
   secret: process.env.BETTER_AUTH_SECRET!,
 });
