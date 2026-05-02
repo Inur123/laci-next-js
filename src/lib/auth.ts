@@ -215,7 +215,7 @@ export const auth = betterAuth({
 });
 
 // LOG DEBUG UNTUK VPS (Cek pm2 logs laci-app)
-console.log(`[Better Auth] Server initialized with baseURL: ${auth.options.baseURL}`);
+console.warn(`[Better Auth] Server initialized with baseURL: ${auth.options.baseURL}`);
 
 
 export type Session = typeof auth.$Infer.Session;
