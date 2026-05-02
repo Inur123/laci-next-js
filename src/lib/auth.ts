@@ -6,8 +6,6 @@ import { sendVerificationEmail } from "./email";
 import { createLogManual } from "./log-activity";
 import { LogAction, LogModule } from "@prisma/client";
 
-const PRODUCTION_DOMAIN = "https://laci.pelajarnumagetan.or.id";
-
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
@@ -16,7 +14,7 @@ export const auth = betterAuth({
   // Redirect error autentikasi ke halaman login
   pages: {
     signIn: "/login",
-    error: `${PRODUCTION_DOMAIN}/login`,
+    error: "/login",
   },
 
   // Izinkan auto-link akun jika email Google cocok dengan akun yang sudah terdaftar
@@ -210,14 +208,14 @@ export const auth = betterAuth({
     process.env.BETTER_AUTH_URL || "",
   ].filter(Boolean),
 
-  // Base URL harus absolut
-  baseURL: PRODUCTION_DOMAIN,
+  // Base URL harus absolut, ambil dari .env
+  baseURL: process.env.BETTER_AUTH_URL || "https://laci.pelajarnumagetan.or.id",
 
   secret: process.env.BETTER_AUTH_SECRET!,
 });
 
-// LOG DEBUG UNTUK VPS (Cek pm2 logs laci-app)
-console.warn(`[Better Auth] Server initialized with baseURL: ${auth.options.baseURL}`);
+// LOG DEBUG UNTUK VPS
+console.warn(`[Better Auth] FINAL baseURL: ${auth.options.baseURL}`);
 
 
 export type Session = typeof auth.$Infer.Session;
