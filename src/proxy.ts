@@ -86,6 +86,13 @@ export default async function proxy(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
+    // Proteksi Email Verification: Blokir akses fitur jika belum verifikasi
+    const isRootDashboard = pathname === "/dashboard";
+    const isProfilePage = pathname === "/dashboard/profile";
+    if (!user.emailVerified && !isRootDashboard && !isProfilePage) {
+      return NextResponse.redirect(new URL("/dashboard", origin));
+    }
+
     const response = NextResponse.next();
     response.headers.set("x-pathname", pathname);
     return response;

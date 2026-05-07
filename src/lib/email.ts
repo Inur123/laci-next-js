@@ -176,7 +176,10 @@ export async function sendVerificationEmail(
   type: "otp" | "link" = "otp",
 ): Promise<{ success: boolean; error?: string }> {
   const baseUrl = getBaseUrl();
-  const verificationUrl = `${baseUrl}/verify-email?token=${token}`;
+  const verificationUrl =
+    type === "link" && token.startsWith("http")
+      ? token
+      : `${baseUrl}/verify-email?token=${token}`;
 
   const props =
     type === "otp" ? { name, otp: token } : { name, verificationUrl };

@@ -2,11 +2,11 @@ import { auth } from "@/auth";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, AlertCircle } from "lucide-react";
 import { DateDisplay } from "@/components/ui/date-display";
+import Link from "next/link";
 
 import { headers } from "next/headers";
 import type { Session } from "next-auth";
@@ -147,14 +147,14 @@ export default async function DashboardLayout({
                     Akses Terbatas:
                   </span>
                   Email Anda belum terverifikasi. Beberapa fitur dikunci.
+                  <Link
+                    href="/dashboard/profile"
+                    className="ml-1 font-semibold text-amber-700 underline underline-offset-2 hover:text-amber-900 transition-colors"
+                  >
+                    Verifikasi Email
+                  </Link>
                 </div>
               </div>
-              <Link
-                href="/dashboard/profile"
-                className="text-sm font-medium text-amber-700 hover:text-amber-800 underline underline-offset-2 shrink-0 ml-7 sm:ml-auto whitespace-nowrap"
-              >
-                Verifikasi Sekarang &rarr;
-              </Link>
             </div>
           )}
 

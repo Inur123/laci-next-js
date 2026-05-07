@@ -34,8 +34,8 @@ const RegisterSchema = z.object({
     .max(100, "Nama maksimal 100 karakter")
     .trim()
     .refine(
-      (val) => /^[a-zA-Z\s.',-]+$/.test(val),
-      "Nama hanya boleh mengandung huruf, spasi, titik, koma, dan apostrof",
+      (val) => /^[a-zA-Z0-9\s.',-]+$/.test(val),
+      "Nama hanya boleh mengandung huruf, angka, spasi, titik, koma, dan apostrof",
     )
     .transform((val) => val.replace(/\s+/g, " ")), // Remove multiple spaces
   email: z
@@ -60,9 +60,16 @@ export async function verifyOTP(email: string, otp: string) {
   return { error: "Silakan gunakan fitur verifikasi bawaan aplikasi." };
 }
 
-export async function resendOTP(email: string) {
-  // Use Better Auth client-side resend instead of this manual action
-  return { error: "Silakan gunakan fitur kirim ulang bawaan aplikasi." };
+export async function resendVerificationAction(email: string) {
+  try {
+    await betterAuth.api.sendVerificationEmail({
+      body: { email },
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("[AUTH-ACTION] Resend verification failed:", error);
+    return { error: "Gagal mengirim email verifikasi." };
+  }
 }
 
 // authenticate function removed because login is now handled by Better Auth client-side in login-form.tsx
@@ -465,8 +472,8 @@ export async function updateProfile(formData: FormData) {
         .max(100, "Nama maksimal 100 karakter")
         .trim()
         .refine(
-          (val) => /^[a-zA-Z\s.',-]+$/.test(val),
-          "Nama hanya boleh mengandung huruf, spasi, titik, koma, dan apostrof",
+          (val) => /^[a-zA-Z0-9\s.',-]+$/.test(val),
+          "Nama hanya boleh mengandung huruf, angka, spasi, titik, koma, dan apostrof",
         )
         .transform((val) => val.replace(/\s+/g, " ")),
       email: z
@@ -565,6 +572,7 @@ export async function updateProfile(formData: FormData) {
       select: { email: true, name: true },
     });
 
+    // Handle Email Change Validation
     if (currentUser && email !== currentUser.email) {
       const emailTaken = await prisma.user.findUnique({
         where: { email },
@@ -574,16 +582,39 @@ export async function updateProfile(formData: FormData) {
         return { error: "Email sudah digunakan oleh pengguna lain." };
       }
 
-      // Reset verification and update email directly
-      updateData.email = email;
+      // Reset verification for the new email
       updateData.emailVerified = false;
-      // Note: Better Auth verification logic is handled elsewhere.
+
+      // Unlink social accounts (Google) to prevent login via old identity
+      await prisma.account.deleteMany({
+        where: {
+          userId: session.user.id,
+          providerId: { not: "credential" },
+        },
+      });
     }
 
     await prisma.user.update({
       where: { id: session.user.id },
       data: updateData,
     });
+
+    // Handle Email Verification Trigger AFTER DB Update
+    if (currentUser && email !== currentUser.email) {
+      // Trigger verification link for the NEW email in background
+      (async () => {
+        try {
+          await betterAuth.api.sendVerificationEmail({
+            body: { email },
+          });
+        } catch (e) {
+          console.error(
+            "[updateProfile] Failed to trigger verification email:",
+            e,
+          );
+        }
+      })();
+    }
 
     // Log activity (non-blocking)
     createLog("UPDATE", "USER", `Mengupdate profil akun: ${session.user.name}`);
@@ -592,7 +623,13 @@ export async function updateProfile(formData: FormData) {
     revalidatePath("/dashboard/profile", "page");
     revalidatePath("/dashboard", "layout");
 
-    return { success: "Profil berhasil diperbarui!" };
+    // Determine success message
+    const successMessage =
+      currentUser && email !== currentUser.email
+        ? "Profil diperbarui! Silakan cek email baru Anda untuk verifikasi."
+        : "Profil berhasil diperbarui!";
+
+    return { success: successMessage };
   } catch (error) {
     console.error("Update profile error:", error);
     return { error: "Gagal memperbarui profil." };

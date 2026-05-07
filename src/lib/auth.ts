@@ -36,9 +36,23 @@ export const auth = betterAuth({
   trustHost: true,
 
   // Email & Password Authentication
+  // CATATAN: requireEmailVerification = false agar user yang ganti email
+  // tetap bisa login. Proteksi akses fitur sudah ditangani oleh:
+  // 1. Middleware (proxy.ts) - redirect ke /dashboard
+  // 2. Layout (layout.tsx) - server-side redirect
+  // 3. Sidebar (app-sidebar.tsx) - menu tersembunyi
+  // 4. Dashboard Cards - dikunci dengan toast warning
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: true,
+    requireEmailVerification: false,
+  },
+
+  // Email Verification Handler (Link-based)
+  emailVerification: {
+    autoSignInAfterVerification: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      await sendVerificationEmail(user.email, user.name, url, "link");
+    },
   },
 
   // Google OAuth — hanya sebagai shortcut login, bukan registrasi

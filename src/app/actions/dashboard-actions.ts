@@ -22,7 +22,7 @@ export async function getDashboardStats() {
   const [user, activePeriode] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
-      select: { role: true, id: true },
+      select: { role: true, id: true, emailVerified: true },
     }),
     prisma.periode.findFirst({
       where: { userId: userId, isActive: true },
@@ -154,6 +154,7 @@ export async function getDashboardStats() {
   if (user?.role !== "SEKRETARIS_CABANG") {
     return {
       role: "PAC",
+      emailVerified: !!user?.emailVerified,
       personal: personalStats,
       monitoring: null,
     };
@@ -225,6 +226,7 @@ export async function getDashboardStats() {
 
   return {
     role: "CABANG",
+    emailVerified: !!user?.emailVerified,
     personal: personalStats,
     monitoring: {
       leaderboard,

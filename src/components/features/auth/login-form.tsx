@@ -150,9 +150,6 @@ function LoginWithRecaptcha() {
             error.code === "INVALID_EMAIL_OR_PASSWORD"
           ) {
             errorMessage = "Email atau password salah.";
-          } else if (error.code === "EMAIL_NOT_VERIFIED") {
-            errorMessage =
-              "Email Anda belum diverifikasi. Silakan cek inbox email Anda.";
           } else {
             errorMessage = error.message || "Terjadi kesalahan saat login.";
           }

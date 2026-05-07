@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
-import { resendOTP } from "@/app/actions/auth-actions";
+import { resendVerificationAction } from "@/app/actions/auth-actions";
 import { cn } from "@/lib/utils";
 import { ImageCropModal } from "@/components/shared/image-crop-modal";
 
@@ -206,12 +206,19 @@ export default function ProfilePage({ user }: { user: Session["user"] }) {
         data.append("image", selectedFile);
       }
 
+      // Spam Protection: Prevent email change if cooldown is active
+      const email = form.get("email") as string;
+      if (email !== user.email && resendTimer > 0) {
+        toast.error(`Harap tunggu ${resendTimer} detik sebelum mengganti email lagi.`);
+        return;
+      }
+
       const result = await updateProfile(data);
 
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Profil berhasil diperbarui!");
+        toast.success(result.success || "Profil berhasil diperbarui!");
         // Reset password fields after success
         setNewPassword("");
         setConfirmPassword("");
@@ -241,7 +248,7 @@ export default function ProfilePage({ user }: { user: Session["user"] }) {
     try {
       // NOTE: For now still using the OTP send action as it's the only one available
       // but we change the UI to not expect a modal here.
-      const res = await resendOTP(user.email || "");
+      const res = await resendVerificationAction(user.email || "");
       if (res.error) {
         toast.error(res.error);
       } else {

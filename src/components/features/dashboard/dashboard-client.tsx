@@ -19,6 +19,7 @@ import { LayoutDashboard, BarChart3 } from "lucide-react";
 
 type DashboardClientData = {
   role: string;
+  emailVerified: boolean;
   personal: {
     anggota: number;
     globalAnggota?: number;
@@ -193,7 +194,7 @@ export default function DashboardClient({
       <div className="mt-0">
         {activeTab === "personal" ? (
           <div>
-            <DashboardPersonal stats={data.personal} role={data.role} />
+            <DashboardPersonal stats={data.personal} role={data.role} emailVerified={data.emailVerified} />
           </div>
         ) : (
           <div>

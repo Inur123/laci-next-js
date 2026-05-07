@@ -10,9 +10,11 @@ import {
   ArrowUpRight,
   BarChart3,
   QrCode,
+  Lock,
 } from "lucide-react";
 import Link from "next/link";
 import { NumberTicker } from "@/components/ui/number-ticker";
+import { toast } from "sonner";
 import {
   BarChart,
   Bar,
@@ -42,9 +44,11 @@ interface DashboardStats {
 export function DashboardPersonal({
   stats,
   role,
+  emailVerified = true,
 }: {
   stats: DashboardStats;
   role?: string;
+  emailVerified?: boolean;
 }) {
   const isCabang = role === "CABANG";
   const themeHex = isCabang ? "#2563eb" : "#16a34a"; // Blue-600 vs Green-600
@@ -242,10 +246,10 @@ export function DashboardPersonal({
       <div
         className={`grid grid-cols-2 md:grid-cols-3 ${isCabang ? "lg:grid-cols-5" : "lg:grid-cols-6"} gap-3`}
       >
-        {quickActions.map((item, index) => (
-          <Link href={item.href} key={index} className="group">
+        {quickActions.map((item, index) => {
+          const cardContent = (
             <Card
-              className={`h-[85px] flex flex-col justify-between p-3 shadow-none border ${item.borderColor} ${item.bgColor.replace("/50", "/20")}`}
+              className={`h-[85px] flex flex-col justify-between p-3 shadow-none border ${item.borderColor} ${item.bgColor.replace("/50", "/20")} ${!emailVerified ? "opacity-60 cursor-not-allowed" : ""}`}
             >
               <div className="flex items-center justify-between">
                 <span
@@ -253,14 +257,38 @@ export function DashboardPersonal({
                 >
                   {item.title}
                 </span>
-                <item.icon className={`h-3.5 w-3.5 ${item.color}`} />
+                {!emailVerified ? (
+                  <Lock className="h-3.5 w-3.5 text-slate-400" />
+                ) : (
+                  <item.icon className={`h-3.5 w-3.5 ${item.color}`} />
+                )}
               </div>
               <div className={`text-xl font-bold leading-none ${item.color}`}>
                 <NumberTicker value={item.count} />
               </div>
             </Card>
-          </Link>
-        ))}
+          );
+
+          if (!emailVerified) {
+            return (
+              <div
+                key={index}
+                className="group"
+                onClick={() =>
+                  toast.warning("Verifikasi email Anda untuk mengakses fitur ini.")
+                }
+              >
+                {cardContent}
+              </div>
+            );
+          }
+
+          return (
+            <Link href={item.href} key={index} className="group">
+              {cardContent}
+            </Link>
+          );
+        })}
       </div>
 
       {/* 2. Charts Section */}
