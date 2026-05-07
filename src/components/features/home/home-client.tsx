@@ -194,7 +194,7 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
       >
         <nav
           className={cn(
-            "mx-auto transition-all duration-700 cubic-bezier(0.4, 0, 0.2, 1) flex items-center justify-between",
+            "mx-auto transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] flex items-center justify-between",
             isScrolled
               ? "max-w-full border-b border-slate-200/60 bg-white/80 backdrop-blur-md px-4 py-3 sm:px-10 shadow-sm"
               : "max-w-[92%] sm:max-w-7xl px-6 sm:px-8 py-3 bg-white/95 backdrop-blur-lg rounded-full border border-slate-200/50 shadow-[0_20px_50px_rgba(0,0,0,0.08)]",
@@ -281,7 +281,8 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
 
           {/* Mobile hamburger */}
           <button
-            className="md:hidden rounded-xl p-2 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#bbf7d0]"
+            type="button"
+            className="md:hidden rounded-xl p-2 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#bbf7d0] cursor-pointer relative z-50 [&_svg]:pointer-events-none"
             aria-label="Toggle menu"
             onClick={toggleMenu}
           >
@@ -293,7 +294,7 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
         <div
           className={cn(
             "absolute left-0 right-0 top-full z-50 md:hidden overflow-hidden transition-all duration-300 ease-in-out",
-            isMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0",
+            isMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0 pointer-events-none",
           )}
         >
           <div
@@ -1041,7 +1042,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
       >
         <nav
           className={cn(
-            "mx-auto transition-all duration-700 cubic-bezier(0.4, 0, 0.2, 1) flex items-center justify-between",
+            "mx-auto transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] flex items-center justify-between",
             isScrolled
               ? "max-w-full border-b border-slate-200/60 bg-white/80 backdrop-blur-md px-4 py-3 sm:px-10 shadow-sm"
               : "max-w-[92%] sm:max-w-7xl px-6 sm:px-8 py-3 bg-white/95 backdrop-blur-lg rounded-full border border-slate-200/50 shadow-[0_20px_50px_rgba(0,0,0,0.08)]",
@@ -1116,7 +1117,8 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
 
           {/* Mobile hamburger */}
           <button
-            className="md:hidden rounded-xl p-2 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#bbf7d0]"
+            type="button"
+            className="md:hidden rounded-xl p-2 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#bbf7d0] cursor-pointer relative z-50 [&_svg]:pointer-events-none"
             aria-label="Toggle menu"
             onClick={toggleMenu}
           >
@@ -1128,7 +1130,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
         <div
           className={cn(
             "absolute left-0 right-0 top-full z-50 md:hidden overflow-hidden transition-all duration-300 ease-in-out",
-            isMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0",
+            isMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0 pointer-events-none",
           )}
         >
           <div

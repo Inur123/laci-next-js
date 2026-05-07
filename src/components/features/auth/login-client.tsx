@@ -1,35 +1,39 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 export default function LoginClient() {
-  const searchParams = useSearchParams();
   const hasToasted = useRef(false);
 
   useEffect(() => {
     if (hasToasted.current) return;
 
-    if (searchParams?.get("logout") === "success") {
+    // Gunakan URLSearchParams standar browser
+    const params = new URLSearchParams(window.location.search);
+    const logout = params.get("logout");
+    const verified = params.get("verified");
+    const error = params.get("error");
+
+    if (logout === "success") {
       toast.success("Berhasil keluar! Sampai jumpa lagi.");
       hasToasted.current = true;
-    } else if (searchParams?.get("verified") === "true") {
+    } else if (verified === "true") {
       toast.success("Email berhasil diverifikasi! Menunggu aktivasi admin.");
       hasToasted.current = true;
-    } else if (
-      searchParams?.get("error") === "account_inactive" ||
-      searchParams?.get("error") === "inactive"
-    ) {
+    } else if (error === "account_inactive" || error === "inactive") {
       toast.error("Akun Anda belum diaktifkan oleh Sekretaris Cabang.");
       hasToasted.current = true;
-    } else if (searchParams?.get("error") === "unregistered") {
-      toast.error(
-        "Email Anda belum terdaftar. Silakan register terlebih dahulu.",
-      );
+    } else if (error === "unregistered") {
+      toast.error("Email Anda belum terdaftar. Silakan register terlebih dahulu.");
       hasToasted.current = true;
-    } else if (searchParams?.get("error") === "auth_error") {
+    } else if (error === "auth_error") {
       toast.error("Terjadi kesalahan saat autentikasi.");
+      hasToasted.current = true;
+    } else if (error === "session_expired") {
+      toast.error("Sesi login Anda telah berakhir", {
+        description: "Silakan login kembali untuk melanjutkan akses.",
+      });
       hasToasted.current = true;
     }
 
@@ -38,7 +42,7 @@ export default function LoginClient() {
       const newPath = window.location.pathname;
       window.history.replaceState(null, "", newPath);
     }
-  }, [searchParams]);
+  }, []);
 
   return null;
 }

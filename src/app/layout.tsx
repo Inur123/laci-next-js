@@ -28,9 +28,11 @@ const outfit = Outfit({
 });
 
 import { Toaster } from "@/components/ui/sonner";
+import { Suspense } from "react";
 
 import { RealtimeListener } from "@/components/providers/realtime-listener";
 import { NextAuthProvider } from "@/components/providers/session-provider";
+import { SessionMonitor } from "@/components/providers/session-monitor";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://laci.pelajarnumagetan.or.id"),
@@ -121,9 +123,13 @@ export default function RootLayout({
     >
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} antialiased`}
+        style={{ touchAction: "manipulation" }}
       >
         <NextAuthProvider>
           <RealtimeListener />
+          <Suspense fallback={null}>
+            <SessionMonitor />
+          </Suspense>
           {children}
         </NextAuthProvider>
         <Toaster position="top-right" />
