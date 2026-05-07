@@ -48,6 +48,15 @@ const nextConfig: NextConfig = {
 
   //  COMPILER OPTIMIZATIONS
 
+  transpilePackages: [
+    "better-auth",
+    "@better-auth/utils",
+    "@better-fetch/fetch",
+    "sonner",
+    "lucide-react",
+    "date-fns",
+  ],
+
   compiler: {
     removeConsole:
       process.env.NODE_ENV === "production"
