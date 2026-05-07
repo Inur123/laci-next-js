@@ -111,7 +111,7 @@ export default async function DashboardLayout({
         <main className="flex-1 flex flex-col overflow-hidden">
           <div className="flex items-center justify-between p-6 border-b flex-shrink-0">
             <div className="flex items-center gap-4">
-              <SidebarTrigger />
+              <SidebarTrigger className="md:hidden" />
               <DateDisplay themeClass={themeClass} />
             </div>
 

@@ -236,19 +236,19 @@
   transform: rotate(3deg);
 }
 
-body:has(.theme-cabang) #nprogress .bar {
+.theme-cabang #nprogress .bar {
   background: #3b82f6 !important;
 }
-body:has(.theme-cabang) #nprogress .peg {
+.theme-cabang #nprogress .peg {
   box-shadow:
     0 0 15px #3b82f6,
     0 0 8px #3b82f6 !important;
 }
 
-body:has(.theme-pac) #nprogress .bar {
+.theme-pac #nprogress .bar {
   background: #16a34a !important;
 }
-body:has(.theme-pac) #nprogress .peg {
+.theme-pac #nprogress .peg {
   box-shadow:
     0 0 15px #16a34a,
     0 0 8px #16a34a !important;
@@ -257,167 +257,164 @@ body:has(.theme-pac) #nprogress .peg {
 /* ==============================
    FullCalendar Custom Styles
    ============================== */
-.kegiatan-fullcalendar {
-  /* Remove outer border */
-  & .fc {
-    --fc-border-color: #e2e8f0;
-    --fc-today-bg-color: transparent;
-    --fc-neutral-bg-color: #f8fafc;
-    --fc-page-bg-color: transparent;
-    font-family: inherit;
+.kegiatan-fullcalendar .fc {
+  --fc-border-color: #e2e8f0;
+  --fc-today-bg-color: transparent;
+  --fc-neutral-bg-color: #f8fafc;
+  --fc-page-bg-color: transparent;
+  font-family: inherit;
+}
+
+/* Day header (Sen, Sel, Rab...) */
+.kegiatan-fullcalendar .fc .fc-col-header-cell {
+  border: none;
+  padding: 8px 0;
+  background: transparent;
+}
+
+.kegiatan-fullcalendar .fc .fc-col-header-cell-cushion {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  cursor: default;
+}
+
+/* Day cells */
+.kegiatan-fullcalendar .fc .fc-daygrid-day {
+  border: 1px solid #f1f5f9;
+  transition: background-color 0.15s ease;
+  min-height: 90px;
+}
+
+.kegiatan-fullcalendar .fc .fc-daygrid-day:hover {
+  background-color: #f8fafc;
+}
+
+/* Today highlight */
+.kegiatan-fullcalendar .fc .fc-daygrid-day.fc-day-today {
+  background-color: #f0fdf4 !important;
+}
+
+.kegiatan-fullcalendar .fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+  background-color: #16a34a;
+  color: white;
+  border-radius: 9999px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* Day numbers */
+.kegiatan-fullcalendar .fc .fc-daygrid-day-number {
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+  padding: 6px 8px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.kegiatan-fullcalendar .fc .fc-day-other .fc-daygrid-day-number {
+  color: #cbd5e1;
+}
+
+/* Events */
+.kegiatan-fullcalendar .fc .fc-daygrid-event {
+  border: none !important;
+  border-radius: 4px !important;
+  padding: 2px 6px !important;
+  margin: 1px 2px !important;
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+  font-weight: 500 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+  transition: opacity 0.15s ease, transform 0.15s ease !important;
+}
+
+.kegiatan-fullcalendar .fc .fc-daygrid-event:hover {
+  opacity: 0.85 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Event dot (for list view) */
+.kegiatan-fullcalendar .fc .fc-daygrid-event-dot {
+  display: none;
+}
+
+/* More link (+2 lagi) */
+.kegiatan-fullcalendar .fc .fc-daygrid-more-link {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+}
+
+.kegiatan-fullcalendar .fc .fc-daygrid-more-link:hover {
+  background-color: #f1f5f9;
+  color: #334155;
+}
+
+/* Popover (quando clica em +N lagi) */
+.kegiatan-fullcalendar .fc .fc-popover {
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.kegiatan-fullcalendar .fc .fc-popover-header {
+  background-color: #f8fafc;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.kegiatan-fullcalendar .fc .fc-popover-body {
+  padding: 8px;
+}
+
+/* Remove scrollbar border at table edges */
+.kegiatan-fullcalendar .fc .fc-scrollgrid {
+  border: none !important;
+}
+
+.kegiatan-fullcalendar .fc .fc-scrollgrid td:last-of-type {
+  border-right: none !important;
+}
+
+.kegiatan-fullcalendar .fc .fc-scrollgrid-section > td {
+  border: none !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .kegiatan-fullcalendar .fc .fc-daygrid-day {
+    min-height: 60px;
   }
 
-  /* Day header (Sen, Sel, Rab...) */
-  & .fc .fc-col-header-cell {
-    border: none;
-    padding: 8px 0;
-    background: transparent;
+  .kegiatan-fullcalendar .fc .fc-daygrid-day-number {
+    font-size: 12px;
+    padding: 4px 6px;
   }
 
-  & .fc .fc-col-header-cell-cushion {
-    font-size: 13px;
-    font-weight: 600;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    text-decoration: none;
-    cursor: default;
+  .kegiatan-fullcalendar .fc .fc-daygrid-event {
+    font-size: 10px !important;
+    padding: 1px 4px !important;
   }
 
-  /* Day cells */
-  & .fc .fc-daygrid-day {
-    border: 1px solid #f1f5f9;
-    transition: background-color 0.15s ease;
-    min-height: 90px;
-  }
-
-  & .fc .fc-daygrid-day:hover {
-    background-color: #f8fafc;
-  }
-
-  /* Today highlight */
-  & .fc .fc-daygrid-day.fc-day-today {
-    background-color: #f0fdf4 !important;
-  }
-
-  & .fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
-    background-color: #16a34a;
-    color: white;
-    border-radius: 9999px;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 13px;
-  }
-
-  /* Day numbers */
-  & .fc .fc-daygrid-day-number {
-    font-size: 13px;
-    font-weight: 500;
-    color: #334155;
-    padding: 6px 8px;
-    text-decoration: none;
-    cursor: pointer;
-  }
-
-  & .fc .fc-day-other .fc-daygrid-day-number {
-    color: #cbd5e1;
-  }
-
-  /* Events */
-  & .fc .fc-daygrid-event {
-    border: none !important;
-    border-radius: 4px !important;
-    padding: 2px 6px !important;
-    margin: 1px 2px !important;
-    font-size: 11px !important;
-    line-height: 1.4 !important;
-    font-weight: 500 !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06) !important;
-    transition: opacity 0.15s ease, transform 0.15s ease !important;
-  }
-
-  & .fc .fc-daygrid-event:hover {
-    opacity: 0.85 !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-  }
-
-  /* Event dot (for list view) */
-  & .fc .fc-daygrid-event-dot {
-    display: none;
-  }
-
-  /* More link (+2 lagi) */
-  & .fc .fc-daygrid-more-link {
+  .kegiatan-fullcalendar .fc .fc-col-header-cell-cushion {
     font-size: 11px;
-    font-weight: 600;
-    color: #64748b;
-    padding: 2px 4px;
-    border-radius: 4px;
-    transition: background-color 0.15s ease;
-  }
-
-  & .fc .fc-daygrid-more-link:hover {
-    background-color: #f1f5f9;
-    color: #334155;
-  }
-
-  /* Popover (quando clica em +N lagi) */
-  & .fc .fc-popover {
-    border-radius: 10px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
-  }
-
-  & .fc .fc-popover-header {
-    background-color: #f8fafc;
-    padding: 8px 12px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #334155;
-  }
-
-  & .fc .fc-popover-body {
-    padding: 8px;
-  }
-
-  /* Remove scrollbar border at table edges */
-  & .fc .fc-scrollgrid {
-    border: none !important;
-  }
-
-  & .fc .fc-scrollgrid td:last-of-type {
-    border-right: none !important;
-  }
-
-  & .fc .fc-scrollgrid-section > td {
-    border: none !important;
-  }
-
-  /* Responsive adjustments */
-  @media (max-width: 640px) {
-    & .fc .fc-daygrid-day {
-      min-height: 60px;
-    }
-
-    & .fc .fc-daygrid-day-number {
-      font-size: 12px;
-      padding: 4px 6px;
-    }
-
-    & .fc .fc-daygrid-event {
-      font-size: 10px !important;
-      padding: 1px 4px !important;
-    }
-
-    & .fc .fc-col-header-cell-cushion {
-      font-size: 11px;
-    }
   }
 }
 
