@@ -86,12 +86,12 @@ export function PresensiFullscreenPresentation({
             className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 ${
               userRole === "SEKRETARIS_CABANG"
                 ? "bg-blue-50 border-blue-200 text-blue-700"
-                : "bg-green-50 border-green-200 text-green-700"
+                : "bg-green-50 border-green-200 text-green-600"
             }`}
           >
             <Clock
               className={`w-4 h-4 ${
-                userRole === "SEKRETARIS_CABANG" ? "text-blue-600" : "text-green-700"
+                userRole === "SEKRETARIS_CABANG" ? "text-blue-600" : "text-green-600"
               }`}
             />
             <span className="font-mono font-black text-xl tracking-tighter">
@@ -194,7 +194,7 @@ export function PresensiFullscreenPresentation({
               <div className="flex items-baseline gap-1 leading-none">
                 <span
                   className={`text-3xl font-black ${
-                    userRole === "SEKRETARIS_CABANG" ? "text-blue-700" : "text-green-700"
+                    userRole === "SEKRETARIS_CABANG" ? "text-blue-700" : "text-green-600"
                   }`}
                 >
                   {dataPresensi.length}
@@ -203,11 +203,11 @@ export function PresensiFullscreenPresentation({
               </div>
             </div>
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-              userRole === "SEKRETARIS_CABANG" ? "bg-blue-600/10" : "bg-green-700/10"
+              userRole === "SEKRETARIS_CABANG" ? "bg-blue-600/10" : "bg-green-600/10"
             }`}>
               <Users
                 className={`w-5 h-5 ${
-                  userRole === "SEKRETARIS_CABANG" ? "text-blue-600" : "text-green-700"
+                  userRole === "SEKRETARIS_CABANG" ? "text-blue-600" : "text-green-600"
                 }`}
               />
             </div>
@@ -219,7 +219,7 @@ export function PresensiFullscreenPresentation({
           <div className="px-6 py-4 border-b border-slate-200 bg-white flex items-center justify-between sticky top-0 z-20 shadow-sm">
             <div className="flex items-center gap-3">
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                userRole === "SEKRETARIS_CABANG" ? "bg-blue-600 text-white" : "bg-green-700 text-white"
+                userRole === "SEKRETARIS_CABANG" ? "bg-blue-600 text-white" : "bg-green-600 text-white"
               }`}>
                 <Users className="w-5 h-5" />
               </div>
@@ -266,7 +266,7 @@ export function PresensiFullscreenPresentation({
                     }`}
                   >
                     {/* Nomor urut */}
-                    <div className={`text-slate-400 text-[10px] font-black w-6 text-center shrink-0 font-mono ${index === 0 ? (userRole === "SEKRETARIS_CABANG" ? "text-blue-500" : "text-green-700") : ""}`}>
+                    <div className={`text-slate-400 text-[10px] font-black w-6 text-center shrink-0 font-mono ${index === 0 ? (userRole === "SEKRETARIS_CABANG" ? "text-blue-500" : "text-green-600") : ""}`}>
                       {String(dataPresensi.length - index).padStart(2, '0')}
                     </div>
                     
@@ -291,7 +291,7 @@ export function PresensiFullscreenPresentation({
                         </p>
                         {index === 0 && (
                           <div className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest animate-pulse ${
-                            userRole === "SEKRETARIS_CABANG" ? "bg-blue-600 text-white" : "bg-green-700 text-white"
+                            userRole === "SEKRETARIS_CABANG" ? "bg-blue-600 text-white" : "bg-green-600 text-white"
                           }`}>
                             Baru
                           </div>
@@ -315,7 +315,7 @@ export function PresensiFullscreenPresentation({
                     </div>
 
                     {/* Waktu */}
-                    <div className={`flex flex-col items-end shrink-0 ${index === 0 ? (userRole === "SEKRETARIS_CABANG" ? "text-blue-700" : "text-green-700") : "text-slate-400"}`}>
+                    <div className={`flex flex-col items-end shrink-0 ${index === 0 ? (userRole === "SEKRETARIS_CABANG" ? "text-blue-700" : "text-green-600") : "text-slate-400"}`}>
                       <span className="text-[9px] font-bold uppercase tracking-widest mb-1 opacity-60">Pukul</span>
                       <span className="text-xl font-black font-mono leading-none">
                         {format(new Date(item.createdAt), "HH:mm:ss", {

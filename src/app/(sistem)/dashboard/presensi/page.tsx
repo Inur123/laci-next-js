@@ -66,7 +66,7 @@ async function PresensiPageContent({
             asChild
             className={cn(
               "w-full sm:w-auto text-white shadow-md hover:shadow-xl transition-all duration-200",
-              isCabang ? "bg-blue-600 hover:bg-blue-700" : "bg-green-700 hover:bg-green-800",
+              isCabang ? "bg-blue-600 hover:bg-blue-700" : "bg-green-600 hover:bg-green-700",
             )}
           >
             <Link href="/dashboard/presensi/add">
@@ -86,7 +86,7 @@ async function PresensiPageContent({
             asChild
             className={cn(
               "mt-4 text-white shadow-md hover:shadow-xl transition-all duration-200",
-              isCabang ? "bg-blue-600 hover:bg-blue-700" : "bg-green-700 hover:bg-green-800",
+              isCabang ? "bg-blue-600 hover:bg-blue-700" : "bg-green-600 hover:bg-green-700",
             )}
           >
             <Link href="/dashboard/periode">Kelola Periode</Link>

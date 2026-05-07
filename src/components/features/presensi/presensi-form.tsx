@@ -195,7 +195,7 @@ export function PresensiForm({ presensi, userRole = "SEKRETARIS_PAC" }: Presensi
               )}>
                 <p className={cn(
                   "text-xs leading-relaxed",
-                  userRole === "SEKRETARIS_CABANG" ? "text-blue-700" : "text-green-700"
+                  userRole === "SEKRETARIS_CABANG" ? "text-blue-700" : "text-green-600"
                 )}>
                   <strong>Informasi:</strong> Sesi presensi hanya dapat diakses
                   pada tanggal yang ditentukan. Pastikan data sudah benar
@@ -223,7 +223,7 @@ export function PresensiForm({ presensi, userRole = "SEKRETARIS_PAC" }: Presensi
                 "flex-1 text-white shadow-md hover:shadow-xl transition-all duration-200",
                 userRole === "SEKRETARIS_CABANG" 
                   ? "bg-blue-600 hover:bg-blue-700" 
-                  : "bg-green-700 hover:bg-green-800"
+                  : "bg-green-600 hover:bg-green-700"
               )}
             >
               {isSubmitting ? (
@@ -234,7 +234,7 @@ export function PresensiForm({ presensi, userRole = "SEKRETARIS_PAC" }: Presensi
               ) : (
                 <>
                   {isEdit ? (
-                    <Save className="w-4 h-4 mr-2" />
+                    <Upload className="w-4 h-4 mr-2" />
                   ) : (
                     <Upload className="w-4 h-4 mr-2" />
                   )}

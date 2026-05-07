@@ -26,7 +26,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -426,7 +425,7 @@ export function PresensiList({
                           "transition-colors font-semibold text-slate-900 block max-w-[220px] truncate",
                           userRole === "SEKRETARIS_CABANG"
                             ? "hover:text-blue-600"
-                            : "hover:text-green-700",
+                            : "hover:text-green-600",
                         )}
                       >
                         {capitalizeName(item.namaKegiatan)}
@@ -514,7 +513,7 @@ export function PresensiList({
                               "cursor-pointer",
                               userRole === "SEKRETARIS_CABANG"
                                 ? "text-blue-600 focus:text-blue-600"
-                                : "text-green-700 focus:text-green-700",
+                                : "text-green-600 focus:text-green-600",
                             )}
                           >
                             <Link
@@ -536,10 +535,6 @@ export function PresensiList({
                               Edit
                             </Link>
                           </DropdownMenuItem>
-
-                          <DropdownMenuSeparator />
-
-                          <DropdownMenuSeparator />
 
                           {/* Hapus */}
                           <DropdownMenuItem

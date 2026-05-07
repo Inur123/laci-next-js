@@ -318,7 +318,7 @@ export function PresensiDetail({
 
   // Warna sesuai role – biru untuk Cabang, hijau untuk PAC (sama seperti arsip surat)
   const iconColor =
-    userRole === "SEKRETARIS_CABANG" ? "text-blue-600" : "text-green-700";
+    userRole === "SEKRETARIS_CABANG" ? "text-blue-600" : "text-green-600";
   const excelHeaderColor =
     userRole === "SEKRETARIS_CABANG" ? "2563eb" : "15803d";
 
@@ -466,7 +466,7 @@ export function PresensiDetail({
 
                 <div className="flex items-start gap-3">
                   <div
-                    className={`p-2 rounded-lg ${userRole === "SEKRETARIS_CABANG" ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-700"}`}
+                    className={`p-2 rounded-lg ${userRole === "SEKRETARIS_CABANG" ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-600"}`}
                   >
                     <MapPin size={20} />
                   </div>
@@ -482,7 +482,7 @@ export function PresensiDetail({
 
                 <div className="flex items-start gap-3">
                   <div
-                    className={`p-2 rounded-lg ${userRole === "SEKRETARIS_CABANG" ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-700"}`}
+                    className={`p-2 rounded-lg ${userRole === "SEKRETARIS_CABANG" ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-600"}`}
                   >
                     <CalendarDays size={20} />
                   </div>
@@ -504,7 +504,7 @@ export function PresensiDetail({
 
                 <div className="flex items-start gap-3">
                   <div
-                    className={`p-2 rounded-lg ${userRole === "SEKRETARIS_CABANG" ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-700"}`}
+                    className={`p-2 rounded-lg ${userRole === "SEKRETARIS_CABANG" ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-600"}`}
                   >
                     <Clock size={20} />
                   </div>
@@ -528,7 +528,7 @@ export function PresensiDetail({
             <CardHeader className="text-center pb-2">
               <CardTitle className="text-lg font-bold flex items-center justify-center gap-2">
                 <QrCode
-                  className={`w-5 h-5 ${userRole === "SEKRETARIS_CABANG" ? "text-blue-600" : "text-green-700"}`}
+                  className={`w-5 h-5 ${userRole === "SEKRETARIS_CABANG" ? "text-blue-600" : "text-green-600"}`}
                 />
                 QR Presensi
               </CardTitle>
@@ -571,7 +571,7 @@ export function PresensiDetail({
                   className={`w-full ${
                     userRole === "SEKRETARIS_CABANG"
                       ? "bg-blue-600 hover:bg-blue-700"
-                      : "bg-green-700 hover:bg-green-800"
+                      : "bg-green-600 hover:bg-green-700"
                   } text-white`}
                   onClick={openFullscreen}
                 >
@@ -583,7 +583,7 @@ export function PresensiDetail({
                   className={`w-full ${
                     userRole === "SEKRETARIS_CABANG"
                       ? "border-blue-200 text-blue-700 hover:bg-blue-50"
-                      : "border-green-200 text-green-700 hover:bg-green-50"
+                      : "border-green-200 text-green-600 hover:bg-green-50"
                   }`}
                   onClick={downloadQr}
                 >
@@ -611,7 +611,7 @@ export function PresensiDetail({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Users
-                  className={`w-5 h-5 ${userRole === "SEKRETARIS_CABANG" ? "text-blue-600" : "text-green-700"}`}
+                  className={`w-5 h-5 ${userRole === "SEKRETARIS_CABANG" ? "text-blue-600" : "text-green-600"}`}
                 />
                 <CardTitle className="text-base font-bold whitespace-nowrap">
                   Daftar Kehadiran

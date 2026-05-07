@@ -633,7 +633,7 @@ function RadioBtn({
       </div>
       <span
         className={`text-sm font-medium transition-colors ${
-          checked ? "text-green-700" : "text-slate-500"
+          checked ? "text-green-600" : "text-slate-500"
         }`}
       >
         {label}
