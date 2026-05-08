@@ -229,11 +229,11 @@ export function PresensiDetail({
 
       if (!isMutation && !isLog) return;
 
-      if (realtimeTimerRef.current) return;
+      if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
       realtimeTimerRef.current = setTimeout(() => {
         realtimeTimerRef.current = null;
         fetchData();
-      }, 300);
+      }, 500);
     };
     window.addEventListener("laci-realtime", handler as EventListener);
     return () => {

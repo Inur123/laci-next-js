@@ -124,6 +124,13 @@ export async function createPresensi(formData: FormData) {
       presensi.id,
     );
 
+    notifyRealtime({
+      type: "log",
+      module: "PRESENSI",
+      action: "CREATE",
+      entityId: presensi.id,
+    }).catch(() => {});
+
     revalidatePath("/dashboard", "layout");
     revalidatePath("/dashboard/presensi", "page");
     return { success: "Kegiatan presensi berhasil dibuat!", data: presensi };
@@ -184,6 +191,13 @@ export async function updatePresensi(id: string, formData: FormData) {
       `Memperbarui kegiatan presensi: ${namaKegiatan}`,
       id,
     );
+
+    notifyRealtime({
+      type: "log",
+      module: "PRESENSI",
+      action: "UPDATE",
+      entityId: id,
+    }).catch(() => {});
 
     revalidatePath("/dashboard", "layout");
     revalidatePath("/dashboard/presensi", "page");
@@ -337,6 +351,13 @@ export async function deletePresensi(id: string) {
       id,
     );
 
+    notifyRealtime({
+      type: "log",
+      module: "PRESENSI",
+      action: "DELETE",
+      entityId: id,
+    }).catch(() => {});
+
     revalidatePath("/dashboard", "layout");
     revalidatePath("/dashboard/presensi", "page");
     return { success: "Kegiatan presensi berhasil dihapus!" };
@@ -378,6 +399,14 @@ export async function updatePresensiStatus(
       `Mengubah status presensi ${label}: ${updated.namaKegiatan}`,
       id,
     );
+
+    // Kirim notifikasi realtime agar semua tab yang membuka presensi ini ikut terupdate
+    notifyRealtime({
+      type: "log",
+      module: "PRESENSI",
+      action: "UPDATE",
+      entityId: id,
+    }).catch(() => {});
 
     revalidatePath("/dashboard", "layout");
     revalidatePath("/dashboard/presensi", "page");
