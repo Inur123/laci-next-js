@@ -12,6 +12,10 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
+    // Hilangkan warning "Unused eslint-disable directive"
+    linterOptions: {
+      reportUnusedDisableDirectives: "off",
+    },
     rules: {
       // Matikan aturan-aturan yang menghalangi Build di VPS
       "@typescript-eslint/no-explicit-any": "off",
