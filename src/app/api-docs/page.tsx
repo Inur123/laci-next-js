@@ -16,7 +16,6 @@ export default function ApiDocsPage() {
   return (
     <div className="bg-white min-h-screen">
       <div className="container mx-auto pb-20">
-        {/* @ts-ignore - Supress potential prop type mismatch with dynamic loading */}
         <SwaggerUI url="/api/docs" />
       </div>
     </div>
