@@ -1,4 +1,3 @@
-import "@/lib/polyfills";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Outfit } from "next/font/google";
 import "./globals.css";
@@ -116,15 +115,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="id"
-      className="light"
-      data-darkreader-mode="disabled"
-      style={{ colorScheme: "only light", forcedColorAdjust: "none" } as any}
-    >
+    <html lang="id" className="light">
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} antialiased`}
-        style={{ touchAction: "manipulation" }}
       >
         <NextAuthProvider>
           <RealtimeListener />

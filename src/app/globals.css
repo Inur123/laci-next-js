@@ -56,7 +56,7 @@
 }
 
 :root {
-  color-scheme: only light !important;
+  color-scheme: light;
   --radius: 0.75rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -99,27 +99,14 @@
   --brand-green-900: #064e3b;
 }
 
-/* Force Light Mode on all elements */
-* {
-  color-scheme: only light !important;
-}
 
-/* Force reCAPTCHA badge to stay in Light Mode (prevent Samsung dark inversion) */
-.grecaptcha-badge,
-.grecaptcha-badge iframe {
-  color-scheme: only light !important;
-  forced-color-adjust: none !important;
-  filter: none !important;
-  -webkit-filter: none !important;
-  mix-blend-mode: normal !important;
-}
 
 @layer base {
   html,
   body {
     background-color: white !important;
     color: black !important;
-    color-scheme: only light !important;
+    color-scheme: light;
   }
   * {
     @apply border-border outline-ring/50;
