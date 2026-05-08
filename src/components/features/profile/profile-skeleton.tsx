@@ -1,12 +1,11 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 
 export function ProfileSkeleton() {
   return (
     <div className="flex flex-col gap-4 sm:gap-6 animate-pulse">
-
       {/* Header Skeleton */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">

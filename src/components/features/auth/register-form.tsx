@@ -12,7 +12,11 @@ import { verifyRecaptchaAction } from "@/app/actions/recaptcha-actions";
 
 import { AlertTriangle, ServerCrash, Clock } from "lucide-react";
 
-export default function RegisterForm({ isCabangReady = true }: { isCabangReady?: boolean }) {
+export default function RegisterForm({
+  isCabangReady = true,
+}: {
+  isCabangReady?: boolean;
+}) {
   const { executeRecaptcha } = useGoogleReCaptcha();
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
@@ -92,14 +96,19 @@ export default function RegisterForm({ isCabangReady = true }: { isCabangReady?:
 
         if (signUpError) {
           let errorMessage = "Gagal mendaftar. Silakan coba lagi.";
-          if (signUpError.code === "USER_ALREADY_EXISTS" || signUpError.message?.includes("User already exists")) {
-            errorMessage = "Email sudah terdaftar. Gunakan email lain atau silakan Masuk.";
+          if (
+            signUpError.code === "USER_ALREADY_EXISTS" ||
+            signUpError.message?.includes("User already exists")
+          ) {
+            errorMessage =
+              "Email sudah terdaftar. Gunakan email lain atau silakan Masuk.";
           } else if (signUpError.code === "INVALID_PASSWORD") {
             errorMessage = "Password tidak memenuhi syarat keamanan.";
           } else if (signUpError.code === "INVALID_EMAIL") {
             errorMessage = "Format email tidak valid.";
           } else {
-            errorMessage = signUpError.message || "Terjadi kesalahan saat pendaftaran.";
+            errorMessage =
+              signUpError.message || "Terjadi kesalahan saat pendaftaran.";
           }
           toast.error(errorMessage);
           setIsLoading(false);
@@ -108,12 +117,14 @@ export default function RegisterForm({ isCabangReady = true }: { isCabangReady?:
 
         // 2. Kirim OTP segera setelah pendaftaran berhasil
         // Kita tidak memakai 'await' agar user langsung pindah ke halaman verifikasi tanpa menunggu proses kirim email SMTP yang lama
-        authClient.emailOtp.sendVerificationOtp({
-          email,
-          type: "email-verification",
-        }).catch(err => {
-          console.error("Background OTP error:", err);
-        });
+        authClient.emailOtp
+          .sendVerificationOtp({
+            email,
+            type: "email-verification",
+          })
+          .catch((err) => {
+            console.error("Background OTP error:", err);
+          });
 
         toast.success(
           "Akun berhasil dibuat! Kode OTP telah dikirim ke email Anda.",
@@ -202,8 +213,8 @@ export default function RegisterForm({ isCabangReady = true }: { isCabangReady?:
               Buat Akun Baru
             </h2>
             <p className="text-xs sm:text-sm text-slate-600">
-              {isCabangReady 
-                ? "Daftar untuk mulai menggunakan Laci Digital" 
+              {isCabangReady
+                ? "Daftar untuk mulai menggunakan Laci Digital"
                 : "Pendaftaran Akun PAC Sementara Ditangguhkan"}
             </p>
           </div>
@@ -218,13 +229,16 @@ export default function RegisterForm({ isCabangReady = true }: { isCabangReady?:
                   <h3 className="font-bold">Sistem Belum Siap</h3>
                 </div>
                 <p className="text-sm text-amber-800 leading-relaxed">
-                  Pendaftaran akun PAC baru memerlukan **Verifikasi & Periode Aktif** dari Sekretaris Cabang. 
-                  Saat ini, Admin Cabang belum mengatur periode kepengurusan yang aktif.
+                  Pendaftaran akun PAC baru memerlukan **Verifikasi & Periode
+                  Aktif** dari Sekretaris Cabang. Saat ini, Admin Cabang belum
+                  mengatur periode kepengurusan yang aktif.
                 </p>
                 <div className="pt-2 border-t border-amber-100">
                   <div className="flex items-center gap-2 text-xs text-amber-600 font-medium">
                     <Clock size={14} />
-                    <span>Silakan hubungi Sekretaris Cabang untuk aktivasi sistem.</span>
+                    <span>
+                      Silakan hubungi Sekretaris Cabang untuk aktivasi sistem.
+                    </span>
                   </div>
                 </div>
               </div>
@@ -233,206 +247,213 @@ export default function RegisterForm({ isCabangReady = true }: { isCabangReady?:
                 <div className="flex items-center gap-3 p-4 rounded-lg bg-slate-50 border border-slate-100">
                   <ServerCrash className="text-slate-400" size={20} />
                   <div className="text-xs text-slate-500">
-                    <span className="font-bold block text-slate-700 mb-0.5">Hanya 1 Admin Utama</span>
-                    Sistem ini dipusatkan pada satu akun Sekretaris Cabang sebagai otoritas tertinggi.
+                    <span className="font-bold block text-slate-700 mb-0.5">
+                      Hanya 1 Admin Utama
+                    </span>
+                    Sistem ini dipusatkan pada satu akun Sekretaris Cabang
+                    sebagai otoritas tertinggi.
                   </div>
                 </div>
-                
+
                 <Link
                   href="/login"
                   className="w-full flex justify-center items-center py-3 px-4 rounded-lg text-white bg-green-700 hover:bg-green-800 transition-all shadow-lg font-bold"
                 >
                   Masuk ke Akun Admin
                 </Link>
-                
+
                 <p className="text-center text-xs text-slate-400">
-                  Jika Anda adalah Admin Cabang, silakan masuk dan aktifkan periode di Dashboard.
+                  Jika Anda adalah Admin Cabang, silakan masuk dan aktifkan
+                  periode di Dashboard.
                 </p>
               </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-slate-700">
-                Nama Pimpinan
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <User size={18} className="text-slate-400" />
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700">
+                  Nama Pimpinan
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <User size={18} className="text-slate-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="block w-full pl-11 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-600 outline-none transition-all"
+                    placeholder="Nama Pimpinan"
+                    required
+                    disabled={isLoading}
+                  />
                 </div>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="block w-full pl-11 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-600 outline-none transition-all"
-                  placeholder="Nama Pimpinan"
-                  required
-                  disabled={isLoading}
-                />
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-slate-700">
-                Alamat Email
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <Mail size={18} className="text-slate-400" />
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700">
+                  Alamat Email
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <Mail size={18} className="text-slate-400" />
+                  </div>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="block w-full pl-11 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-600 outline-none transition-all"
+                    placeholder="anda@email.com"
+                    required
+                    disabled={isLoading}
+                  />
                 </div>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-11 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-600 outline-none transition-all"
-                  placeholder="anda@email.com"
-                  required
-                  disabled={isLoading}
-                />
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-slate-700">
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <Lock size={18} className="text-slate-400" />
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700">
+                  Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <Lock size={18} className="text-slate-400" />
+                  </div>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="block w-full pl-11 pr-12 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-600 outline-none transition-all"
+                    placeholder="Minimal 6 karakter"
+                    required
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-11 pr-12 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-600 outline-none transition-all"
-                  placeholder="Minimal 6 karakter"
-                  required
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
               </div>
-            </div>
 
-            {/* Password Strength Indicator */}
-            {password && (
-              <div className="space-y-1.5 -mt-2">
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((level) => (
-                    <div
-                      key={level}
-                      className="h-1.5 flex-1 rounded-full transition-all duration-300"
-                      style={{
-                        backgroundColor:
-                          level <= strength.score ? strength.color : "#e2e8f0",
-                      }}
-                    />
-                  ))}
+              {/* Password Strength Indicator */}
+              {password && (
+                <div className="space-y-1.5 -mt-2">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((level) => (
+                      <div
+                        key={level}
+                        className="h-1.5 flex-1 rounded-full transition-all duration-300"
+                        style={{
+                          backgroundColor:
+                            level <= strength.score
+                              ? strength.color
+                              : "#e2e8f0",
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <p
+                    className="text-xs font-medium"
+                    style={{ color: strength.color }}
+                  >
+                    Kekuatan password: {strength.label}
+                  </p>
                 </div>
-                <p
-                  className="text-xs font-medium"
-                  style={{ color: strength.color }}
-                >
-                  Kekuatan password: {strength.label}
-                </p>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-slate-700">
-                Konfirmasi Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <Lock size={18} className="text-slate-400" />
-                </div>
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="block w-full pl-11 pr-12 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-600 outline-none transition-all"
-                  placeholder="Ulangi password"
-                  required
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff size={18} />
-                  ) : (
-                    <Eye size={18} />
-                  )}
-                </button>
-              </div>
-              {/* Match indicator */}
-              {confirmPassword && (
-                <p
-                  className="text-xs font-medium"
-                  style={{
-                    color: confirmPassword === password ? "#16a34a" : "#ef4444",
-                  }}
-                >
-                  {confirmPassword === password
-                    ? "✓ Password cocok"
-                    : "✗ Password tidak cocok"}
-                </p>
               )}
-            </div>
 
-            {/* Checkbox Persetujuan Ketentuan & Kebijakan Privasi */}
-            <div className="flex items-start gap-2">
-              <input
-                id="agreeToTerms"
-                type="checkbox"
-                checked={agreeToTerms}
-                onChange={(e) => setAgreeToTerms(e.target.checked)}
-                disabled={isLoading}
-                className="mt-0.5 h-4 w-4 shrink-0 accent-green-700 cursor-pointer"
-              />
-              <label
-                htmlFor="agreeToTerms"
-                className="text-xs text-slate-600 leading-relaxed cursor-pointer select-none"
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700">
+                  Konfirmasi Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <Lock size={18} className="text-slate-400" />
+                  </div>
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="block w-full pl-11 pr-12 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-600 outline-none transition-all"
+                    placeholder="Ulangi password"
+                    required
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                </div>
+                {/* Match indicator */}
+                {confirmPassword && (
+                  <p
+                    className="text-xs font-medium"
+                    style={{
+                      color:
+                        confirmPassword === password ? "#16a34a" : "#ef4444",
+                    }}
+                  >
+                    {confirmPassword === password
+                      ? "✓ Password cocok"
+                      : "✗ Password tidak cocok"}
+                  </p>
+                )}
+              </div>
+
+              {/* Checkbox Persetujuan Ketentuan & Kebijakan Privasi */}
+              <div className="flex items-start gap-2">
+                <input
+                  id="agreeToTerms"
+                  type="checkbox"
+                  checked={agreeToTerms}
+                  onChange={(e) => setAgreeToTerms(e.target.checked)}
+                  disabled={isLoading}
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-green-700 cursor-pointer"
+                />
+                <label
+                  htmlFor="agreeToTerms"
+                  className="text-xs text-slate-600 leading-relaxed cursor-pointer select-none"
+                >
+                  Saya telah membaca dan menyetujui{" "}
+                  <Link
+                    href="/ketentuan-penggunaan"
+                    target="_blank"
+                    className="font-semibold text-green-700 hover:underline"
+                  >
+                    Ketentuan Penggunaan
+                  </Link>{" "}
+                  dan{" "}
+                  <Link
+                    href="/kebijakan-privasi"
+                    target="_blank"
+                    className="font-semibold text-green-700 hover:underline"
+                  >
+                    Kebijakan Privasi
+                  </Link>{" "}
+                  Laci Digital.
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading || !agreeToTerms}
+                className="w-full flex justify-center items-center py-3 px-4 rounded-lg text-white bg-green-700 hover:bg-green-800 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-bold"
               >
-                Saya telah membaca dan menyetujui{" "}
-                <Link
-                  href="/ketentuan-penggunaan"
-                  target="_blank"
-                  className="font-semibold text-green-700 hover:underline"
-                >
-                  Ketentuan Penggunaan
-                </Link>{" "}
-                dan{" "}
-                <Link
-                  href="/kebijakan-privasi"
-                  target="_blank"
-                  className="font-semibold text-green-700 hover:underline"
-                >
-                  Kebijakan Privasi
-                </Link>{" "}
-                Laci Digital.
-              </label>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading || !agreeToTerms}
-              className="w-full flex justify-center items-center py-3 px-4 rounded-lg text-white bg-green-700 hover:bg-green-800 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-bold"
-            >
-              {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                "Daftar Sekarang"
-              )}
-            </button>
-          </form>
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  "Daftar Sekarang"
+                )}
+              </button>
+            </form>
           )}
           <div className="text-center text-sm text-slate-600 mt-4">
             Sudah punya akun?{" "}

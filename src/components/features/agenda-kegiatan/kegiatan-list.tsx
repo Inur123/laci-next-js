@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -33,7 +33,6 @@ import {
   CheckCircle,
   PlayCircle,
   type LucideIcon,
-  ChevronDown,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -145,16 +144,26 @@ export function KegiatanList({
 
   const SortIcon = ({ col }: { col: SortKey }) => {
     if (sortKey !== col)
-      return <ArrowUpDown className="ml-1.5 h-3.5 w-3.5 text-slate-400 inline-block" />;
-    return sortDir === "asc"
-      ? <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
-      : <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />;
+      return (
+        <ArrowUpDown className="ml-1.5 h-3.5 w-3.5 text-slate-400 inline-block" />
+      );
+    return sortDir === "asc" ? (
+      <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+    ) : (
+      <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+    );
   };
 
   const sortedData = [...data].sort((a, b) => {
     if (!sortKey) return 0;
-    const aVal = sortKey === "tanggalMulai" ? new Date(a.tanggalMulai).getTime() : a.judul.toLowerCase();
-    const bVal = sortKey === "tanggalMulai" ? new Date(b.tanggalMulai).getTime() : b.judul.toLowerCase();
+    const aVal =
+      sortKey === "tanggalMulai"
+        ? new Date(a.tanggalMulai).getTime()
+        : a.judul.toLowerCase();
+    const bVal =
+      sortKey === "tanggalMulai"
+        ? new Date(b.tanggalMulai).getTime()
+        : b.judul.toLowerCase();
     if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
     if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
     return 0;
@@ -258,7 +267,12 @@ export function KegiatanList({
     let allData = data;
     if (totalItems > data.length) {
       try {
-        const result = await getAgendaKegiatanList(searchTerm, 1, 9999, statusFilter);
+        const result = await getAgendaKegiatanList(
+          searchTerm,
+          1,
+          9999,
+          statusFilter,
+        );
         allData = result.data as KegiatanItem[];
       } catch {
         toast.error("Gagal mengambil semua data untuk export");
@@ -467,8 +481,9 @@ export function KegiatanList({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedData.filter((item) => !optimisticHiddenIds.includes(item.id))
-                  .length === 0 ? (
+                {sortedData.filter(
+                  (item) => !optimisticHiddenIds.includes(item.id),
+                ).length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={6}
@@ -558,7 +573,9 @@ export function KegiatanList({
                                 className="text-slate-400 shrink-0"
                               />
                               <span className="text-sm truncate text-slate-700">
-                                {item.lokasi ? capitalizeName(item.lokasi) : "-"}
+                                {item.lokasi
+                                  ? capitalizeName(item.lokasi)
+                                  : "-"}
                               </span>
                             </div>
                           </TableCell>

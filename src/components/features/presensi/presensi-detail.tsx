@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -32,8 +32,6 @@ import {
   RefreshCcw,
   FileSpreadsheet,
   Maximize2,
-  Minimize2,
-  X,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -820,14 +818,20 @@ export function PresensiDetail({
                                         : "bg-slate-100/80 text-slate-700 border-slate-200",
                                   )}
                                 >
-                                  {item.organisasi === "UMUM" ? "Eksternal" : item.organisasi}
+                                  {item.organisasi === "UMUM"
+                                    ? "Eksternal"
+                                    : item.organisasi}
                                 </Badge>
                               </TableCell>
                               <TableCell className="whitespace-nowrap">
                                 {item.tingkat || "-"}
                               </TableCell>
                               <TableCell className="text-slate-600 text-sm">
-                                {capitalizeName(item.organisasi === "UMUM" ? item.instansi : item.jabatan)}
+                                {capitalizeName(
+                                  item.organisasi === "UMUM"
+                                    ? item.instansi
+                                    : item.jabatan,
+                                )}
                               </TableCell>
                               <TableCell className="text-center text-xs text-muted-foreground whitespace-nowrap">
                                 {format(new Date(item.createdAt), "HH:mm:ss", {

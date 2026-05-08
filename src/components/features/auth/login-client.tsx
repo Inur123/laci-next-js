@@ -25,7 +25,9 @@ export default function LoginClient() {
       toast.error("Akun Anda belum diaktifkan oleh Sekretaris Cabang.");
       hasToasted.current = true;
     } else if (error === "unregistered") {
-      toast.error("Email Anda belum terdaftar. Silakan register terlebih dahulu.");
+      toast.error(
+        "Email Anda belum terdaftar. Silakan register terlebih dahulu.",
+      );
       hasToasted.current = true;
     } else if (error === "auth_error") {
       toast.error("Terjadi kesalahan saat autentikasi.");

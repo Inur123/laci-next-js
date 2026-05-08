@@ -29,7 +29,6 @@ import {
   copyAnggotaToCurrentPeriode,
 } from "@/app/actions/anggota-actions";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export function CopyMemberDialog({ userRole }: { userRole: string }) {

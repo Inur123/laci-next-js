@@ -93,7 +93,9 @@ export function ArsipSuratForm({ arsipSurat, userRole }: ArsipSuratFormProps) {
   // Fetch token for PDF preview/open
   useEffect(() => {
     if (arsipSurat?.id && isPdf(arsipSurat.file)) {
-      getArsipDownloadToken(arsipSurat.id).then(setDownloadToken).catch(console.error);
+      getArsipDownloadToken(arsipSurat.id)
+        .then(setDownloadToken)
+        .catch(console.error);
     }
   }, [arsipSurat?.id, arsipSurat?.file]);
 
@@ -577,7 +579,8 @@ export function ArsipSuratForm({ arsipSurat, userRole }: ArsipSuratFormProps) {
                                   Pratinjau PDF di Mobile
                                 </p>
                                 <p className="text-[10px] text-slate-500 mb-4 max-w-[200px]">
-                                  Untuk kenyamanan terbaik, silakan buka PDF di layar penuh
+                                  Untuk kenyamanan terbaik, silakan buka PDF di
+                                  layar penuh
                                 </p>
                                 <Button
                                   asChild

@@ -42,12 +42,7 @@ export async function createPeriode(nama: string) {
     }
 
     // Log activity
-    createLog(
-      "CREATE",
-      "PERIODE",
-      `Membuat periode baru: ${nama}`,
-      periode.id,
-    );
+    createLog("CREATE", "PERIODE", `Membuat periode baru: ${nama}`, periode.id);
 
     return { success: "Periode berhasil dibuat!", data: periode };
   } catch (error) {

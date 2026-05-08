@@ -2,11 +2,10 @@
 
 import { useState, useRef, useEffect, Suspense } from "react";
 import Image from "next/image";
-import { Loader2, Mail, ArrowLeft } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import {
   checkEmailVerificationStatus,
   sendVerifiedSuccessEmailAction,

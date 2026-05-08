@@ -241,7 +241,7 @@ export function ArsipFormSkeleton() {
               <Skeleton className="h-10 w-full rounded-md" />
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Skeleton className="h-4 w-28" />
             <Skeleton className="h-20 w-full rounded-md" />

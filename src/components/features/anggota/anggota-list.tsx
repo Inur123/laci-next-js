@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,14 +40,8 @@ import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, capitalizeName } from "@/lib/utils";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Check, ChevronsUpDown, FileSpreadsheet } from "lucide-react";
+import { FileSpreadsheet } from "lucide-react";
 import XLSX from "xlsx-js-style";
-import { CopyMemberDialog } from "./copy-member-dialog";
 
 type AnggotaItem = {
   id: string;
@@ -111,11 +105,18 @@ export function AnggotaList({
     setTotalPages(initialTotalPages);
     setCurrentPage(initialCurrentPage);
     setTotalItems(initialTotalItems);
-  }, [initialAnggotaList, initialTotalPages, initialCurrentPage, initialTotalItems]);
+  }, [
+    initialAnggotaList,
+    initialTotalPages,
+    initialCurrentPage,
+    initialTotalItems,
+  ]);
 
   // Filter state
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUser, setSelectedUser] = useState(searchParams.get("userId") || "ALL");
+  const [selectedUser, setSelectedUser] = useState(
+    searchParams.get("userId") || "ALL",
+  );
 
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [optimisticHiddenIds, setOptimisticHiddenIds] = useState<string[]>([]);
@@ -234,7 +235,7 @@ export function AnggotaList({
     setSearchTerm("");
     setSelectedUser("ALL");
     setCurrentPage(1);
-    
+
     // Reset URL
     const params = new URLSearchParams(searchParams.toString());
     params.delete("userId");
@@ -326,10 +327,18 @@ export function AnggotaList({
         Email: item.email || "-",
         Jabatan: item.jabatan || "-",
         Pekerjaan: item.pekerjaan || "-",
-        "SD/MI": item.pendidikans?.find(p => p.jenjang === "SD/MI")?.namaSekolah || "-",
-        "SMP/MTs": item.pendidikans?.find(p => p.jenjang === "SMP/MTs")?.namaSekolah || "-",
-        "SMA/MA": item.pendidikans?.find(p => p.jenjang === "SMA/MA")?.namaSekolah || "-",
-        "KULIAH": item.pendidikans?.find(p => p.jenjang === "KULIAH")?.namaSekolah || "-",
+        "SD/MI":
+          item.pendidikans?.find((p) => p.jenjang === "SD/MI")?.namaSekolah ||
+          "-",
+        "SMP/MTs":
+          item.pendidikans?.find((p) => p.jenjang === "SMP/MTs")?.namaSekolah ||
+          "-",
+        "SMA/MA":
+          item.pendidikans?.find((p) => p.jenjang === "SMA/MA")?.namaSekolah ||
+          "-",
+        KULIAH:
+          item.pendidikans?.find((p) => p.jenjang === "KULIAH")?.namaSekolah ||
+          "-",
         Makesta:
           item.perkaderans
             ?.filter((p) => p.namaPerkaderan.toUpperCase() === "MAKESTA")

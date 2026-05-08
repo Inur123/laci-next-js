@@ -275,7 +275,9 @@ export function DashboardPersonal({
                 key={index}
                 className="group"
                 onClick={() =>
-                  toast.warning("Verifikasi email Anda untuk mengakses fitur ini.")
+                  toast.warning(
+                    "Verifikasi email Anda untuk mengakses fitur ini.",
+                  )
                 }
               >
                 {cardContent}

@@ -413,7 +413,11 @@ export async function bulkImportBerkasPimpinan(
         data: dataToInsert,
       });
       success = dataToInsert.length;
-      createLog("CREATE", "BERKAS_PIMPINAN", `Import Excel: ${success} berkas pimpinan berhasil diimport`);
+      createLog(
+        "CREATE",
+        "BERKAS_PIMPINAN",
+        `Import Excel: ${success} berkas pimpinan berhasil diimport`,
+      );
       revalidatePath("/dashboard/berkas-pimpinan", "page");
     } catch (err) {
       console.error("Bulk insert error Berkas Pimpinan:", err);
@@ -425,7 +429,7 @@ export async function bulkImportBerkasPimpinan(
 }
 
 function parseFlexibleDate(raw: string): Date | null {
-  let s = raw.trim().replace(/^[a-zA-Z]+,\s*/, ""); 
+  let s = raw.trim().replace(/^[a-zA-Z]+,\s*/, "");
 
   if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s);
 
@@ -435,10 +439,20 @@ function parseFlexibleDate(raw: string): Date | null {
   }
 
   const BULAN: Record<string, string> = {
-    januari: "01", februari: "02", maret: "03", april: "04", mei: "05", juni: "06",
-    juli: "07", agustus: "08", september: "09", oktober: "10", november: "11", desember: "12",
+    januari: "01",
+    februari: "02",
+    maret: "03",
+    april: "04",
+    mei: "05",
+    juni: "06",
+    juli: "07",
+    agustus: "08",
+    september: "09",
+    oktober: "10",
+    november: "11",
+    desember: "12",
   };
-  
+
   const parts = s.toLowerCase().split(/\s+/);
   if (parts.length === 3) {
     const day = parts[0].padStart(2, "0");

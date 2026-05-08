@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import type { EventClickArg, DatesSetArg } from "@fullcalendar/core";
 import { MapPin, Clock, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 const capitalizeName = (name: string) => {
   if (!name) return "";
@@ -238,10 +237,7 @@ export function KegiatanCalendar({ kegiatanList }: KegiatanCalendarProps) {
 
               <div className="space-y-2.5">
                 <div className="flex items-start gap-2.5 text-sm">
-                  <Clock
-                    size={15}
-                    className="text-slate-400 mt-0.5 shrink-0"
-                  />
+                  <Clock size={15} className="text-slate-400 mt-0.5 shrink-0" />
                   <div className="text-slate-700">
                     <div className="font-medium">
                       {new Date(selectedEvent.tanggalMulai).toLocaleDateString(
@@ -251,21 +247,23 @@ export function KegiatanCalendar({ kegiatanList }: KegiatanCalendarProps) {
                           day: "numeric",
                           month: "long",
                           year: "numeric",
-                        }
+                        },
                       )}
                     </div>
                     <div className="text-slate-500 text-xs mt-0.5">
                       {new Date(selectedEvent.tanggalMulai).toLocaleTimeString(
                         "id-ID",
-                        { hour: "2-digit", minute: "2-digit" }
+                        { hour: "2-digit", minute: "2-digit" },
                       )}
                       {selectedEvent.tanggalSelesai && (
                         <>
                           {" — "}
-                          {new Date(selectedEvent.tanggalMulai).toDateString() !==
+                          {new Date(
+                            selectedEvent.tanggalMulai,
+                          ).toDateString() !==
                           new Date(selectedEvent.tanggalSelesai).toDateString()
                             ? new Date(
-                                selectedEvent.tanggalSelesai
+                                selectedEvent.tanggalSelesai,
                               ).toLocaleDateString("id-ID", {
                                 day: "numeric",
                                 month: "short",
@@ -273,7 +271,7 @@ export function KegiatanCalendar({ kegiatanList }: KegiatanCalendarProps) {
                               }) + ", "
                             : ""}
                           {new Date(
-                            selectedEvent.tanggalSelesai
+                            selectedEvent.tanggalSelesai,
                           ).toLocaleTimeString("id-ID", {
                             hour: "2-digit",
                             minute: "2-digit",

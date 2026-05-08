@@ -31,11 +31,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
   Eye,
   Pencil,
   Trash2,
@@ -45,8 +40,6 @@ import {
   XCircle,
   Clock,
   RefreshCcw,
-  Check,
-  ChevronsUpDown,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -170,7 +163,12 @@ export function PengajuanBerkasList({
     setTotalPages(initialTotalPages);
     setCurrentPage(initialCurrentPage);
     setTotalItems(initialTotalItems);
-  }, [initialPengajuanList, initialTotalPages, initialCurrentPage, initialTotalItems]);
+  }, [
+    initialPengajuanList,
+    initialTotalPages,
+    initialCurrentPage,
+    initialTotalItems,
+  ]);
 
   // CONFETTI EFFECT
   useEffect(() => {
@@ -178,23 +176,32 @@ export function PengajuanBerkasList({
       import("canvas-confetti").then((confetti) => {
         // Sekali tembak meriam dari tengah bawah (Corong Kecil ke Atas Besar)
         confetti.default({
-          particleCount: 300, 
+          particleCount: 300,
           angle: 90,
-          spread: 100, 
+          spread: 100,
           origin: { x: 0.5, y: 1 },
-          startVelocity: 80, 
-          gravity: 0.4, 
-          ticks: 500, 
+          startVelocity: 80,
+          gravity: 0.4,
+          ticks: 500,
           scalar: 0.8, // Ukuran diperkecil agar lebih halus (agak kecil)
           zIndex: 9999,
-          colors: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#ec4899', '#8b5cf6'] 
+          colors: [
+            "#22c55e",
+            "#3b82f6",
+            "#f59e0b",
+            "#ef4444",
+            "#ec4899",
+            "#8b5cf6",
+          ],
         });
       });
 
       // Hapus parameter confetti dari URL
       const params = new URLSearchParams(searchParams.toString());
       params.delete("confetti");
-      const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+      const newUrl = params.toString()
+        ? `?${params.toString()}`
+        : window.location.pathname;
       window.history.replaceState({}, "", newUrl);
     }
   }, [searchParams]);
@@ -203,7 +210,9 @@ export function PengajuanBerkasList({
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [penerimaFilter, setPenerimaFilter] = useState("ALL");
-  const [pacFilter, setPacFilter] = useState(searchParams.get("userId") || "ALL");
+  const [pacFilter, setPacFilter] = useState(
+    searchParams.get("userId") || "ALL",
+  );
 
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [optimisticHiddenIds, setOptimisticHiddenIds] = useState<string[]>([]);
@@ -370,7 +379,6 @@ export function PengajuanBerkasList({
 
     setCurrentPage(1);
   };
-
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -748,11 +756,17 @@ export function PengajuanBerkasList({
                         <TableCell className="text-center text-muted-foreground font-medium">
                           {(currentPage - 1) * 10 + index + 1}
                         </TableCell>
-                        <TableCell className="font-medium whitespace-nowrap text-[13px] truncate max-w-[140px]" title={item.noSurat}>
+                        <TableCell
+                          className="font-medium whitespace-nowrap text-[13px] truncate max-w-[140px]"
+                          title={item.noSurat}
+                        >
                           {item.noSurat}
                         </TableCell>
                         {isCabangView && (
-                          <TableCell className="font-medium whitespace-nowrap text-[13px] truncate max-w-[130px]" title={item.user?.name || ""}>
+                          <TableCell
+                            className="font-medium whitespace-nowrap text-[13px] truncate max-w-[130px]"
+                            title={item.user?.name || ""}
+                          >
                             {item.user?.name
                               ? capitalizeName(item.user.name)
                               : "-"}
@@ -959,4 +973,3 @@ export function PengajuanBerkasList({
     </div>
   );
 }
-

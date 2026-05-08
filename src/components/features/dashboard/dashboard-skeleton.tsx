@@ -2,8 +2,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export function DashboardSkeleton() {
-  const barHeights = [30, 55, 40, 70];
-
   return (
     <div className="space-y-6">
       {/* Header Skeleton */}

@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { PublicLayout } from "@/components/features/home/home-client";
 
 const sections = [

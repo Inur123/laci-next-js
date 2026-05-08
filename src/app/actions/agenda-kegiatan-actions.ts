@@ -3,7 +3,7 @@
 import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 import { encryptText, decryptText } from "@/lib/encryption";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { createLog } from "@/lib/log-activity";
 
@@ -210,8 +210,8 @@ export async function createKegiatan(formData: FormData) {
       },
     });
 
-    revalidatePath("/dashboard", "layout"); 
-    revalidatePath("/dashboard/agenda-kegiatan", "page"); 
+    revalidatePath("/dashboard", "layout");
+    revalidatePath("/dashboard/agenda-kegiatan", "page");
 
     // Log activity
     createLog(
@@ -259,8 +259,8 @@ export async function updateKegiatan(id: string, formData: FormData) {
       },
     });
 
-    revalidatePath("/dashboard", "layout"); 
-    revalidatePath("/dashboard/agenda-kegiatan", "page"); 
+    revalidatePath("/dashboard", "layout");
+    revalidatePath("/dashboard/agenda-kegiatan", "page");
 
     // Log activity
     createLog("UPDATE", "AGENDA_KEGIATAN", `Mengupdate kegiatan: ${judul}`, id);
@@ -287,8 +287,8 @@ export async function deleteKegiatan(id: string) {
       },
     });
 
-    revalidatePath("/dashboard", "layout"); 
-    revalidatePath("/dashboard/agenda-kegiatan", "page"); 
+    revalidatePath("/dashboard", "layout");
+    revalidatePath("/dashboard/agenda-kegiatan", "page");
 
     // Log activity
     createLog("DELETE", "AGENDA_KEGIATAN", `Menghapus kegiatan ID: ${id}`, id);
@@ -352,4 +352,3 @@ export async function getAgendaKegiatanStats() {
 
   return { total, mendatang, selesai };
 }
-

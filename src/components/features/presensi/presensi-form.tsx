@@ -5,16 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Upload,
-  Save,
-  X,
-  Building,
-  MapPin,
-  Calendar,
-  Clock,
-  AlertCircle,
-} from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { createPresensi, updatePresensi } from "@/app/actions/presensi-actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -35,7 +26,10 @@ interface PresensiFormProps {
   userRole?: string;
 }
 
-export function PresensiForm({ presensi, userRole = "SEKRETARIS_PAC" }: PresensiFormProps) {
+export function PresensiForm({
+  presensi,
+  userRole = "SEKRETARIS_PAC",
+}: PresensiFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -113,7 +107,11 @@ export function PresensiForm({ presensi, userRole = "SEKRETARIS_PAC" }: Presensi
                   id="namaKegiatan"
                   name="namaKegiatan"
                   placeholder="Contoh: Rapat Pleno I"
-                  defaultValue={presensi?.namaKegiatan ? capitalizeName(presensi.namaKegiatan) : ""}
+                  defaultValue={
+                    presensi?.namaKegiatan
+                      ? capitalizeName(presensi.namaKegiatan)
+                      : ""
+                  }
                   required
                 />
               </div>
@@ -127,7 +125,9 @@ export function PresensiForm({ presensi, userRole = "SEKRETARIS_PAC" }: Presensi
                   name="penyelenggara"
                   placeholder="Contoh: PC IPNU IPPNU Magetan"
                   defaultValue={
-                    presensi?.penyelenggara ? capitalizeName(presensi.penyelenggara) : "PC IPNU IPPNU Magetan"
+                    presensi?.penyelenggara
+                      ? capitalizeName(presensi.penyelenggara)
+                      : "PC IPNU IPPNU Magetan"
                   }
                   required
                 />
@@ -141,7 +141,9 @@ export function PresensiForm({ presensi, userRole = "SEKRETARIS_PAC" }: Presensi
                   id="tempat"
                   name="tempat"
                   placeholder="Contoh: Aula PCNU Magetan"
-                  defaultValue={presensi?.tempat ? capitalizeName(presensi.tempat) : ""}
+                  defaultValue={
+                    presensi?.tempat ? capitalizeName(presensi.tempat) : ""
+                  }
                   required
                 />
               </div>
@@ -187,16 +189,22 @@ export function PresensiForm({ presensi, userRole = "SEKRETARIS_PAC" }: Presensi
                 </div>
               </div>
 
-              <div className={cn(
-                "p-4 rounded-lg border mt-2",
-                userRole === "SEKRETARIS_CABANG" 
-                  ? "bg-blue-50/50 border-blue-100" 
-                  : "bg-green-50/50 border-green-100"
-              )}>
-                <p className={cn(
-                  "text-xs leading-relaxed",
-                  userRole === "SEKRETARIS_CABANG" ? "text-blue-700" : "text-green-600"
-                )}>
+              <div
+                className={cn(
+                  "p-4 rounded-lg border mt-2",
+                  userRole === "SEKRETARIS_CABANG"
+                    ? "bg-blue-50/50 border-blue-100"
+                    : "bg-green-50/50 border-green-100",
+                )}
+              >
+                <p
+                  className={cn(
+                    "text-xs leading-relaxed",
+                    userRole === "SEKRETARIS_CABANG"
+                      ? "text-blue-700"
+                      : "text-green-600",
+                  )}
+                >
                   <strong>Informasi:</strong> Sesi presensi hanya dapat diakses
                   pada tanggal yang ditentukan. Pastikan data sudah benar
                   sebelum menyimpan.
@@ -221,9 +229,9 @@ export function PresensiForm({ presensi, userRole = "SEKRETARIS_PAC" }: Presensi
               disabled={isSubmitting}
               className={cn(
                 "flex-1 text-white shadow-md hover:shadow-xl transition-all duration-200",
-                userRole === "SEKRETARIS_CABANG" 
-                  ? "bg-blue-600 hover:bg-blue-700" 
-                  : "bg-green-600 hover:bg-green-700"
+                userRole === "SEKRETARIS_CABANG"
+                  ? "bg-blue-600 hover:bg-blue-700"
+                  : "bg-green-600 hover:bg-green-700",
               )}
             >
               {isSubmitting ? (

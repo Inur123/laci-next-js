@@ -33,7 +33,6 @@ import {
   Plus,
   Trash2,
   GraduationCap,
-  Calendar,
   School,
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
@@ -635,8 +634,6 @@ export function AnggotaForm({ anggota, userRole }: AnggotaFormProps) {
                   />
                 </div>
               </div>
-
-
 
               <div className="space-y-2">
                 <Label htmlFor="pekerjaan" className="font-semibold">

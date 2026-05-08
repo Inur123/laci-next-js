@@ -196,7 +196,10 @@ export function AnggotaDetailSkeleton() {
             </div>
             <div className="space-y-3">
               {[...Array(2)].map((_, i) => (
-                <div key={i} className="p-3 border rounded-lg bg-slate-50/50 space-y-3">
+                <div
+                  key={i}
+                  className="p-3 border rounded-lg bg-slate-50/50 space-y-3"
+                >
                   <Skeleton className="h-3 w-16" />
                   <Skeleton className="h-4 w-full" />
                   <div className="grid grid-cols-2 gap-2">
@@ -212,13 +215,19 @@ export function AnggotaDetailSkeleton() {
         {/* Right Column Skeleton */}
         <div className="space-y-8">
           {[...Array(2)].map((_, i) => (
-            <div key={i} className="border rounded-2xl bg-white shadow-sm overflow-hidden">
+            <div
+              key={i}
+              className="border rounded-2xl bg-white shadow-sm overflow-hidden"
+            >
               <div className="bg-slate-50 p-4 border-b">
                 <Skeleton className="h-5 w-48" />
               </div>
               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[...Array(4)].map((_, j) => (
-                  <div key={j} className="p-4 border rounded-xl bg-slate-50/30 space-y-3">
+                  <div
+                    key={j}
+                    className="p-4 border rounded-xl bg-slate-50/30 space-y-3"
+                  >
                     <Skeleton className="h-3 w-20" />
                     <Skeleton className="h-5 w-full" />
                   </div>

@@ -401,8 +401,6 @@ export default function AnggotaDetailClient({
             </CardContent>
           </Card>
         </div>
-
-
       </div>
 
       <ConfirmModal

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   toggleUserStatus,
   deleteUser,
@@ -30,7 +30,6 @@ import {
   Users,
   GraduationCap,
   School,
-  LogOut,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
@@ -422,8 +421,12 @@ export default function UserDetailClient({
                       <GraduationCap size={12} className="shrink-0" /> Makesta
                     </span>
                     <div className="text-sm font-bold text-slate-700 flex items-center gap-1">
-                      <NumberTicker value={currentUser.perkaderanCounts?.Makesta || 0} />
-                      <span className="text-[10px] font-medium opacity-70">Anggota</span>
+                      <NumberTicker
+                        value={currentUser.perkaderanCounts?.Makesta || 0}
+                      />
+                      <span className="text-[10px] font-medium opacity-70">
+                        Anggota
+                      </span>
                     </div>
                   </div>
                   {/* Lakmud */}
@@ -432,8 +435,12 @@ export default function UserDetailClient({
                       <GraduationCap size={12} className="shrink-0" /> Lakmud
                     </span>
                     <div className="text-sm font-bold text-slate-700 flex items-center gap-1">
-                      <NumberTicker value={currentUser.perkaderanCounts?.Lakmud || 0} />
-                      <span className="text-[10px] font-medium opacity-70">Anggota</span>
+                      <NumberTicker
+                        value={currentUser.perkaderanCounts?.Lakmud || 0}
+                      />
+                      <span className="text-[10px] font-medium opacity-70">
+                        Anggota
+                      </span>
                     </div>
                   </div>
                   {/* Latin */}
@@ -442,8 +449,12 @@ export default function UserDetailClient({
                       <GraduationCap size={12} className="shrink-0" /> Latin
                     </span>
                     <div className="text-sm font-bold text-slate-700 flex items-center gap-1">
-                      <NumberTicker value={currentUser.perkaderanCounts?.Latin || 0} />
-                      <span className="text-[10px] font-medium opacity-70">Anggota</span>
+                      <NumberTicker
+                        value={currentUser.perkaderanCounts?.Latin || 0}
+                      />
+                      <span className="text-[10px] font-medium opacity-70">
+                        Anggota
+                      </span>
                     </div>
                   </div>
                   {/* Latpel */}
@@ -452,8 +463,12 @@ export default function UserDetailClient({
                       <GraduationCap size={12} className="shrink-0" /> Latpel
                     </span>
                     <div className="text-sm font-bold text-slate-700 flex items-center gap-1">
-                      <NumberTicker value={currentUser.perkaderanCounts?.Latpel || 0} />
-                      <span className="text-[10px] font-medium opacity-70">Anggota</span>
+                      <NumberTicker
+                        value={currentUser.perkaderanCounts?.Latpel || 0}
+                      />
+                      <span className="text-[10px] font-medium opacity-70">
+                        Anggota
+                      </span>
                     </div>
                   </div>
                   {/* Lakut */}
@@ -462,8 +477,12 @@ export default function UserDetailClient({
                       <GraduationCap size={12} className="shrink-0" /> Lakut
                     </span>
                     <div className="text-sm font-bold text-slate-700 flex items-center gap-1">
-                      <NumberTicker value={currentUser.perkaderanCounts?.Lakut || 0} />
-                      <span className="text-[10px] font-medium opacity-70">Anggota</span>
+                      <NumberTicker
+                        value={currentUser.perkaderanCounts?.Lakut || 0}
+                      />
+                      <span className="text-[10px] font-medium opacity-70">
+                        Anggota
+                      </span>
                     </div>
                   </div>
                   {/* Diklatama */}
@@ -472,8 +491,12 @@ export default function UserDetailClient({
                       <GraduationCap size={12} className="shrink-0" /> Diklatama
                     </span>
                     <div className="text-sm font-bold text-slate-700 flex items-center gap-1">
-                      <NumberTicker value={currentUser.perkaderanCounts?.Diklatama || 0} />
-                      <span className="text-[10px] font-medium opacity-70">Anggota</span>
+                      <NumberTicker
+                        value={currentUser.perkaderanCounts?.Diklatama || 0}
+                      />
+                      <span className="text-[10px] font-medium opacity-70">
+                        Anggota
+                      </span>
                     </div>
                   </div>
                   {/* Diklatmad */}
@@ -482,8 +505,12 @@ export default function UserDetailClient({
                       <GraduationCap size={12} className="shrink-0" /> Diklatmad
                     </span>
                     <div className="text-sm font-bold text-slate-700 flex items-center gap-1">
-                      <NumberTicker value={currentUser.perkaderanCounts?.Diklatmad || 0} />
-                      <span className="text-[10px] font-medium opacity-70">Anggota</span>
+                      <NumberTicker
+                        value={currentUser.perkaderanCounts?.Diklatmad || 0}
+                      />
+                      <span className="text-[10px] font-medium opacity-70">
+                        Anggota
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -492,31 +519,84 @@ export default function UserDetailClient({
               {/* Statistik Pendidikan Section */}
               <div className="space-y-4 pt-6 border-t">
                 <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-900">
-                   <School size={18} className="text-primary" />
-                   Statistik Pendidikan
+                  <School size={18} className="text-primary" />
+                  Statistik Pendidikan
                 </h3>
                 <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 text-left">
                   {[
-                    { id: "SD/MI", bg: "bg-slate-50/80", border: "border-slate-200", text: "text-slate-600" },
-                    { id: "SMP/MTs", bg: "bg-orange-50/80", border: "border-orange-200", text: "text-orange-600" },
-                    { id: "SMA/MA/SMK", bg: "bg-amber-50/80", border: "border-amber-200", text: "text-amber-600" },
-                    { id: "D1", bg: "bg-yellow-50/80", border: "border-yellow-200", text: "text-yellow-600" },
-                    { id: "D2", bg: "bg-lime-50/80", border: "border-lime-200", text: "text-lime-600" },
-                    { id: "D3", bg: "bg-emerald-50/80", border: "border-emerald-200", text: "text-emerald-600" },
-                    { id: "D4/S1", bg: "bg-blue-50/80", border: "border-blue-200", text: "text-blue-600" },
-                    { id: "S2", bg: "bg-indigo-50/80", border: "border-indigo-200", text: "text-indigo-600" },
-                    { id: "S3", bg: "bg-purple-50/80", border: "border-purple-200", text: "text-purple-600" },
+                    {
+                      id: "SD/MI",
+                      bg: "bg-slate-50/80",
+                      border: "border-slate-200",
+                      text: "text-slate-600",
+                    },
+                    {
+                      id: "SMP/MTs",
+                      bg: "bg-orange-50/80",
+                      border: "border-orange-200",
+                      text: "text-orange-600",
+                    },
+                    {
+                      id: "SMA/MA/SMK",
+                      bg: "bg-amber-50/80",
+                      border: "border-amber-200",
+                      text: "text-amber-600",
+                    },
+                    {
+                      id: "D1",
+                      bg: "bg-yellow-50/80",
+                      border: "border-yellow-200",
+                      text: "text-yellow-600",
+                    },
+                    {
+                      id: "D2",
+                      bg: "bg-lime-50/80",
+                      border: "border-lime-200",
+                      text: "text-lime-600",
+                    },
+                    {
+                      id: "D3",
+                      bg: "bg-emerald-50/80",
+                      border: "border-emerald-200",
+                      text: "text-emerald-600",
+                    },
+                    {
+                      id: "D4/S1",
+                      bg: "bg-blue-50/80",
+                      border: "border-blue-200",
+                      text: "text-blue-600",
+                    },
+                    {
+                      id: "S2",
+                      bg: "bg-indigo-50/80",
+                      border: "border-indigo-200",
+                      text: "text-indigo-600",
+                    },
+                    {
+                      id: "S3",
+                      bg: "bg-purple-50/80",
+                      border: "border-purple-200",
+                      text: "text-purple-600",
+                    },
                   ].map((item) => (
                     <div
                       key={item.id}
                       className={`space-y-1.5 p-4 ${item.bg} rounded-lg border ${item.border} flex flex-col justify-between`}
                     >
-                      <span className={`text-[10px] font-bold ${item.text} uppercase tracking-widest flex items-center gap-1.5`}>
+                      <span
+                        className={`text-[10px] font-bold ${item.text} uppercase tracking-widest flex items-center gap-1.5`}
+                      >
                         <School size={12} className="shrink-0" />
                         <span className="truncate">{item.id}</span>
                       </span>
                       <div className="text-sm font-bold text-slate-700">
-                        <NumberTicker value={currentUser.pendidikanCounts?.[item.id as keyof typeof currentUser.pendidikanCounts] || 0} />
+                        <NumberTicker
+                          value={
+                            currentUser.pendidikanCounts?.[
+                              item.id as keyof typeof currentUser.pendidikanCounts
+                            ] || 0
+                          }
+                        />
                       </div>
                     </div>
                   ))}

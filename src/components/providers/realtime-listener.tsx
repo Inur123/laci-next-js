@@ -26,7 +26,9 @@ export function RealtimeListener() {
 
       // Tutup koneksi lama jika ada
       if (sourceRef.current) {
-        try { sourceRef.current.close(); } catch {}
+        try {
+          sourceRef.current.close();
+        } catch {}
         sourceRef.current = null;
       }
 

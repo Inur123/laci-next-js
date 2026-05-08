@@ -79,7 +79,7 @@ export default function DashboardClient({
       // Cleanup: Hapus cookie dan bersihkan URL agar tidak muncul lagi saat refresh
       document.cookie =
         "login_success=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-        
+
       const url = new URL(window.location.href);
       url.searchParams.delete("login");
       window.history.replaceState(null, "", url.pathname + url.search);
@@ -194,7 +194,11 @@ export default function DashboardClient({
       <div className="mt-0">
         {activeTab === "personal" ? (
           <div>
-            <DashboardPersonal stats={data.personal} role={data.role} emailVerified={data.emailVerified} />
+            <DashboardPersonal
+              stats={data.personal}
+              role={data.role}
+              emailVerified={data.emailVerified}
+            />
           </div>
         ) : (
           <div>

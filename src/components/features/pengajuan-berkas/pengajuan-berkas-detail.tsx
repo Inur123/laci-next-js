@@ -25,11 +25,11 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ConfirmModal } from "@/components/shared/confirm-modal";
 import { Spinner } from "@/components/ui/spinner";
-import { getDisplayFilename, isPdf, isImage } from "@/lib/encryption";
+import { isPdf, isImage } from "@/lib/encryption";
 import { getPengajuanDownloadToken } from "@/app/actions/pengajuan-berkas-actions";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Smartphone } from "lucide-react";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
 type PengajuanDetail = {
   id: string;
@@ -125,7 +125,9 @@ export function PengajuanBerkasDetail({
   // Fetch token for PDF preview/open
   useEffect(() => {
     if (pengajuan.id && showPdfPreview) {
-      getPengajuanDownloadToken(pengajuan.id).then(setDownloadToken).catch(console.error);
+      getPengajuanDownloadToken(pengajuan.id)
+        .then(setDownloadToken)
+        .catch(console.error);
     }
   }, [pengajuan.id, showPdfPreview]);
 
@@ -182,8 +184,6 @@ export function PengajuanBerkasDetail({
       router.refresh();
     }
   };
-
-
 
   return (
     <div className="space-y-6">
@@ -269,7 +269,9 @@ export function PengajuanBerkasDetail({
 
             <div className="space-y-2 pt-4 border-t">
               <Label className="text-muted-foreground">Keperluan</Label>
-              <p className="font-medium">{capitalizeName(pengajuan.keperluan)}</p>
+              <p className="font-medium">
+                {capitalizeName(pengajuan.keperluan)}
+              </p>
             </div>
 
             {pengajuan.deskripsi && (
@@ -501,7 +503,9 @@ export function PengajuanBerkasDetail({
                   </a>
                 </Button>
                 <Button asChild className="flex-1 md:flex-none">
-                  <a href={`/api/pengajuan-berkas/download/${pengajuan.id}${downloadToken ? `?token=${downloadToken}` : ""}`}>
+                  <a
+                    href={`/api/pengajuan-berkas/download/${pengajuan.id}${downloadToken ? `?token=${downloadToken}` : ""}`}
+                  >
                     <Download className="w-4 h-4 mr-2" />
                     Download
                   </a>
@@ -535,7 +539,7 @@ export function PengajuanBerkasDetail({
 
                 <div className="w-full bg-slate-50 border rounded-lg overflow-hidden relative">
                   {showPdfPreview && (
-                     <div className="w-full min-h-[200px] md:h-[750px] bg-white relative">
+                    <div className="w-full min-h-[200px] md:h-[750px] bg-white relative">
                       {isMobile ? (
                         <div className="flex flex-col items-center justify-center p-12 text-center bg-slate-50/50 h-full">
                           <div className="p-4 bg-white rounded-full shadow-sm mb-4">
@@ -545,10 +549,11 @@ export function PengajuanBerkasDetail({
                             Pratinjau PDF di Mobile
                           </h3>
                           <p className="text-xs text-slate-500 mb-6 max-w-[240px] leading-relaxed">
-                            Browser mobile tidak dapat menampilkan PDF secara langsung. Klik tombol di bawah untuk membuka file.
+                            Browser mobile tidak dapat menampilkan PDF secara
+                            langsung. Klik tombol di bawah untuk membuka file.
                           </p>
-                          <Button 
-                            asChild 
+                          <Button
+                            asChild
                             className="shadow-md hover:shadow-lg transition-all"
                           >
                             <a

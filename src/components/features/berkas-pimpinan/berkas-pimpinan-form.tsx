@@ -84,7 +84,9 @@ export function BerkasPimpinanForm({
   // Fetch token for PDF preview/open
   useEffect(() => {
     if (berkas?.id && isPdf(berkas.file)) {
-      getBerkasPimpinanDownloadToken(berkas.id).then(setDownloadToken).catch(console.error);
+      getBerkasPimpinanDownloadToken(berkas.id)
+        .then(setDownloadToken)
+        .catch(console.error);
     }
   }, [berkas?.id, berkas?.file]);
 
@@ -374,12 +376,12 @@ export function BerkasPimpinanForm({
                               }`}
                               title="Buka file"
                             >
-                               <a
-                                 href={`/api/berkas-pimpinan/download/${berkas.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
-                                 target="_blank"
-                               >
-                                 <Eye className="w-4 h-4" />
-                               </a>
+                              <a
+                                href={`/api/berkas-pimpinan/download/${berkas.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
+                                target="_blank"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </a>
                             </Button>
                           )}
                           <Button
@@ -465,11 +467,12 @@ export function BerkasPimpinanForm({
                           Pratinjau PDF di Mobile
                         </p>
                         <p className="text-[10px] text-slate-500 mb-4 max-w-[200px]">
-                          Untuk kenyamanan terbaik, silakan buka PDF di layar penuh
+                          Untuk kenyamanan terbaik, silakan buka PDF di layar
+                          penuh
                         </p>
-                        <Button 
-                          asChild 
-                          size="sm" 
+                        <Button
+                          asChild
+                          size="sm"
                           className="h-8 px-4 text-[10px] shadow-sm"
                         >
                           <a

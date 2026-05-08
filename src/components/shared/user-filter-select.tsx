@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { cn, capitalizeName } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -34,27 +34,35 @@ export function UserFilterSelect({
   const [search, setSearch] = useState("");
 
   const filteredUsers = users.filter((u) =>
-    u.name.toLowerCase().includes(search.toLowerCase())
+    u.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   const selectedUser = users.find((user) => user.id === selectedUserId);
 
   return (
-    <Popover open={open} onOpenChange={(val) => {
-      setOpen(val);
-      if (!val) setSearch("");
-    }}>
+    <Popover
+      open={open}
+      onOpenChange={(val) => {
+        setOpen(val);
+        if (!val) setSearch("");
+      }}
+    >
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("w-full h-9 justify-between font-normal text-sm bg-white", className)}
+          className={cn(
+            "w-full h-9 justify-between font-normal text-sm bg-white",
+            className,
+          )}
         >
           <span className="truncate text-left">
-            {selectedUserId === "ALL" 
-              ? allLabel 
-              : (selectedUser ? capitalizeName(selectedUser.name) : placeholder)}
+            {selectedUserId === "ALL"
+              ? allLabel
+              : selectedUser
+                ? capitalizeName(selectedUser.name)
+                : placeholder}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -76,7 +84,8 @@ export function UserFilterSelect({
               <div
                 className={cn(
                   "flex items-center px-2 py-1.5 text-[13px] rounded-sm cursor-pointer hover:bg-slate-100 transition-colors",
-                  selectedUserId === "ALL" && "bg-slate-100 font-medium text-primary"
+                  selectedUserId === "ALL" &&
+                    "bg-slate-100 font-medium text-primary",
                 )}
                 onClick={() => {
                   onSelectUser("ALL");
@@ -86,7 +95,7 @@ export function UserFilterSelect({
                 <Check
                   className={cn(
                     "mr-2 h-3.5 w-3.5",
-                    selectedUserId === "ALL" ? "opacity-100" : "opacity-0"
+                    selectedUserId === "ALL" ? "opacity-100" : "opacity-0",
                   )}
                 />
                 {allLabel}
@@ -102,7 +111,8 @@ export function UserFilterSelect({
                   key={user.id}
                   className={cn(
                     "flex items-center px-2 py-1.5 text-[13px] rounded-sm cursor-pointer hover:bg-slate-100 transition-colors",
-                    selectedUserId === user.id && "bg-slate-100 font-medium text-primary"
+                    selectedUserId === user.id &&
+                      "bg-slate-100 font-medium text-primary",
                   )}
                   onClick={() => {
                     onSelectUser(user.id);
@@ -113,7 +123,7 @@ export function UserFilterSelect({
                   <Check
                     className={cn(
                       "mr-2 h-3.5 w-3.5",
-                      selectedUserId === user.id ? "opacity-100" : "opacity-0"
+                      selectedUserId === user.id ? "opacity-100" : "opacity-0",
                     )}
                   />
                   <span className="truncate">{capitalizeName(user.name)}</span>

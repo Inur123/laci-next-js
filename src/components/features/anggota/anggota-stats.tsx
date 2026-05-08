@@ -3,7 +3,13 @@
 import { Card } from "@/components/ui/card";
 import { useEffect, useRef, useState } from "react";
 import { getAnggotaStats } from "@/app/actions/anggota-actions";
-import { Users, Shield, ShieldAlert, ShieldCheck, ShieldPlus } from "lucide-react";
+import {
+  Users,
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
+  ShieldPlus,
+} from "lucide-react";
 import { NumberTicker } from "@/components/ui/number-ticker";
 
 type AnggotaStatsProps = {
@@ -20,7 +26,10 @@ type AnggotaStatsProps = {
   userId?: string;
 };
 
-export function AnggotaStats({ stats: initialStats, userId }: AnggotaStatsProps) {
+export function AnggotaStats({
+  stats: initialStats,
+  userId,
+}: AnggotaStatsProps) {
   const [stats, setStats] = useState(initialStats);
   const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -231,7 +240,6 @@ export function AnggotaStats({ stats: initialStats, userId }: AnggotaStatsProps)
           />
         </div>
       </Card>
-
     </div>
   );
 }

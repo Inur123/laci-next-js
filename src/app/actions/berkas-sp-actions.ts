@@ -12,7 +12,6 @@ import {
   generateDownloadToken as createToken,
 } from "@/lib/encryption";
 
-
 import { BerkasSP, Organisasi, Prisma } from "@prisma/client";
 import { createLog } from "@/lib/log-activity";
 import { uploadToR2, deleteFromR2, downloadFromR2 } from "@/lib/storage-r2";
@@ -295,12 +294,7 @@ export async function createBerkasSP(formData: FormData) {
     revalidatePath("/dashboard/berkas-sp", "page");
 
     // Log activity
-    createLog(
-      "CREATE",
-      "BERKAS_SP",
-      `Membuat berkas SP: ${nama}`,
-      berkas.id,
-    );
+    createLog("CREATE", "BERKAS_SP", `Membuat berkas SP: ${nama}`, berkas.id);
 
     return { success: "Berkas SP berhasil dibuat!", data: berkas };
   } catch (error) {
@@ -488,7 +482,11 @@ export async function bulkImportBerkasSP(
     const rowLabel = `Baris ${i + 2}`;
 
     try {
-      if (!row.nama?.trim() || !row.tanggalMulai?.trim() || !row.tanggalBerakhir?.trim()) {
+      if (
+        !row.nama?.trim() ||
+        !row.tanggalMulai?.trim() ||
+        !row.tanggalBerakhir?.trim()
+      ) {
         failed++;
         failedRows.push(`${rowLabel}: Ada kolom wajib yang kosong`);
         continue;
@@ -532,7 +530,11 @@ export async function bulkImportBerkasSP(
         data: dataToInsert,
       });
       success = dataToInsert.length;
-      createLog("CREATE", "BERKAS_SP", `Import Excel: ${success} berkas SP berhasil diimport`);
+      createLog(
+        "CREATE",
+        "BERKAS_SP",
+        `Import Excel: ${success} berkas SP berhasil diimport`,
+      );
       revalidatePath("/dashboard/berkas-sp", "page");
     } catch (err) {
       console.error("Bulk insert error Berkas SP:", err);
@@ -544,7 +546,7 @@ export async function bulkImportBerkasSP(
 }
 
 function parseFlexibleDate(raw: string): Date | null {
-  let s = raw.trim().replace(/^[a-zA-Z]+,\s*/, ""); 
+  let s = raw.trim().replace(/^[a-zA-Z]+,\s*/, "");
 
   if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s);
 
@@ -554,10 +556,20 @@ function parseFlexibleDate(raw: string): Date | null {
   }
 
   const BULAN: Record<string, string> = {
-    januari: "01", februari: "02", maret: "03", april: "04", mei: "05", juni: "06",
-    juli: "07", agustus: "08", september: "09", oktober: "10", november: "11", desember: "12",
+    januari: "01",
+    februari: "02",
+    maret: "03",
+    april: "04",
+    mei: "05",
+    juni: "06",
+    juli: "07",
+    agustus: "08",
+    september: "09",
+    oktober: "10",
+    november: "11",
+    desember: "12",
   };
-  
+
   const parts = s.toLowerCase().split(/\s+/);
   if (parts.length === 3) {
     const day = parts[0].padStart(2, "0");

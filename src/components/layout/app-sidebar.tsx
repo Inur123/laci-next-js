@@ -416,7 +416,9 @@ export function AppSidebar({
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{capitalizeName(user.name || "")}</span>
+                <span className="truncate font-semibold">
+                  {capitalizeName(user.name || "")}
+                </span>
                 <span className="truncate text-xs text-slate-500">
                   {user.email}
                 </span>
@@ -443,7 +445,9 @@ export function AppSidebar({
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{capitalizeName(user.name || "")}</span>
+                  <span className="truncate font-semibold">
+                    {capitalizeName(user.name || "")}
+                  </span>
                   <span className="truncate text-xs text-slate-500">
                     {user.email}
                   </span>

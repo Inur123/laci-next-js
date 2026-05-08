@@ -284,7 +284,8 @@ async function rebuildAndSendEmail(
       const baseUrl =
         process.env.NEXT_PUBLIC_APP_URL ||
         process.env.BETTER_AUTH_URL ||
-        process.env.NEXT_PUBLIC_APP_URL || "https://laci.pelajarnumagetan.or.id";
+        process.env.NEXT_PUBLIC_APP_URL ||
+        "https://laci.pelajarnumagetan.or.id";
       // Metadata might contain original submission ID, if not we fallback or use a safe link
       const submissionId = metadata.submissionId || metadata.id || "";
       const detailUrl = `${baseUrl}/dashboard/pengajuan-berkas/${submissionId}`;
@@ -324,7 +325,8 @@ async function rebuildAndSendEmail(
       const baseUrl =
         process.env.NEXT_PUBLIC_APP_URL ||
         process.env.BETTER_AUTH_URL ||
-        process.env.NEXT_PUBLIC_APP_URL || "https://laci.pelajarnumagetan.or.id";
+        process.env.NEXT_PUBLIC_APP_URL ||
+        "https://laci.pelajarnumagetan.or.id";
       const submissionId = metadata.submissionId || metadata.id || "";
       const detailUrl = `${baseUrl}/dashboard/pengajuan-berkas/${submissionId}`;
 
@@ -346,10 +348,13 @@ async function rebuildAndSendEmail(
     }
 
     case "PENGAJUAN_STATUS": {
-      const { pengajuanBerkasStatusTemplate, pengajuanBerkasStatusText } = 
+      const { pengajuanBerkasStatusTemplate, pengajuanBerkasStatusText } =
         await import("@/lib/email-templates/pengajuan-berkas-status");
-      
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || "https://laci.pelajarnumagetan.or.id";
+
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        process.env.BETTER_AUTH_URL ||
+        "https://laci.pelajarnumagetan.or.id";
       const submissionId = metadata.submissionId || metadata.id || "";
       const detailUrl = `${baseUrl}/dashboard/pengajuan-berkas/${submissionId}`;
 
@@ -357,9 +362,12 @@ async function rebuildAndSendEmail(
         userName: metadata.userName || "Rekan/Rekanita",
         pacName: metadata.pacName || "PAC",
         noSurat: metadata.noSurat || "-",
-        status: (metadata.status === "DITERIMA" ? "DITERIMA" : "DITOLAK") as "DITERIMA" | "DITOLAK",
-        alasanPenolakan: metadata.alasanPenolakan || metadata.keterangan || undefined,
-        detailUrl
+        status: (metadata.status === "DITERIMA" ? "DITERIMA" : "DITOLAK") as
+          | "DITERIMA"
+          | "DITOLAK",
+        alasanPenolakan:
+          metadata.alasanPenolakan || metadata.keterangan || undefined,
+        detailUrl,
       };
 
       return sendEmail({

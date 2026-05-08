@@ -2,14 +2,7 @@
 
 import React, { useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  CalendarDays,
-  MapPin,
-  Clock,
-  QrCode,
-  Users,
-  X,
-} from "lucide-react";
+import { CalendarDays, MapPin, Clock, QrCode, Users, X } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
@@ -40,7 +33,6 @@ export function PresensiFullscreenPresentation({
   dataPresensi,
   publicUrl,
   currentTime,
-  isRefreshing,
   userRole = "SEKRETARIS_PAC",
   closeFullscreen,
   fullscreenOverlayRef,
@@ -62,7 +54,9 @@ export function PresensiFullscreenPresentation({
       className="fixed inset-0 z-50 bg-white flex flex-col"
     >
       {/* Top Bar */}
-      <div className={`flex items-center justify-between px-6 py-3 border-b bg-white border-slate-200`}>
+      <div
+        className={`flex items-center justify-between px-6 py-3 border-b bg-white border-slate-200`}
+      >
         <div className="flex items-center gap-3 min-w-0">
           <img
             src="/images/logo-laci.webp"
@@ -76,7 +70,8 @@ export function PresensiFullscreenPresentation({
               {capitalizeName(presensi.namaKegiatan)}
             </p>
             <p className="text-slate-500 text-xs truncate">
-              {capitalizeName(presensi.penyelenggara)} &middot; {capitalizeName(presensi.tempat)}
+              {capitalizeName(presensi.penyelenggara)} &middot;{" "}
+              {capitalizeName(presensi.tempat)}
             </p>
           </div>
         </div>
@@ -91,7 +86,9 @@ export function PresensiFullscreenPresentation({
           >
             <Clock
               className={`w-4 h-4 ${
-                userRole === "SEKRETARIS_CABANG" ? "text-blue-600" : "text-green-600"
+                userRole === "SEKRETARIS_CABANG"
+                  ? "text-blue-600"
+                  : "text-green-600"
               }`}
             />
             <span className="font-mono font-black text-xl tracking-tighter">
@@ -147,8 +144,12 @@ export function PresensiFullscreenPresentation({
           </div>
 
           <div className="text-center space-y-0.5">
-            <h3 className="text-slate-800 font-bold text-sm">Scan QR untuk Absensi</h3>
-            <p className="text-slate-500 text-[10px] max-w-[220px]">Buka aplikasi scanner atau kamera di HP Anda.</p>
+            <h3 className="text-slate-800 font-bold text-sm">
+              Scan QR untuk Absensi
+            </h3>
+            <p className="text-slate-500 text-[10px] max-w-[220px]">
+              Buka aplikasi scanner atau kamera di HP Anda.
+            </p>
           </div>
 
           <div className="w-full h-px bg-slate-100" />
@@ -177,7 +178,9 @@ export function PresensiFullscreenPresentation({
               <div className="w-7 h-7 rounded-full bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100">
                 <MapPin className="w-3.5 h-3.5 text-slate-400" />
               </div>
-              <span className="text-[13px] truncate">{capitalizeName(presensi.tempat)}</span>
+              <span className="text-[13px] truncate">
+                {capitalizeName(presensi.tempat)}
+              </span>
             </div>
           </div>
 
@@ -190,24 +193,36 @@ export function PresensiFullscreenPresentation({
             }`}
           >
             <div className="flex flex-col">
-              <span className="text-slate-500 text-[9px] font-bold uppercase tracking-widest leading-none mb-1">Total Hadir</span>
+              <span className="text-slate-500 text-[9px] font-bold uppercase tracking-widest leading-none mb-1">
+                Total Hadir
+              </span>
               <div className="flex items-baseline gap-1 leading-none">
                 <span
                   className={`text-3xl font-black ${
-                    userRole === "SEKRETARIS_CABANG" ? "text-blue-700" : "text-green-600"
+                    userRole === "SEKRETARIS_CABANG"
+                      ? "text-blue-700"
+                      : "text-green-600"
                   }`}
                 >
                   {dataPresensi.length}
                 </span>
-                <span className="text-slate-400 text-[10px] font-bold">Peserta</span>
+                <span className="text-slate-400 text-[10px] font-bold">
+                  Peserta
+                </span>
               </div>
             </div>
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-              userRole === "SEKRETARIS_CABANG" ? "bg-blue-600/10" : "bg-green-600/10"
-            }`}>
+            <div
+              className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                userRole === "SEKRETARIS_CABANG"
+                  ? "bg-blue-600/10"
+                  : "bg-green-600/10"
+              }`}
+            >
               <Users
                 className={`w-5 h-5 ${
-                  userRole === "SEKRETARIS_CABANG" ? "text-blue-600" : "text-green-600"
+                  userRole === "SEKRETARIS_CABANG"
+                    ? "text-blue-600"
+                    : "text-green-600"
                 }`}
               />
             </div>
@@ -218,15 +233,21 @@ export function PresensiFullscreenPresentation({
         <div className="flex-1 flex flex-col overflow-hidden bg-white/40">
           <div className="px-6 py-4 border-b border-slate-200 bg-white flex items-center justify-between sticky top-0 z-20 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                userRole === "SEKRETARIS_CABANG" ? "bg-blue-600 text-white" : "bg-green-600 text-white"
-              }`}>
+              <div
+                className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                  userRole === "SEKRETARIS_CABANG"
+                    ? "bg-blue-600 text-white"
+                    : "bg-green-600 text-white"
+                }`}
+              >
                 <Users className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-slate-900 font-black text-lg tracking-tight">Daftar Kehadiran</h2>
+                <h2 className="text-slate-900 font-black text-lg tracking-tight">
+                  Daftar Kehadiran
+                </h2>
                 <p className="text-slate-500 text-[10px] font-semibold flex items-center gap-1">
-                  TERUPDATE SECARA REALTIME 
+                  TERUPDATE SECARA REALTIME
                   <span className="flex gap-1 h-2 w-2 relative">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
@@ -235,7 +256,7 @@ export function PresensiFullscreenPresentation({
               </div>
             </div>
             <div className="flex items-center gap-3">
-               <div className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-[9px] font-bold text-slate-500">
+              <div className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-[9px] font-bold text-slate-500">
                 ESC UNTUK KELUAR
               </div>
             </div>
@@ -248,12 +269,20 @@ export function PresensiFullscreenPresentation({
             {dataPresensi.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-slate-300">
                 <QrCode className="w-24 h-24 mb-4 opacity-20" />
-                <p className="text-xl font-black text-slate-400">Belum Ada Peserta</p>
-                <p className="text-slate-400 text-sm font-medium">Menunggu peserta melakukan presensi...</p>
+                <p className="text-xl font-black text-slate-400">
+                  Belum Ada Peserta
+                </p>
+                <p className="text-slate-400 text-sm font-medium">
+                  Menunggu peserta melakukan presensi...
+                </p>
               </div>
             ) : (
               [...dataPresensi]
-                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                .sort(
+                  (a, b) =>
+                    new Date(b.createdAt).getTime() -
+                    new Date(a.createdAt).getTime(),
+                )
                 .map((item: any, index: number) => (
                   <div
                     key={item.id}
@@ -266,10 +295,12 @@ export function PresensiFullscreenPresentation({
                     }`}
                   >
                     {/* Nomor urut */}
-                    <div className={`text-slate-400 text-[10px] font-black w-6 text-center shrink-0 font-mono ${index === 0 ? (userRole === "SEKRETARIS_CABANG" ? "text-blue-500" : "text-green-600") : ""}`}>
-                      {String(dataPresensi.length - index).padStart(2, '0')}
+                    <div
+                      className={`text-slate-400 text-[10px] font-black w-6 text-center shrink-0 font-mono ${index === 0 ? (userRole === "SEKRETARIS_CABANG" ? "text-blue-500" : "text-green-600") : ""}`}
+                    >
+                      {String(dataPresensi.length - index).padStart(2, "0")}
                     </div>
-                    
+
                     {/* Avatar */}
                     <div
                       className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-xl shrink-0 shadow-sm border-2 ${
@@ -286,37 +317,55 @@ export function PresensiFullscreenPresentation({
                     {/* Info */}
                     <div className="flex-1 min-w-0 space-y-1">
                       <div className="flex items-center gap-2">
-                        <p className={`font-black text-lg tracking-tight truncate ${index === 0 ? "text-slate-900" : "text-slate-800"}`}>
+                        <p
+                          className={`font-black text-lg tracking-tight truncate ${index === 0 ? "text-slate-900" : "text-slate-800"}`}
+                        >
                           {capitalizeName(item.namaLengkap)}
                         </p>
                         {index === 0 && (
-                          <div className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest animate-pulse ${
-                            userRole === "SEKRETARIS_CABANG" ? "bg-blue-600 text-white" : "bg-green-600 text-white"
-                          }`}>
+                          <div
+                            className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest animate-pulse ${
+                              userRole === "SEKRETARIS_CABANG"
+                                ? "bg-blue-600 text-white"
+                                : "bg-green-600 text-white"
+                            }`}
+                          >
                             Baru
                           </div>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
-                           item.organisasi === "IPNU"
-                            ? "bg-emerald-100/50 text-emerald-700"
-                            : item.organisasi === "IPPNU"
-                              ? "bg-rose-100/50 text-rose-700"
-                              : "bg-slate-100 text-slate-600"
-                        }`}>
-                          {item.organisasi === "UMUM" ? "Eksternal" : item.organisasi}
+                        <div
+                          className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                            item.organisasi === "IPNU"
+                              ? "bg-emerald-100/50 text-emerald-700"
+                              : item.organisasi === "IPPNU"
+                                ? "bg-rose-100/50 text-rose-700"
+                                : "bg-slate-100 text-slate-600"
+                          }`}
+                        >
+                          {item.organisasi === "UMUM"
+                            ? "Eksternal"
+                            : item.organisasi}
                         </div>
                         <p className="text-slate-500 text-xs font-semibold truncate">
                           {item.tingkat ? `${item.tingkat} • ` : ""}
-                          {capitalizeName(item.organisasi === "UMUM" ? item.instansi : item.jabatan)}
+                          {capitalizeName(
+                            item.organisasi === "UMUM"
+                              ? item.instansi
+                              : item.jabatan,
+                          )}
                         </p>
                       </div>
                     </div>
 
                     {/* Waktu */}
-                    <div className={`flex flex-col items-end shrink-0 ${index === 0 ? (userRole === "SEKRETARIS_CABANG" ? "text-blue-700" : "text-green-600") : "text-slate-400"}`}>
-                      <span className="text-[9px] font-bold uppercase tracking-widest mb-1 opacity-60">Pukul</span>
+                    <div
+                      className={`flex flex-col items-end shrink-0 ${index === 0 ? (userRole === "SEKRETARIS_CABANG" ? "text-blue-700" : "text-green-600") : "text-slate-400"}`}
+                    >
+                      <span className="text-[9px] font-bold uppercase tracking-widest mb-1 opacity-60">
+                        Pukul
+                      </span>
                       <span className="text-xl font-black font-mono leading-none">
                         {format(new Date(item.createdAt), "HH:mm:ss", {
                           locale: id,

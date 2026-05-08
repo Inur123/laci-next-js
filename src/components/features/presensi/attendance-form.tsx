@@ -11,18 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  User,
-  Clock,
-  MapPin,
-  CheckCircle2,
-  AlertCircle,
-  ChevronRight,
-  Info,
-  Mail,
-  Phone,
-  Building,
-} from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import {
   submitPresensiData,
   getPresensiDetail,
@@ -30,10 +19,7 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
-import { format } from "date-fns";
-import { id as idLocale } from "date-fns/locale";
 import { isPresensiOpen } from "@/lib/presensi-utils";
-import Image from "next/image";
 
 const capitalizeName = (name: string) => {
   if (!name) return "";
@@ -223,15 +209,15 @@ export function AttendanceForm({ presensi }: AttendanceFormProps) {
   /* ------------------------------------------------------------------ */
   return (
     <div className="w-full">
-        {/* ── CARD HEADER ── */}
-        <div className="pt-2 px-0 pb-2 text-center">
-          <h2 className="text-lg font-bold text-slate-800 tracking-tight">
-            Lengkapi Data Anda
-          </h2>
-          <p className="text-[11px] text-slate-400 font-medium leading-relaxed mt-1">
-            Silakan mengisi formulir berikut untuk keperluan presensi.
-          </p>
-        </div>
+      {/* ── CARD HEADER ── */}
+      <div className="pt-2 px-0 pb-2 text-center">
+        <h2 className="text-lg font-bold text-slate-800 tracking-tight">
+          Lengkapi Data Anda
+        </h2>
+        <p className="text-[11px] text-slate-400 font-medium leading-relaxed mt-1">
+          Silakan mengisi formulir berikut untuk keperluan presensi.
+        </p>
+      </div>
 
       {/* ── CARD BODY ── */}
       <form onSubmit={handleSubmit} className="py-6 px-0 pt-6 space-y-5">

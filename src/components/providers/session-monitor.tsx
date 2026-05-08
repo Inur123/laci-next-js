@@ -18,7 +18,8 @@ export function SessionMonitor() {
 
     // Jika sebelumnya login, tapi sekarang tidak
     if (wasLoggedIn.current === true && isLoggedIn === false) {
-      const isProtectedRoute = window.location.pathname.startsWith("/dashboard");
+      const isProtectedRoute =
+        window.location.pathname.startsWith("/dashboard");
 
       if (isProtectedRoute) {
         toast.error("Sesi login Anda telah berakhir", {
@@ -26,7 +27,7 @@ export function SessionMonitor() {
           duration: 5000,
           id: "session-expired",
         });
-        
+
         router.push("/login?error=session_expired");
       }
     }

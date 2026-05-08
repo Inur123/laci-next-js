@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import Cropper from "react-easy-crop";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,7 +39,7 @@ async function getCroppedImage(
   const image = new Image();
   image.src = imageSrc;
   image.crossOrigin = "anonymous"; // Hindari masalah CORS
-  
+
   return new Promise((resolve, reject) => {
     image.onload = () => {
       const canvas = document.createElement("canvas");
@@ -98,7 +98,8 @@ async function getCroppedImage(
       );
     };
 
-    image.onerror = () => reject(new Error("Gagal memuat gambar untuk di-crop"));
+    image.onerror = () =>
+      reject(new Error("Gagal memuat gambar untuk di-crop"));
   });
 }
 
@@ -140,7 +141,11 @@ export function ImageCropModal({
     if (!croppedAreaPixels) return;
     setIsProcessing(true);
     try {
-      const file = await getCroppedImage(imageSrc, croppedAreaPixels, originalMimeType);
+      const file = await getCroppedImage(
+        imageSrc,
+        croppedAreaPixels,
+        originalMimeType,
+      );
       onCropComplete(file);
       onClose();
     } catch (err) {
@@ -160,17 +165,17 @@ export function ImageCropModal({
         </DialogHeader>
 
         {/* Crop Area dengan Pattern Checkerboard untuk indikasi Transparansi */}
-        <div 
-          className="relative w-full" 
-          style={{ 
+        <div
+          className="relative w-full"
+          style={{
             height: 340,
             backgroundImage: `linear-gradient(45deg, #ccc 25%, transparent 25%), 
               linear-gradient(-45deg, #ccc 25%, transparent 25%), 
               linear-gradient(45deg, transparent 75%, #ccc 25%), 
               linear-gradient(-45deg, transparent 75%, #ccc 25%)`,
-            backgroundSize: '20px 20px',
-            backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
-            backgroundColor: '#eee'
+            backgroundSize: "20px 20px",
+            backgroundPosition: "0 0, 0 10px, 10px -10px, -10px 0px",
+            backgroundColor: "#eee",
           }}
         >
           <Cropper
@@ -184,7 +189,10 @@ export function ImageCropModal({
             onZoomChange={onZoomChange}
             onCropComplete={onCropCompleteInternal}
             style={{
-              containerStyle: { borderRadius: 0, backgroundColor: 'transparent' },
+              containerStyle: {
+                borderRadius: 0,
+                backgroundColor: "transparent",
+              },
               cropAreaStyle: {
                 border: "2px solid white",
                 boxShadow: "0 0 0 9999px rgba(0,0,0,0.6)",

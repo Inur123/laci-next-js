@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowLeft,
   FileText,
@@ -22,14 +22,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { deleteArsipSurat, getArsipDownloadToken } from "@/app/actions/arsip-actions";
+import {
+  deleteArsipSurat,
+  getArsipDownloadToken,
+} from "@/app/actions/arsip-actions";
 import { ConfirmModal } from "@/components/shared/confirm-modal";
 import { toast } from "sonner";
-import { getDisplayFilename, isPdf, isImage } from "@/lib/encryption";
+import { isPdf, isImage } from "@/lib/encryption";
 import { formatDate } from "@/lib/date-utils";
 import type { DecryptedArsipSurat } from "@/types";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
 
 interface ArsipSuratDetailProps {
   arsipSurat: DecryptedArsipSurat & { periode: { nama: string } };
@@ -78,7 +80,9 @@ export function ArsipSuratDetail({ arsipSurat }: ArsipSuratDetailProps) {
   // Fetch token for PDF preview/open
   useEffect(() => {
     if (arsipSurat.id && isPdf(arsipSurat.file)) {
-      getArsipDownloadToken(arsipSurat.id).then(setDownloadToken).catch(console.error);
+      getArsipDownloadToken(arsipSurat.id)
+        .then(setDownloadToken)
+        .catch(console.error);
     }
   }, [arsipSurat.id, arsipSurat.file]);
 
@@ -260,7 +264,9 @@ export function ArsipSuratDetail({ arsipSurat }: ArsipSuratDetailProps) {
                     </a>
                   </Button>
                   <Button asChild className="flex-1 md:flex-none">
-                    <a href={`/api/arsip/download/${arsipSurat.id}${downloadToken ? `?token=${downloadToken}` : ""}`}>
+                    <a
+                      href={`/api/arsip/download/${arsipSurat.id}${downloadToken ? `?token=${downloadToken}` : ""}`}
+                    >
                       <Download className="w-4 h-4 mr-2" />
                       Download
                     </a>
@@ -301,10 +307,11 @@ export function ArsipSuratDetail({ arsipSurat }: ArsipSuratDetailProps) {
                           Pratinjau PDF di Perangkat Mobile
                         </h3>
                         <p className="text-xs text-slate-500 mb-6 max-w-[240px] leading-relaxed">
-                          Browser mobile tidak dapat menampilkan PDF secara langsung. Klik tombol di bawah untuk membuka file.
+                          Browser mobile tidak dapat menampilkan PDF secara
+                          langsung. Klik tombol di bawah untuk membuka file.
                         </p>
-                        <Button 
-                          asChild 
+                        <Button
+                          asChild
                           className="shadow-md hover:shadow-lg transition-all"
                         >
                           <a

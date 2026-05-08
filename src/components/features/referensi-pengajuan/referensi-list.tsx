@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,19 +31,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
   Eye,
   Search,
   CheckCircle,
   XCircle,
   Clock,
   RefreshCcw,
-  Check,
-  ChevronsUpDown,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -80,12 +73,14 @@ const statusConfig = {
   PENDING: {
     label: "Pending",
     icon: Clock,
-    className: "bg-amber-100/80 text-amber-700 border-amber-200 hover:bg-amber-200/80",
+    className:
+      "bg-amber-100/80 text-amber-700 border-amber-200 hover:bg-amber-200/80",
   },
   DITERIMA: {
     label: "Diterima",
     icon: CheckCircle,
-    className: "bg-green-100/80 text-green-700 border-green-200 hover:bg-green-200/80",
+    className:
+      "bg-green-100/80 text-green-700 border-green-200 hover:bg-green-200/80",
   },
   DITOLAK: {
     label: "Ditolak",
@@ -97,19 +92,23 @@ const statusConfig = {
 const penerimaConfig: Record<string, { label: string; className: string }> = {
   IPNU: {
     label: "IPNU",
-    className: "bg-emerald-100/80 text-emerald-700 border-emerald-200 hover:bg-emerald-200/80",
+    className:
+      "bg-emerald-100/80 text-emerald-700 border-emerald-200 hover:bg-emerald-200/80",
   },
   IPPNU: {
     label: "IPPNU",
-    className: "bg-rose-100/80 text-rose-700 border-rose-200 hover:bg-rose-200/80",
+    className:
+      "bg-rose-100/80 text-rose-700 border-rose-200 hover:bg-rose-200/80",
   },
   BERSAMA: {
     label: "BERSAMA",
-    className: "bg-indigo-100/80 text-indigo-700 border-indigo-200 hover:bg-indigo-200/80",
+    className:
+      "bg-indigo-100/80 text-indigo-700 border-indigo-200 hover:bg-indigo-200/80",
   },
   CBP_KPP: {
     label: "CBP KPP",
-    className: "bg-amber-100/80 text-amber-700 border-amber-200 hover:bg-amber-200/80",
+    className:
+      "bg-amber-100/80 text-amber-700 border-amber-200 hover:bg-amber-200/80",
   },
 };
 
@@ -144,18 +143,31 @@ export function ReferensiPengajuanList({
     setTotalPages(initialTotalPages);
     setCurrentPage(initialCurrentPage);
     setTotalItems(initialTotalItems);
-  }, [initialPengajuanList, initialTotalPages, initialCurrentPage, initialTotalItems]);
+  }, [
+    initialPengajuanList,
+    initialTotalPages,
+    initialCurrentPage,
+    initialTotalItems,
+  ]);
 
   // ── Filter State ──────────────────────────────────────────────────────────
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [penerimaFilter, setPenerimaFilter] = useState("ALL");
-  const [pacFilter, setPacFilter] = useState(searchParams.get("userId") || "ALL");
+  const [pacFilter, setPacFilter] = useState(
+    searchParams.get("userId") || "ALL",
+  );
 
   const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Sort State ────────────────────────────────────────────────────────────
-  type SortKey = "noSurat" | "tanggal" | "keperluan" | "penerima" | "status" | "pengaju";
+  type SortKey =
+    | "noSurat"
+    | "tanggal"
+    | "keperluan"
+    | "penerima"
+    | "status"
+    | "pengaju";
   type SortDir = "asc" | "desc";
   const [sortKey, setSortKey] = useState<SortKey | null>("tanggal");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -171,10 +183,14 @@ export function ReferensiPengajuanList({
 
   const SortIcon = ({ col }: { col: SortKey }) => {
     if (sortKey !== col)
-      return <ArrowUpDown className="ml-1.5 h-3.5 w-3.5 text-slate-400 inline-block" />;
-    return sortDir === "asc"
-      ? <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
-      : <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />;
+      return (
+        <ArrowUpDown className="ml-1.5 h-3.5 w-3.5 text-slate-400 inline-block" />
+      );
+    return sortDir === "asc" ? (
+      <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+    ) : (
+      <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+    );
   };
 
   const sortedDisplayedItems = [...data].sort((a, b) => {
@@ -197,28 +213,38 @@ export function ReferensiPengajuanList({
   });
 
   // ── Fetch Data ────────────────────────────────────────────────────────────
-  const fetchData = useCallback(async (
-    query: string,
-    status: string,
-    penerima: string,
-    pac: string,
-    page: number,
-  ) => {
-    try {
-      const result = await getPengajuanForReferensiPac(
-        query, page, 10, status, penerima, pac,
-      );
-      setData(result.data as PengajuanItem[]);
-      setTotalPages(result.totalPages);
-      setTotalItems(result.total);
-    } catch {
-      toast.error("Gagal memuat data");
-    }
-  }, []);
+  const fetchData = useCallback(
+    async (
+      query: string,
+      status: string,
+      penerima: string,
+      pac: string,
+      page: number,
+    ) => {
+      try {
+        const result = await getPengajuanForReferensiPac(
+          query,
+          page,
+          10,
+          status,
+          penerima,
+          pac,
+        );
+        setData(result.data as PengajuanItem[]);
+        setTotalPages(result.totalPages);
+        setTotalItems(result.total);
+      } catch {
+        toast.error("Gagal memuat data");
+      }
+    },
+    [],
+  );
 
   // ── Load PAC users on mount ───────────────────────────────────────────────
   useEffect(() => {
-    getActivePacUsersForReferensi().then(setPacUsers).catch(() => {});
+    getActivePacUsersForReferensi()
+      .then(setPacUsers)
+      .catch(() => {});
   }, []);
 
   // ── Debounced filter effect ───────────────────────────────────────────────
@@ -233,13 +259,22 @@ export function ReferensiPengajuanList({
   // ── Realtime listener (same pattern as pengajuan-berkas-list) ────────────────
   useEffect(() => {
     const handler = (event: Event) => {
-      const detail = (event as CustomEvent).detail as { type?: string; model?: string };
+      const detail = (event as CustomEvent).detail as {
+        type?: string;
+        model?: string;
+      };
       if (!detail || detail.type !== "mutation") return;
       if (detail.model !== "PengajuanBerkas") return;
       if (realtimeTimerRef.current) return;
       realtimeTimerRef.current = setTimeout(() => {
         realtimeTimerRef.current = null;
-        fetchData(searchTerm, statusFilter, penerimaFilter, pacFilter, currentPage);
+        fetchData(
+          searchTerm,
+          statusFilter,
+          penerimaFilter,
+          pacFilter,
+          currentPage,
+        );
       }, 300);
     };
     window.addEventListener("laci-realtime", handler as EventListener);
@@ -250,7 +285,14 @@ export function ReferensiPengajuanList({
         realtimeTimerRef.current = null;
       }
     };
-  }, [searchTerm, statusFilter, penerimaFilter, pacFilter, currentPage, fetchData]);
+  }, [
+    searchTerm,
+    statusFilter,
+    penerimaFilter,
+    pacFilter,
+    currentPage,
+    fetchData,
+  ]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleFilterChange = (key: string, value: string) => {
@@ -319,7 +361,10 @@ export function ReferensiPengajuanList({
         {/* Status */}
         <div className="w-full md:w-36">
           <Label className="text-xs font-medium mb-1 block">Status</Label>
-          <Select value={statusFilter} onValueChange={(val) => handleFilterChange("status", val)}>
+          <Select
+            value={statusFilter}
+            onValueChange={(val) => handleFilterChange("status", val)}
+          >
             <SelectTrigger className="w-full h-9 text-sm bg-white">
               <SelectValue placeholder="Semua" />
             </SelectTrigger>
@@ -335,7 +380,10 @@ export function ReferensiPengajuanList({
         {/* Penerima */}
         <div className="w-full md:w-36">
           <Label className="text-xs font-medium mb-1 block">Penerima</Label>
-          <Select value={penerimaFilter} onValueChange={(val) => handleFilterChange("penerima", val)}>
+          <Select
+            value={penerimaFilter}
+            onValueChange={(val) => handleFilterChange("penerima", val)}
+          >
             <SelectTrigger className="w-full h-9 text-sm bg-white">
               <SelectValue placeholder="Semua" />
             </SelectTrigger>
@@ -453,7 +501,10 @@ export function ReferensiPengajuanList({
               <TableBody>
                 {sortedDisplayedItems.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
+                    <TableCell
+                      colSpan={8}
+                      className="h-32 text-center text-muted-foreground"
+                    >
                       {searchTerm
                         ? "Tidak ada pengajuan yang cocok dengan filter."
                         : "Belum ada data pengajuan referensi."}
@@ -462,7 +513,8 @@ export function ReferensiPengajuanList({
                 ) : (
                   sortedDisplayedItems.map((item, index) => {
                     const StatusIcon =
-                      statusConfig[item.status as keyof typeof statusConfig]?.icon || Clock;
+                      statusConfig[item.status as keyof typeof statusConfig]
+                        ?.icon || Clock;
                     return (
                       <TableRow key={item.id}>
                         <TableCell className="text-center text-muted-foreground font-medium">
@@ -472,14 +524,18 @@ export function ReferensiPengajuanList({
                           {item.noSurat}
                         </TableCell>
                         <TableCell className="whitespace-nowrap pr-6">
-                          {item.user?.name ? capitalizeName(item.user.name) : "-"}
+                          {item.user?.name
+                            ? capitalizeName(item.user.name)
+                            : "-"}
                         </TableCell>
                         <TableCell>
                           <Badge
                             variant="outline"
                             className={cn(
                               "transition-colors",
-                              penerimaConfig[item.penerima as keyof typeof penerimaConfig]?.className,
+                              penerimaConfig[
+                                item.penerima as keyof typeof penerimaConfig
+                              ]?.className,
                             )}
                           >
                             {item.penerima}
@@ -492,7 +548,10 @@ export function ReferensiPengajuanList({
                             year: "numeric",
                           })}
                         </TableCell>
-                        <TableCell className="max-w-[300px] truncate" title={item.keperluan}>
+                        <TableCell
+                          className="max-w-[300px] truncate"
+                          title={item.keperluan}
+                        >
                           {capitalizeName(item.keperluan)}
                         </TableCell>
                         <TableCell>
@@ -500,16 +559,28 @@ export function ReferensiPengajuanList({
                             variant="outline"
                             className={cn(
                               "transition-colors",
-                              statusConfig[item.status as keyof typeof statusConfig]?.className,
+                              statusConfig[
+                                item.status as keyof typeof statusConfig
+                              ]?.className,
                             )}
                           >
                             <StatusIcon className="w-3 h-3 mr-1" />
-                            {statusConfig[item.status as keyof typeof statusConfig]?.label || item.status}
+                            {statusConfig[
+                              item.status as keyof typeof statusConfig
+                            ]?.label || item.status}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button size="icon" variant="outline" className="h-8 w-8" asChild title="Detail">
-                            <Link href={`/dashboard/referensi-pengajuan/${item.id}`}>
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="h-8 w-8"
+                            asChild
+                            title="Detail"
+                          >
+                            <Link
+                              href={`/dashboard/referensi-pengajuan/${item.id}`}
+                            >
                               <Eye className="w-4 h-4" />
                             </Link>
                           </Button>
@@ -534,7 +605,9 @@ export function ReferensiPengajuanList({
                             {Math.min(currentPage * 10, totalItems)}
                           </span>{" "}
                           dari{" "}
-                          <span className="font-medium text-slate-700">{totalItems}</span>{" "}
+                          <span className="font-medium text-slate-700">
+                            {totalItems}
+                          </span>{" "}
                           pengajuan
                         </p>
                         <Pagination className="mx-0 w-auto scale-90 sm:scale-100 origin-left">
@@ -544,9 +617,14 @@ export function ReferensiPengajuanList({
                                 href="#"
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  if (currentPage > 1) handlePageChange(currentPage - 1);
+                                  if (currentPage > 1)
+                                    handlePageChange(currentPage - 1);
                                 }}
-                                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                className={
+                                  currentPage === 1
+                                    ? "pointer-events-none opacity-50"
+                                    : "cursor-pointer"
+                                }
                               />
                             </PaginationItem>
                             {[...Array(totalPages)].map((_, i) => {
@@ -554,7 +632,8 @@ export function ReferensiPengajuanList({
                               if (
                                 page === 1 ||
                                 page === totalPages ||
-                                (page >= currentPage - 1 && page <= currentPage + 1)
+                                (page >= currentPage - 1 &&
+                                  page <= currentPage + 1)
                               ) {
                                 return (
                                   <PaginationItem key={page}>
@@ -571,7 +650,10 @@ export function ReferensiPengajuanList({
                                     </PaginationLink>
                                   </PaginationItem>
                                 );
-                              } else if (page === currentPage - 2 || page === currentPage + 2) {
+                              } else if (
+                                page === currentPage - 2 ||
+                                page === currentPage + 2
+                              ) {
                                 return <PaginationEllipsis key={page} />;
                               }
                               return null;
@@ -581,9 +663,14 @@ export function ReferensiPengajuanList({
                                 href="#"
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  if (currentPage < totalPages) handlePageChange(currentPage + 1);
+                                  if (currentPage < totalPages)
+                                    handlePageChange(currentPage + 1);
                                 }}
-                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                className={
+                                  currentPage === totalPages
+                                    ? "pointer-events-none opacity-50"
+                                    : "cursor-pointer"
+                                }
                               />
                             </PaginationItem>
                           </PaginationContent>
@@ -600,4 +687,3 @@ export function ReferensiPengajuanList({
     </div>
   );
 }
-

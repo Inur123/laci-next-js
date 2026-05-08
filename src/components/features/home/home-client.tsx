@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { authClient } from "@/lib/auth-client";
 type User = any;
 type Session = {
   user: any;
@@ -27,7 +26,6 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { DateDisplay } from "@/components/ui/date-display";
 import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { getPublicStats } from "@/app/actions/dashboard-actions";
@@ -210,16 +208,16 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
             }}
           >
             <div className="relative">
-                <Image
-                  src="/images/logo-laci.webp"
-                  alt="Laci Digital"
-                  width={40}
-                  height={40}
-                  className={cn(
-                    "object-contain transition-all duration-500",
-                    isScrolled ? "h-8 w-8" : "h-10 w-10",
-                  )}
-                />
+              <Image
+                src="/images/logo-laci.webp"
+                alt="Laci Digital"
+                width={40}
+                height={40}
+                className={cn(
+                  "object-contain transition-all duration-500",
+                  isScrolled ? "h-8 w-8" : "h-10 w-10",
+                )}
+              />
             </div>
             <div className="leading-tight">
               <p
@@ -294,7 +292,9 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
         <div
           className={cn(
             "absolute left-0 right-0 top-full z-50 md:hidden overflow-hidden transition-all duration-300 ease-in-out",
-            isMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0 pointer-events-none",
+            isMenuOpen
+              ? "max-h-[500px] opacity-100"
+              : "max-h-0 opacity-0 pointer-events-none",
           )}
         >
           <div
@@ -1130,7 +1130,9 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
         <div
           className={cn(
             "absolute left-0 right-0 top-full z-50 md:hidden overflow-hidden transition-all duration-300 ease-in-out",
-            isMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0 pointer-events-none",
+            isMenuOpen
+              ? "max-h-[500px] opacity-100"
+              : "max-h-0 opacity-0 pointer-events-none",
           )}
         >
           <div

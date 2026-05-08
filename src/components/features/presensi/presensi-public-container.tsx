@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import Image from "next/image";
@@ -71,7 +71,7 @@ export function PresensiPublicContainer({
     "EEEE, dd MMMM yyyy",
     {
       locale: idLocale,
-    }
+    },
   );
 
   return (

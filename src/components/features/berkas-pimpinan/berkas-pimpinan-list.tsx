@@ -39,7 +39,6 @@ import {
   Trash2,
   Search,
   FileSpreadsheet,
-  RefreshCcw,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -95,16 +94,26 @@ export function BerkasPimpinanList({
 
   const SortIcon = ({ col }: { col: SortKey }) => {
     if (sortKey !== col)
-      return <ArrowUpDown className="ml-1.5 h-3.5 w-3.5 text-slate-400 inline-block" />;
-    return sortDir === "asc"
-      ? <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
-      : <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />;
+      return (
+        <ArrowUpDown className="ml-1.5 h-3.5 w-3.5 text-slate-400 inline-block" />
+      );
+    return sortDir === "asc" ? (
+      <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+    ) : (
+      <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+    );
   };
 
   const sortedData = [...data].sort((a, b) => {
     if (!sortKey) return 0;
-    let aVal: string | number = sortKey === "tanggal" ? new Date(a.tanggal).getTime() : a.nama.toLowerCase();
-    let bVal: string | number = sortKey === "tanggal" ? new Date(b.tanggal).getTime() : b.nama.toLowerCase();
+    let aVal: string | number =
+      sortKey === "tanggal"
+        ? new Date(a.tanggal).getTime()
+        : a.nama.toLowerCase();
+    let bVal: string | number =
+      sortKey === "tanggal"
+        ? new Date(b.tanggal).getTime()
+        : b.nama.toLowerCase();
     if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
     if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
     return 0;
@@ -450,8 +459,9 @@ export function BerkasPimpinanList({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedData.filter((item) => !optimisticHiddenIds.includes(item.id))
-                  .length === 0 ? (
+                {sortedData.filter(
+                  (item) => !optimisticHiddenIds.includes(item.id),
+                ).length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={5}

@@ -6,7 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { createKegiatan, updateKegiatan } from "@/app/actions/agenda-kegiatan-actions";
+import {
+  createKegiatan,
+  updateKegiatan,
+} from "@/app/actions/agenda-kegiatan-actions";
 import {
   Calendar as CalendarIcon,
   Upload,
@@ -185,7 +188,9 @@ export function KegiatanForm({ kegiatan, userRole }: KegiatanFormProps) {
                   id="judul"
                   name="judul"
                   placeholder="Contoh: Rapat Pleno Gabungan..."
-                  defaultValue={kegiatan?.judul ? capitalizeName(kegiatan.judul) : ""}
+                  defaultValue={
+                    kegiatan?.judul ? capitalizeName(kegiatan.judul) : ""
+                  }
                   required
                 />
               </div>
@@ -202,7 +207,9 @@ export function KegiatanForm({ kegiatan, userRole }: KegiatanFormProps) {
                     id="lokasi"
                     name="lokasi"
                     placeholder="Contoh: Kantor PCNU Magetan"
-                    defaultValue={kegiatan?.lokasi ? capitalizeName(kegiatan.lokasi) : ""}
+                    defaultValue={
+                      kegiatan?.lokasi ? capitalizeName(kegiatan.lokasi) : ""
+                    }
                   />
                 </div>
               </div>
@@ -217,7 +224,11 @@ export function KegiatanForm({ kegiatan, userRole }: KegiatanFormProps) {
                   id="deskripsi"
                   name="deskripsi"
                   placeholder="Tambahkan detail kegiatan..."
-                  defaultValue={kegiatan?.deskripsi ? capitalizeName(kegiatan.deskripsi) : ""}
+                  defaultValue={
+                    kegiatan?.deskripsi
+                      ? capitalizeName(kegiatan.deskripsi)
+                      : ""
+                  }
                   className="min-h-[120px] resize-none"
                   rows={5}
                 />

@@ -169,27 +169,28 @@ export async function getArsipStats() {
     periodeId: periodeAktif.id,
   };
 
-  const [total, masuk, keluar, ipnu, ippnu, bersama, cbpkpp] = await Promise.all([
-    prisma.arsipSurat.count({ where: whereBase }),
-    prisma.arsipSurat.count({
-      where: { ...whereBase, jenisSurat: "MASUK" },
-    }),
-    prisma.arsipSurat.count({
-      where: { ...whereBase, jenisSurat: "KELUAR" },
-    }),
-    prisma.arsipSurat.count({
-      where: { ...whereBase, organisasi: "IPNU" },
-    }),
-    prisma.arsipSurat.count({
-      where: { ...whereBase, organisasi: "IPPNU" },
-    }),
-    prisma.arsipSurat.count({
-      where: { ...whereBase, organisasi: "BERSAMA" },
-    }),
-    prisma.arsipSurat.count({
-      where: { ...whereBase, organisasi: "CBP_KPP" as any },
-    }),
-  ]);
+  const [total, masuk, keluar, ipnu, ippnu, bersama, cbpkpp] =
+    await Promise.all([
+      prisma.arsipSurat.count({ where: whereBase }),
+      prisma.arsipSurat.count({
+        where: { ...whereBase, jenisSurat: "MASUK" },
+      }),
+      prisma.arsipSurat.count({
+        where: { ...whereBase, jenisSurat: "KELUAR" },
+      }),
+      prisma.arsipSurat.count({
+        where: { ...whereBase, organisasi: "IPNU" },
+      }),
+      prisma.arsipSurat.count({
+        where: { ...whereBase, organisasi: "IPPNU" },
+      }),
+      prisma.arsipSurat.count({
+        where: { ...whereBase, organisasi: "BERSAMA" },
+      }),
+      prisma.arsipSurat.count({
+        where: { ...whereBase, organisasi: "CBP_KPP" as any },
+      }),
+    ]);
 
   return {
     total,
@@ -320,7 +321,7 @@ export async function createArsipSurat(formData: FormData) {
     );
 
     revalidatePath("/dashboard/arsip/surat", "page");
-    revalidatePath("/dashboard", "layout"); 
+    revalidatePath("/dashboard", "layout");
 
     return { success: "Arsip surat berhasil dibuat!", data: arsip };
   } catch (error) {
@@ -409,7 +410,7 @@ export async function updateArsipSurat(id: string, formData: FormData) {
 
     revalidatePath("/dashboard/arsip/surat", "page");
     revalidatePath(`/dashboard/arsip/surat/${id}`, "page");
-    revalidatePath("/dashboard", "layout"); 
+    revalidatePath("/dashboard", "layout");
 
     return { success: "Arsip surat berhasil diperbarui!" };
   } catch (error) {
@@ -460,7 +461,7 @@ export async function deleteArsipSurat(id: string) {
     );
 
     revalidatePath("/dashboard/arsip/surat", "page");
-    revalidatePath("/dashboard", "layout"); 
+    revalidatePath("/dashboard", "layout");
     return { success: "Arsip surat berhasil dihapus!" };
   } catch (error) {
     console.error("Delete error:", error);
@@ -509,7 +510,7 @@ export async function downloadArsipFile(id: string) {
 function parseFlexibleDate(raw: string): Date | null {
   // Bersihkan karakter aneh dan spasi berlebih
   // Hapus nama hari (Minggu, Senin, dst) dan koma jika ada di depan
-  let s = raw.trim().replace(/^[a-zA-Z]+,\s*/, ""); 
+  let s = raw.trim().replace(/^[a-zA-Z]+,\s*/, "");
 
   // ISO YYYY-MM-DD
   if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s);
@@ -535,13 +536,13 @@ function parseFlexibleDate(raw: string): Date | null {
     november: "11",
     desember: "12",
   };
-  
+
   const parts = s.toLowerCase().split(/\s+/);
   if (parts.length === 3) {
     const day = parts[0].padStart(2, "0");
     const month = BULAN[parts[1]];
     const year = parts[2];
-    
+
     if (month) {
       const d = new Date(`${year}-${month}-${day}`);
       if (!isNaN(d.getTime())) return d;
@@ -590,7 +591,13 @@ export async function bulkImportArsipSurat(
 
     try {
       // Validasi field wajib
-      if (!row.noSurat?.trim() || !row.jenisSurat?.trim() || !row.tanggal?.trim() || !row.pengirimPenerima?.trim() || !row.perihal?.trim()) {
+      if (
+        !row.noSurat?.trim() ||
+        !row.jenisSurat?.trim() ||
+        !row.tanggal?.trim() ||
+        !row.pengirimPenerima?.trim() ||
+        !row.perihal?.trim()
+      ) {
         failed++;
         failedRows.push(`${rowLabel}: Ada kolom wajib yang kosong`);
         continue;
@@ -608,7 +615,9 @@ export async function bulkImportArsipSurat(
       const tanggal = parseFlexibleDate(row.tanggal);
       if (!tanggal) {
         failed++;
-        failedRows.push(`${rowLabel}: Format tanggal "${row.tanggal}" tidak valid`);
+        failedRows.push(
+          `${rowLabel}: Format tanggal "${row.tanggal}" tidak valid`,
+        );
         continue;
       }
 
@@ -631,7 +640,9 @@ export async function bulkImportArsipSurat(
         tanggal,
         pengirimPenerima: encryptText(row.pengirimPenerima.trim()),
         perihal: encryptText(row.perihal.trim()),
-        deskripsi: row.deskripsi?.trim() ? encryptText(row.deskripsi.trim()) : null,
+        deskripsi: row.deskripsi?.trim()
+          ? encryptText(row.deskripsi.trim())
+          : null,
         file: null,
       });
     } catch (err) {
@@ -647,13 +658,19 @@ export async function bulkImportArsipSurat(
         data: dataToInsert,
       });
       success = dataToInsert.length;
-      
-      createLog("CREATE", "ARSIP_SURAT", `Import Excel: ${success} arsip berhasil diimport`);
+
+      createLog(
+        "CREATE",
+        "ARSIP_SURAT",
+        `Import Excel: ${success} arsip berhasil diimport`,
+      );
       revalidatePath("/dashboard/arsip/surat", "page");
       revalidatePath("/dashboard", "layout");
     } catch (err) {
       console.error("Bulk insert error:", err);
-      return { error: "Gagal menyimpan data ke database. Cek koneksi internet/DB." };
+      return {
+        error: "Gagal menyimpan data ke database. Cek koneksi internet/DB.",
+      };
     }
   }
 

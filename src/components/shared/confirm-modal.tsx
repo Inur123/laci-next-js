@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +11,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { buttonVariants } from "@/components/ui/button";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

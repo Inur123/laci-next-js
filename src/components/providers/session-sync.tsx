@@ -14,11 +14,7 @@ export function SessionSync({ isDbVerified }: { isDbVerified: boolean }) {
 
   useEffect(() => {
     // Jika di database sudah verified tapi di session browser masih null/falsy
-    if (
-      session && 
-      isDbVerified &&
-      !session.user.emailVerified
-    ) {
+    if (session && isDbVerified && !session.user.emailVerified) {
       // Force refresh data to sync session state
       router.refresh();
     }

@@ -304,11 +304,11 @@ export async function createAnggota(formData: FormData) {
         },
         pendidikans: {
           create: rawPendidikans
-             ? JSON.parse(rawPendidikans).map((p: any) => ({
-                 jenjang: p.jenjang,
-                 namaSekolah: encryptText(p.namaSekolah || "-"),
-               }))
-             : [],
+            ? JSON.parse(rawPendidikans).map((p: any) => ({
+                jenjang: p.jenjang,
+                namaSekolah: encryptText(p.namaSekolah || "-"),
+              }))
+            : [],
         },
       },
     });
@@ -411,11 +411,11 @@ export async function updateAnggota(id: string, formData: FormData) {
         pendidikans: {
           deleteMany: {},
           create: rawPendidikans
-             ? JSON.parse(rawPendidikans).map((p: any) => ({
-                 jenjang: p.jenjang,
-                 namaSekolah: encryptText(p.namaSekolah || "-"),
-               }))
-             : [],
+            ? JSON.parse(rawPendidikans).map((p: any) => ({
+                jenjang: p.jenjang,
+                namaSekolah: encryptText(p.namaSekolah || "-"),
+              }))
+            : [],
         },
       },
     });

@@ -47,7 +47,6 @@ import {
   Trash2,
   Search,
   FileSpreadsheet,
-  RefreshCcw,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -200,7 +199,11 @@ export function BerkasSPList({
     if (!sortKey) return 0;
     let aVal: string | number = "";
     let bVal: string | number = "";
-    if (sortKey === "tanggalMulai" || sortKey === "tanggalBerakhir" || sortKey === "status") {
+    if (
+      sortKey === "tanggalMulai" ||
+      sortKey === "tanggalBerakhir" ||
+      sortKey === "status"
+    ) {
       const targetKey = sortKey === "status" ? "tanggalBerakhir" : sortKey;
       aVal = new Date(a[targetKey]).getTime();
       bVal = new Date(b[targetKey]).getTime();
@@ -689,13 +692,14 @@ export function BerkasSPList({
                           )}
                         </TableCell>
                         <TableCell className="whitespace-nowrap pr-6">
-                          {new Date(
-                            berkas.tanggalBerakhir,
-                          ).toLocaleDateString("id-ID", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                          {new Date(berkas.tanggalBerakhir).toLocaleDateString(
+                            "id-ID",
+                            {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            },
+                          )}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
                           {getStatusBadge(berkas.tanggalBerakhir)}

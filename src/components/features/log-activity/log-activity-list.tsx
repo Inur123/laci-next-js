@@ -27,29 +27,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn, capitalizeName } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import { UserFilterSelect } from "@/components/shared/user-filter-select";
 import { Label } from "@/components/ui/label";
-import { 
-  Search, 
-  RefreshCcw, 
-  Eye, 
-  ArrowUpDown, 
-  ArrowUp, 
-  ArrowDown, 
-  Check, 
-  ChevronsUpDown 
-} from "lucide-react";
+import { RefreshCcw, Eye, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import Link from "next/link";
 import { LogAction, LogModule } from "@prisma/client";
 import { DatePickerWithPresets } from "@/components/ui/date-range-picker-presets";
 import { DateRange } from "react-day-picker";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   getPersonalLogs,
   getGlobalLogs,
@@ -163,7 +149,8 @@ const moduleConfig: Record<LogModule, { label: string; className: string }> = {
   },
   PRESENSI: {
     label: "Presensi",
-    className: "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100",
+    className:
+      "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100",
   },
 };
 
@@ -208,10 +195,16 @@ export function LogActivityList({
 
   // Filter state initialized from URL
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
-  const [actionFilter, setActionFilter] = useState(searchParams.get("action") || "ALL");
-  const [moduleFilter, setModuleFilter] = useState(searchParams.get("module") || "ALL");
+  const [actionFilter, setActionFilter] = useState(
+    searchParams.get("action") || "ALL",
+  );
+  const [moduleFilter, setModuleFilter] = useState(
+    searchParams.get("module") || "ALL",
+  );
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [userFilter, setUserFilter] = useState(searchParams.get("userId") || "ALL");
+  const [userFilter, setUserFilter] = useState(
+    searchParams.get("userId") || "ALL",
+  );
 
   // Sync state with URL when it changes (e.g., back/forward buttons)
   React.useEffect(() => {
@@ -244,7 +237,8 @@ export function LogActivityList({
   const [logSortKey, setLogSortKey] = useState<LogSortKey | null>(null);
   const [logSortDir, setLogSortDir] = useState<SortDir>("asc");
 
-  const toggleSort = () => setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+  const toggleSort = () =>
+    setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
 
   const handleLogSort = (key: LogSortKey) => {
     if (logSortKey === key) {
@@ -257,10 +251,14 @@ export function LogActivityList({
 
   const LogSortIcon = ({ col }: { col: LogSortKey }) => {
     if (logSortKey !== col)
-      return <ArrowUpDown className="ml-1.5 h-3.5 w-3.5 text-slate-400 inline-block" />;
-    return logSortDir === "asc"
-      ? <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
-      : <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />;
+      return (
+        <ArrowUpDown className="ml-1.5 h-3.5 w-3.5 text-slate-400 inline-block" />
+      );
+    return logSortDir === "asc" ? (
+      <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+    ) : (
+      <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+    );
   };
 
   const sortedLogs = [...logs].sort((a, b) => {
@@ -500,7 +498,7 @@ export function LogActivityList({
             <UserFilterSelect
               users={pacUsers}
               selectedUserId={userFilter}
-            onSelectUser={handleUserFilterSelect}
+              onSelectUser={handleUserFilterSelect}
               placeholder="Pilih User"
             />
           </div>
@@ -509,10 +507,7 @@ export function LogActivityList({
         {/* Action */}
         <div className="flex-1 w-full">
           <Label className="text-xs font-medium mb-1 block">Entitas</Label>
-          <Select
-            value={actionFilter}
-            onValueChange={handleActionFilterChange}
-          >
+          <Select value={actionFilter} onValueChange={handleActionFilterChange}>
             <SelectTrigger className="w-full bg-white h-9 text-sm border-slate-200 shadow-sm">
               <SelectValue placeholder="Semua" />
             </SelectTrigger>
@@ -532,9 +527,7 @@ export function LogActivityList({
         {/* Module */}
         <div className="flex-1 w-full">
           <Label className="text-xs font-medium mb-1 block">Modul/Menu</Label>
-          <Select
-            value={moduleFilter}
-            onValueChange={handleModuleFilterChange}>
+          <Select value={moduleFilter} onValueChange={handleModuleFilterChange}>
             <SelectTrigger className="w-full bg-white h-9 text-sm border-slate-200 shadow-sm">
               <SelectValue placeholder="Semua" />
             </SelectTrigger>
@@ -650,13 +643,16 @@ export function LogActivityList({
                     </TableCell>
                   </TableRow>
                 ) : (
-                    sortedLogs.map((log, index) => (
-                      <TableRow key={log.id} className="group transition-all hover:bg-slate-50/50">
-                        <TableCell className="text-center text-muted-foreground font-medium whitespace-nowrap">
-                          {(currentPage - 1) * 20 + index + 1}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap text-xs text-slate-600">
-                          {new Date(log.createdAt).toLocaleDateString("id-ID", {
+                  sortedLogs.map((log, index) => (
+                    <TableRow
+                      key={log.id}
+                      className="group transition-all hover:bg-slate-50/50"
+                    >
+                      <TableCell className="text-center text-muted-foreground font-medium whitespace-nowrap">
+                        {(currentPage - 1) * 20 + index + 1}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-xs text-slate-600">
+                        {new Date(log.createdAt).toLocaleDateString("id-ID", {
                           day: "numeric",
                           month: "long",
                           year: "numeric",
@@ -695,12 +691,15 @@ export function LogActivityList({
                           {moduleConfig[log.module]?.label || log.module}
                         </Badge>
                       </TableCell>
-                        <TableCell className="text-slate-600 text-[13px] leading-relaxed">
-                          <div className="max-w-[400px] truncate" title={log.description}>
-                            {log.description}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
+                      <TableCell className="text-slate-600 text-[13px] leading-relaxed">
+                        <div
+                          className="max-w-[400px] truncate"
+                          title={log.description}
+                        >
+                          {log.description}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
                         <Button
                           size="sm"
                           variant="outline"
@@ -818,4 +817,3 @@ export function LogActivityList({
     </div>
   );
 }
-

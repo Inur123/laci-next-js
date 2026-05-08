@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -16,8 +16,6 @@ import Link from "next/link";
 import {
   Eye,
   Search,
-  ShieldCheck,
-  ShieldAlert,
   RefreshCcw,
   ArrowUpDown,
   ArrowUp,

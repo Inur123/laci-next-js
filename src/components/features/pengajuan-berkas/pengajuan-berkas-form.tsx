@@ -10,14 +10,7 @@ import {
   createPengajuanBerkas,
   updatePengajuanBerkas,
 } from "@/app/actions/pengajuan-berkas-actions";
-import {
-  Upload,
-  X,
-  FileText,
-  AlertCircle,
-  Eye,
-  ExternalLink,
-} from "lucide-react";
+import { Upload, X, FileText, AlertCircle, ExternalLink } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -269,8 +262,6 @@ export function PengajuanBerkasForm({
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
-
-
 
   return (
     <form onSubmit={handleSubmit}>

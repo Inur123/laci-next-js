@@ -62,13 +62,23 @@ export function BerkasSPSkeleton() {
           <Table className="min-w-[900px]">
             <TableHeader className="bg-slate-50/40 sticky top-0 z-10">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[50px] text-center bg-slate-50/40">No</TableHead>
+                <TableHead className="w-[50px] text-center bg-slate-50/40">
+                  No
+                </TableHead>
                 <TableHead className="bg-slate-50/40">Nama Pimpinan</TableHead>
-                <TableHead className="w-[120px] bg-slate-50/40">Organisasi</TableHead>
-                <TableHead className="w-[140px] bg-slate-50/40">Tanggal Mulai</TableHead>
-                <TableHead className="w-[140px] bg-slate-50/40">Tanggal Berakhir</TableHead>
+                <TableHead className="w-[120px] bg-slate-50/40">
+                  Organisasi
+                </TableHead>
+                <TableHead className="w-[140px] bg-slate-50/40">
+                  Tanggal Mulai
+                </TableHead>
+                <TableHead className="w-[140px] bg-slate-50/40">
+                  Tanggal Berakhir
+                </TableHead>
                 <TableHead className="bg-slate-50/40">Catatan</TableHead>
-                <TableHead className="w-[120px] text-right bg-slate-50/40">Aksi</TableHead>
+                <TableHead className="w-[120px] text-right bg-slate-50/40">
+                  Aksi
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -190,7 +200,7 @@ export function BerkasSPFormSkeleton() {
               </div>
             ))}
           </div>
-          
+
           <div className="space-y-2">
             <Skeleton className="h-4 w-28" />
             <Skeleton className="h-20 w-full rounded-md" />
