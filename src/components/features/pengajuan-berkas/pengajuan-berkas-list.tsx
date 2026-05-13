@@ -247,22 +247,10 @@ export function PengajuanBerkasList({
     );
   };
 
-  const sortedDisplayedItems = [...data]
-    .filter((item) => !optimisticHiddenIds.includes(item.id))
-    .sort((a, b) => {
-      if (!sortKey) return 0;
-      let aVal: string | number =
-        sortKey === "tanggal"
-          ? new Date(a.tanggal).getTime()
-          : (a[sortKey] ?? "").toString().toLowerCase();
-      let bVal: string | number =
-        sortKey === "tanggal"
-          ? new Date(b.tanggal).getTime()
-          : (b[sortKey] ?? "").toString().toLowerCase();
-      if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
-      if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
-      return 0;
-    });
+  // Data sudah diurutkan dari server
+  const sortedDisplayedItems = data.filter(
+    (item) => !optimisticHiddenIds.includes(item.id),
+  );
 
   const resolvedViewMode =
     viewMode || (userRole === "SEKRETARIS_CABANG" ? "cabang" : "pac");
@@ -275,6 +263,8 @@ export function PengajuanBerkasList({
       penerima: string,
       pac: string,
       page: number,
+      sKey: SortKey | null = sortKey,
+      sDir: SortDir = sortDir,
     ) => {
       try {
         let result;
@@ -286,6 +276,8 @@ export function PengajuanBerkasList({
             status,
             penerima,
             pac,
+            sKey,
+            sDir,
           );
         } else if (resolvedViewMode === "referensi") {
           result = await getPengajuanForReferensiPac(
@@ -295,9 +287,19 @@ export function PengajuanBerkasList({
             status,
             penerima,
             pac,
+            sKey,
+            sDir,
           );
         } else {
-          result = await getPengajuanBerkass(query, page, 10, status, penerima);
+          result = await getPengajuanBerkass(
+            query,
+            page,
+            10,
+            status,
+            penerima,
+            sKey,
+            sDir,
+          );
         }
 
         setData(result.data as PengajuanBerkas[]);
@@ -308,7 +310,7 @@ export function PengajuanBerkasList({
         toast.error("Gagal memuat data");
       }
     },
-    [resolvedViewMode],
+    [resolvedViewMode, sortKey, sortDir],
   );
 
   useEffect(() => {

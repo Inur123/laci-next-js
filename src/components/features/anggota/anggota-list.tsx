@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -155,32 +155,38 @@ export function AnggotaList({
     );
   };
 
-  const sortedData = [...data].sort((a, b) => {
-    if (!sortKey) return 0;
-    const getVal = (item: any) => {
-      if (sortKey === "periode") return item.periode?.nama ?? "";
-      if (sortKey === "dibuatOleh") return item.user?.name ?? "";
-      return ((item as any)[sortKey] ?? "").toString();
-    };
-    const aVal = getVal(a).toLowerCase();
-    const bVal = getVal(b).toLowerCase();
-    if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
-    if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
-    return 0;
-  });
+  // Data sudah diurutkan secara global dari server
+  const sortedData = data;
 
   // Function to fetch data
-  const fetchData = async (query: string, page: number, userId: string) => {
-    try {
-      const result = await getAnggotaList(query, page, 10, userId);
-      setData(result.data as AnggotaItem[]);
-      setTotalPages(result.totalPages);
-      setTotalItems(result.total);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      toast.error("Gagal memuat data");
-    }
-  };
+  const fetchData = useCallback(
+    async (
+      query: string,
+      page: number,
+      userId: string,
+      sKey: SortKey | null = sortKey,
+      sDir: SortDir = sortDir,
+    ) => {
+      try {
+        const result = await getAnggotaList(
+          query,
+          page,
+          10,
+          userId,
+          undefined,
+          sKey,
+          sDir,
+        );
+        setData(result.data as AnggotaItem[]);
+        setTotalPages(result.totalPages);
+        setTotalItems(result.total);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Gagal memuat data");
+      }
+    },
+    [sortKey, sortDir],
+  );
 
   // Debounced Search Update
   useEffect(() => {
@@ -190,7 +196,7 @@ export function AnggotaList({
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, selectedUser]);
+  }, [searchTerm, selectedUser, fetchData]);
 
   useEffect(() => {
     const handler = (event: Event) => {
@@ -214,7 +220,7 @@ export function AnggotaList({
         realtimeTimerRef.current = null;
       }
     };
-  }, [searchTerm, currentPage, selectedUser]);
+  }, [searchTerm, currentPage, selectedUser, fetchData]);
 
   const handleUserFilterChange = (value: string) => {
     setSelectedUser(value);

@@ -34,6 +34,8 @@ export async function getBerkasSPs(
   organisasiFilter?: string,
   page: number = 1,
   limit: number = 10,
+  sortKey?: string | null,
+  sortDir?: "asc" | "desc",
 ) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
@@ -62,15 +64,26 @@ export async function getBerkasSPs(
     whereClause.organisasi = organisasiFilter as Organisasi;
   }
 
-  // 1. Optimized Path: No search query -> DB Pagination
-  if (!query) {
+  const isEncryptedSort = sortKey === "nama" || sortKey === "catatan";
+
+  // 1. Optimized Path: No search query and sorting by unencrypted DB fields -> DB Pagination
+  if (!query && !isEncryptedSort) {
+    let orderByClause: Prisma.BerkasSPOrderByWithRelationInput = {
+      tanggalMulai: "desc",
+    };
+    if (sortKey) {
+      const dir = sortDir === "asc" ? "asc" : "desc";
+      if (sortKey === "tanggalMulai") orderByClause = { tanggalMulai: dir };
+      else if (sortKey === "tanggalBerakhir" || sortKey === "status")
+        orderByClause = { tanggalBerakhir: dir };
+      else if (sortKey === "organisasi") orderByClause = { organisasi: dir };
+    }
+
     const [total, berkasSps] = await Promise.all([
       prisma.berkasSP.count({ where: whereClause }),
       prisma.berkasSP.findMany({
         where: whereClause,
-        orderBy: {
-          tanggalMulai: "desc",
-        },
+        orderBy: orderByClause,
         skip: (page - 1) * limit,
         take: limit,
       }),
@@ -89,11 +102,10 @@ export async function getBerkasSPs(
     };
   }
 
-  // 2. Search Path: Fetch all matching org, decrypt, filter by query, manually paginate
+  // 2. Search / Encrypted Sort Path: Fetch all matching org, decrypt, filter by query, sort in-memory, manually paginate
   const allBerkas = await prisma.berkasSP.findMany({
     where: whereClause,
-    orderBy: { tanggalMulai: "desc" },
-    take: 500, // Safety limit for in-memory search
+    take: 2000, // Safety limit for in-memory processing
   });
 
   const decryptedAll = allBerkas.map((berkas: BerkasSP) => ({
@@ -102,13 +114,46 @@ export async function getBerkasSPs(
     catatan: berkas.catatan ? decryptText(berkas.catatan) : null,
   }));
 
-  const searchLower = query.toLowerCase();
-  const filtered = decryptedAll.filter(
-    (item) =>
-      item.nama.toLowerCase().includes(searchLower) ||
-      (item.catatan && item.catatan.toLowerCase().includes(searchLower)) ||
-      (item.organisasi && item.organisasi.toLowerCase().includes(searchLower)),
-  );
+  let filtered = decryptedAll;
+  if (query) {
+    const searchLower = query.toLowerCase();
+    filtered = decryptedAll.filter(
+      (item) =>
+        item.nama.toLowerCase().includes(searchLower) ||
+        (item.catatan && item.catatan.toLowerCase().includes(searchLower)) ||
+        (item.organisasi &&
+          item.organisasi.toLowerCase().includes(searchLower)),
+    );
+  }
+
+  // Sorting in-memory
+  const actualSortKey =
+    sortKey === "status" ? "tanggalBerakhir" : sortKey || "tanggalMulai";
+  const actualSortDir = sortDir || "desc";
+
+  filtered.sort((a, b) => {
+    let aVal: any;
+    let bVal: any;
+
+    if (
+      actualSortKey === "tanggalMulai" ||
+      actualSortKey === "tanggalBerakhir"
+    ) {
+      aVal = new Date(a[actualSortKey]).getTime();
+      bVal = new Date(b[actualSortKey]).getTime();
+    } else {
+      aVal = (a[actualSortKey as keyof typeof a] ?? "")
+        .toString()
+        .toLowerCase();
+      bVal = (b[actualSortKey as keyof typeof b] ?? "")
+        .toString()
+        .toLowerCase();
+    }
+
+    if (aVal < bVal) return actualSortDir === "asc" ? -1 : 1;
+    if (aVal > bVal) return actualSortDir === "asc" ? 1 : -1;
+    return 0;
+  });
 
   const total = filtered.length;
   const totalPages = Math.ceil(total / limit);

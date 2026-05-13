@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -154,36 +154,40 @@ export function KegiatanList({
     );
   };
 
-  const sortedData = [...data].sort((a, b) => {
-    if (!sortKey) return 0;
-    const aVal =
-      sortKey === "tanggalMulai"
-        ? new Date(a.tanggalMulai).getTime()
-        : a.judul.toLowerCase();
-    const bVal =
-      sortKey === "tanggalMulai"
-        ? new Date(b.tanggalMulai).getTime()
-        : b.judul.toLowerCase();
-    if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
-    if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
-    return 0;
-  });
+  // Data sudah diurutkan secara global dari server
+  const sortedData = data;
 
   // Function to fetch data
-  const fetchData = async (query: string, status: string, page: number) => {
-    setIsLoading(true);
-    try {
-      const result = await getAgendaKegiatanList(query, page, 10, status);
-      setData(result.data as KegiatanItem[]);
-      setTotalPages(result.totalPages);
-      setTotalItems(result.total);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      toast.error("Gagal memuat data");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const fetchData = useCallback(
+    async (
+      query: string,
+      status: string,
+      page: number,
+      sKey: SortKey | null = sortKey,
+      sDir: SortDir = sortDir,
+    ) => {
+      setIsLoading(true);
+      try {
+        const result = await getAgendaKegiatanList(
+          query,
+          page,
+          10,
+          status,
+          sKey,
+          sDir,
+        );
+        setData(result.data as KegiatanItem[]);
+        setTotalPages(result.totalPages);
+        setTotalItems(result.total);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Gagal memuat data");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [sortKey, sortDir],
+  );
 
   // Debounce search
   useEffect(() => {
@@ -192,7 +196,7 @@ export function KegiatanList({
       fetchData(searchTerm, statusFilter, 1);
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchTerm, statusFilter]);
+  }, [searchTerm, statusFilter, fetchData]);
 
   useEffect(() => {
     const handler = (event: Event) => {
@@ -216,7 +220,7 @@ export function KegiatanList({
         realtimeTimerRef.current = null;
       }
     };
-  }, [searchTerm, statusFilter, currentPage]);
+  }, [searchTerm, statusFilter, currentPage, fetchData]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);

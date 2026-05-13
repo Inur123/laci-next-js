@@ -104,6 +104,7 @@ export function PresensiDetail({
   const [attSortDir, setAttSortDir] = useState<AttSortDir>("desc");
 
   const handleAttSort = (key: AttSortKey) => {
+    setCurrentPage(1);
     if (attSortKey === key) {
       setAttSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {

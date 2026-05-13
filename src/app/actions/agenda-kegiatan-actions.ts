@@ -47,6 +47,8 @@ export async function getAgendaKegiatanList(
   page: number = 1,
   limit: number = 10,
   statusFilter?: string,
+  sortKey?: string | null,
+  sortDir?: "asc" | "desc",
 ) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
@@ -66,12 +68,18 @@ export async function getAgendaKegiatanList(
     periodeId: periodeAktif.id,
   };
 
-  // 1. Optimized Path: No search & No status filter -> DB Pagination (Fast)
-  if (!query && (!statusFilter || statusFilter === "ALL")) {
+  const isCustomSort =
+    sortKey === "judul" || sortKey === "lokasi" || sortKey === "status";
+
+  // 1. Optimized Path: No search, no status filter, and unencrypted sort -> DB Pagination (Fast)
+  if (!query && (!statusFilter || statusFilter === "ALL") && !isCustomSort) {
+    const dir = sortDir === "asc" ? "asc" : "desc";
+    const actualSort = sortKey === "tanggalMulai" ? "tanggalMulai" : "createdAt";
+
     const total = await prisma.agendaKegiatan.count({ where: whereClause });
     const kegiatanList = await prisma.agendaKegiatan.findMany({
       where: whereClause,
-      orderBy: { createdAt: "desc" },
+      orderBy: { [actualSort]: dir },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -91,13 +99,13 @@ export async function getAgendaKegiatanList(
     };
   }
 
-  // 2. Search/Filter Path: Fetch all, decrypt, filter, paginate
+  // 2. Search/Filter/Custom Sort Path: Fetch all, decrypt, filter, sort globally, paginate
   const allKegiatan = await prisma.agendaKegiatan.findMany({
     where: whereClause,
     orderBy: {
       createdAt: "desc",
     },
-    take: 500, // Safety limit
+    take: 2000, // Safety limit for global sorting
   });
 
   // Decrypt and compute status
@@ -123,6 +131,25 @@ export async function getAgendaKegiatanList(
   // Apply Status Filter
   if (statusFilter && statusFilter !== "ALL") {
     filteredData = filteredData.filter((item) => item.status === statusFilter);
+  }
+
+  // Apply Global Sorting
+  if (sortKey) {
+    const isAsc = sortDir === "asc";
+    filteredData.sort((a: any, b: any) => {
+      let aVal: any;
+      let bVal: any;
+      if (sortKey === "tanggalMulai") {
+        aVal = new Date(a.tanggalMulai).getTime();
+        bVal = new Date(b.tanggalMulai).getTime();
+      } else {
+        aVal = (a[sortKey] || "").toString().toLowerCase();
+        bVal = (b[sortKey] || "").toString().toLowerCase();
+      }
+      if (aVal < bVal) return isAsc ? -1 : 1;
+      if (aVal > bVal) return isAsc ? 1 : -1;
+      return 0;
+    });
   }
 
   // Pagination

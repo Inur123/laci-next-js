@@ -32,7 +32,7 @@ async function PresensiPageContent({
   userId: string;
   userRole?: string;
 }) {
-  const [data, periodeAktif] = await Promise.all([
+  const [result, periodeAktif] = await Promise.all([
     getPresensiList(),
     prisma.periode.findFirst({
       where: {
@@ -93,7 +93,12 @@ async function PresensiPageContent({
           </Button>
         </div>
       ) : (
-        <PresensiList data={data} userRole={userRole ?? "SEKRETARIS_PAC"} />
+        <PresensiList
+          data={result.data}
+          totalPages={result.totalPages}
+          totalItems={result.total}
+          userRole={userRole ?? "SEKRETARIS_PAC"}
+        />
       )}
     </div>
   );

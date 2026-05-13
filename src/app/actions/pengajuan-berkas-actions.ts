@@ -102,6 +102,8 @@ export async function getPengajuanBerkass(
   limit: number = 10,
   statusFilter?: string,
   penerimaFilter?: string,
+  sortKey?: string | null,
+  sortDir?: "asc" | "desc",
 ) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
@@ -134,9 +136,15 @@ export async function getPengajuanBerkass(
     whereClause.penerima = penerimaFilter as PenerimaSurat;
   }
 
-  // 1. Optimized Path: No search -> DB Pagination
-  if (!query) {
-    // OPTIMASI: Jalankan berurutan agar hemat koneksi (Anti-Timeout)
+  const isEncryptedSort = sortKey === "noSurat" || sortKey === "keperluan";
+
+  // 1. Optimized Path: No search and unencrypted sort -> DB Pagination
+  if (!query && !isEncryptedSort) {
+    const validSortCols = ["tanggal", "penerima", "status"];
+    const actualSortKey =
+      sortKey && validSortCols.includes(sortKey) ? sortKey : "tanggal";
+    const dir = sortDir === "asc" ? "asc" : "desc";
+
     const total = await prisma.pengajuanBerkas.count({ where: whereClause });
 
     const pengajuans = await prisma.pengajuanBerkas.findMany({
@@ -146,7 +154,7 @@ export async function getPengajuanBerkass(
         periodeCabang: true,
       },
       orderBy: {
-        tanggal: "desc",
+        [actualSortKey]: dir,
       },
       skip: (page - 1) * limit,
       take: limit,
@@ -169,14 +177,14 @@ export async function getPengajuanBerkass(
     };
   }
 
+  // 2. Search & Encrypted Sort Path: Process in-memory
   const allPengajuans = await prisma.pengajuanBerkas.findMany({
     where: whereClause,
     include: {
       periodePac: true,
       periodeCabang: true,
     },
-    orderBy: { tanggal: "desc" },
-    take: 500, // Safety limit for in-memory search
+    take: 2000, // Safety limit for in-memory global sort
   });
 
   const decryptedAll = allPengajuans.map((p) => ({
@@ -187,12 +195,35 @@ export async function getPengajuanBerkass(
     alasanPenolakan: p.alasanPenolakan ? decryptText(p.alasanPenolakan) : null,
   }));
 
-  const searchLower = query.toLowerCase();
-  const filtered = decryptedAll.filter(
-    (item) =>
-      item.noSurat.toLowerCase().includes(searchLower) ||
-      item.keperluan.toLowerCase().includes(searchLower),
-  );
+  let filtered = decryptedAll;
+  if (query) {
+    const searchLower = query.toLowerCase();
+    filtered = decryptedAll.filter(
+      (item) =>
+        item.noSurat.toLowerCase().includes(searchLower) ||
+        item.keperluan.toLowerCase().includes(searchLower),
+    );
+  }
+
+  const actualSortKey = sortKey || "tanggal";
+  const actualSortDir = sortDir || "desc";
+
+  filtered.sort((a: any, b: any) => {
+    let aVal: any;
+    let bVal: any;
+
+    if (actualSortKey === "tanggal") {
+      aVal = new Date(a.tanggal).getTime();
+      bVal = new Date(b.tanggal).getTime();
+    } else {
+      aVal = (a[actualSortKey] ?? "").toString().toLowerCase();
+      bVal = (b[actualSortKey] ?? "").toString().toLowerCase();
+    }
+
+    if (aVal < bVal) return actualSortDir === "asc" ? -1 : 1;
+    if (aVal > bVal) return actualSortDir === "asc" ? 1 : -1;
+    return 0;
+  });
 
   const total = filtered.length;
   const totalPages = Math.ceil(total / limit);
@@ -216,6 +247,8 @@ export async function getVerifikasiPengajuanForCabang(
   statusFilter?: string,
   penerimaFilter?: string,
   pacFilter?: string,
+  sortKey?: string | null,
+  sortDir?: "asc" | "desc",
 ) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
@@ -261,9 +294,15 @@ export async function getVerifikasiPengajuanForCabang(
     whereClause.userId = pacFilter;
   }
 
-  // 1. Optimized Path: No search -> DB Pagination
-  if (!query) {
-    // OPTIMASI: Jalankan berurutan agar hemat koneksi (Anti-Timeout)
+  const isEncryptedSort = sortKey === "noSurat" || sortKey === "keperluan";
+
+  // 1. Optimized Path: No search and unencrypted sort -> DB Pagination
+  if (!query && !isEncryptedSort) {
+    const validSortCols = ["tanggal", "penerima", "status"];
+    const actualSortKey =
+      sortKey && validSortCols.includes(sortKey) ? sortKey : "tanggal";
+    const dir = sortDir === "asc" ? "asc" : "desc";
+
     const total = await prisma.pengajuanBerkas.count({ where: whereClause });
 
     const pengajuans = await prisma.pengajuanBerkas.findMany({
@@ -279,7 +318,7 @@ export async function getVerifikasiPengajuanForCabang(
         periodeCabang: true,
       },
       orderBy: {
-        tanggal: "desc",
+        [actualSortKey]: dir,
       },
       skip: (page - 1) * limit,
       take: limit,
@@ -302,7 +341,7 @@ export async function getVerifikasiPengajuanForCabang(
     };
   }
 
-  // 2. Search Path: Fetch all, decrypt, filter, paginate
+  // 2. Search & Encrypted Sort Path: Process in-memory
   const allPengajuans = await prisma.pengajuanBerkas.findMany({
     where: whereClause,
     include: {
@@ -315,8 +354,7 @@ export async function getVerifikasiPengajuanForCabang(
       periodePac: true,
       periodeCabang: true,
     },
-    orderBy: { tanggal: "desc" },
-    take: 500, // Safety limit for in-memory search
+    take: 2000, // Safety limit for in-memory global sort
   });
 
   const decryptedAll = allPengajuans.map((p) => ({
@@ -327,13 +365,36 @@ export async function getVerifikasiPengajuanForCabang(
     alasanPenolakan: p.alasanPenolakan ? decryptText(p.alasanPenolakan) : null,
   }));
 
-  const searchLower = query.toLowerCase();
-  const filtered = decryptedAll.filter(
-    (item) =>
-      item.noSurat.toLowerCase().includes(searchLower) ||
-      item.keperluan.toLowerCase().includes(searchLower) ||
-      (item.user?.name && item.user.name.toLowerCase().includes(searchLower)),
-  );
+  let filtered = decryptedAll;
+  if (query) {
+    const searchLower = query.toLowerCase();
+    filtered = decryptedAll.filter(
+      (item) =>
+        item.noSurat.toLowerCase().includes(searchLower) ||
+        item.keperluan.toLowerCase().includes(searchLower) ||
+        (item.user?.name && item.user.name.toLowerCase().includes(searchLower)),
+    );
+  }
+
+  const actualSortKey = sortKey || "tanggal";
+  const actualSortDir = sortDir || "desc";
+
+  filtered.sort((a: any, b: any) => {
+    let aVal: any;
+    let bVal: any;
+
+    if (actualSortKey === "tanggal") {
+      aVal = new Date(a.tanggal).getTime();
+      bVal = new Date(b.tanggal).getTime();
+    } else {
+      aVal = (a[actualSortKey] ?? "").toString().toLowerCase();
+      bVal = (b[actualSortKey] ?? "").toString().toLowerCase();
+    }
+
+    if (aVal < bVal) return actualSortDir === "asc" ? -1 : 1;
+    if (aVal > bVal) return actualSortDir === "asc" ? 1 : -1;
+    return 0;
+  });
 
   const total = filtered.length;
   const totalPages = Math.ceil(total / limit);
@@ -357,6 +418,8 @@ export async function getPengajuanForReferensiPac(
   statusFilter?: string,
   penerimaFilter?: string,
   pacFilter?: string,
+  sortKey?: string | null,
+  sortDir?: "asc" | "desc",
 ) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
@@ -403,7 +466,16 @@ export async function getPengajuanForReferensiPac(
     whereClause.userId = pacFilter;
   }
 
-  if (!query) {
+  const isCustomSort =
+    sortKey === "noSurat" || sortKey === "keperluan" || sortKey === "pengaju";
+
+  // 1. Optimized Path: No search and unencrypted sort -> DB Pagination
+  if (!query && !isCustomSort) {
+    const validSortCols = ["tanggal", "penerima", "status"];
+    const actualSortKey =
+      sortKey && validSortCols.includes(sortKey) ? sortKey : "createdAt";
+    const dir = sortDir === "asc" ? "asc" : "desc";
+
     const total = await prisma.pengajuanBerkas.count({ where: whereClause });
 
     const pengajuans = await prisma.pengajuanBerkas.findMany({
@@ -419,7 +491,7 @@ export async function getPengajuanForReferensiPac(
         periodeCabang: true,
       },
       orderBy: {
-        createdAt: "desc",
+        [actualSortKey]: dir,
       },
       skip: (page - 1) * limit,
       take: limit,
@@ -442,6 +514,7 @@ export async function getPengajuanForReferensiPac(
     };
   }
 
+  // 2. Search & Encrypted/Custom Sort Path: Process in-memory
   const allPengajuans = await prisma.pengajuanBerkas.findMany({
     where: whereClause,
     include: {
@@ -454,8 +527,7 @@ export async function getPengajuanForReferensiPac(
       periodePac: true,
       periodeCabang: true,
     },
-    orderBy: { createdAt: "desc" },
-    take: 500, // Safety limit for in-memory search
+    take: 2000, // Safety limit for in-memory global sort
   });
 
   const decryptedAll = allPengajuans.map((p) => ({
@@ -466,13 +538,39 @@ export async function getPengajuanForReferensiPac(
     alasanPenolakan: p.alasanPenolakan ? decryptText(p.alasanPenolakan) : null,
   }));
 
-  const searchLower = query.toLowerCase();
-  const filtered = decryptedAll.filter(
-    (item) =>
-      item.noSurat.toLowerCase().includes(searchLower) ||
-      item.keperluan.toLowerCase().includes(searchLower) ||
-      (item.user?.name && item.user.name.toLowerCase().includes(searchLower)),
-  );
+  let filtered = decryptedAll;
+  if (query) {
+    const searchLower = query.toLowerCase();
+    filtered = decryptedAll.filter(
+      (item) =>
+        item.noSurat.toLowerCase().includes(searchLower) ||
+        item.keperluan.toLowerCase().includes(searchLower) ||
+        (item.user?.name && item.user.name.toLowerCase().includes(searchLower)),
+    );
+  }
+
+  const actualSortKey = sortKey || "tanggal";
+  const actualSortDir = sortDir || "desc";
+
+  filtered.sort((a: any, b: any) => {
+    let aVal: any;
+    let bVal: any;
+
+    if (actualSortKey === "tanggal") {
+      aVal = new Date(a.tanggal).getTime();
+      bVal = new Date(b.tanggal).getTime();
+    } else if (actualSortKey === "pengaju") {
+      aVal = (a.user?.name ?? "").toString().toLowerCase();
+      bVal = (b.user?.name ?? "").toString().toLowerCase();
+    } else {
+      aVal = (a[actualSortKey] ?? "").toString().toLowerCase();
+      bVal = (b[actualSortKey] ?? "").toString().toLowerCase();
+    }
+
+    if (aVal < bVal) return actualSortDir === "asc" ? -1 : 1;
+    if (aVal > bVal) return actualSortDir === "asc" ? 1 : -1;
+    return 0;
+  });
 
   const total = filtered.length;
   const totalPages = Math.ceil(total / limit);

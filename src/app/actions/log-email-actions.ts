@@ -74,6 +74,8 @@ export interface EmailLogFilters {
   search?: string;
   dateFrom?: string;
   dateTo?: string;
+  sortKey?: string | null;
+  sortDir?: "asc" | "desc";
 }
 
 export async function getEmailLogs(
@@ -104,10 +106,17 @@ export async function getEmailLogs(
     }
   }
 
+  const orderBy: any = {};
+  if (filters.sortKey) {
+    orderBy[filters.sortKey] = filters.sortDir || "asc";
+  } else {
+    orderBy.createdAt = "desc";
+  }
+
   const [data, total] = await Promise.all([
     prisma.logEmail.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy,
       skip: (page - 1) * perPage,
       take: perPage,
     }),

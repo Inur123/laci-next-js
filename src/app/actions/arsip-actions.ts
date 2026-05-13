@@ -41,6 +41,8 @@ export async function getArsipSurats(
   jenisSuratFilter?: string,
   page: number = 1,
   limit: number = 10,
+  sortKey?: string | null,
+  sortDir?: "asc" | "desc",
 ) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
@@ -77,15 +79,28 @@ export async function getArsipSurats(
     whereClause.jenisSurat = jenisSuratFilter as JenisSurat;
   }
 
-  // OPTIMIZATION: If NO search query, use DB pagination
-  if (!query) {
+  const isEncryptedSort =
+    sortKey === "noSurat" ||
+    sortKey === "pengirimPenerima" ||
+    sortKey === "perihal";
+
+  // OPTIMIZATION: If NO search query and sorting by unencrypted DB fields -> DB Pagination
+  if (!query && !isEncryptedSort) {
+    let orderByClause: Prisma.ArsipSuratOrderByWithRelationInput = {
+      tanggal: "desc",
+    };
+    if (sortKey) {
+      const dir = sortDir === "asc" ? "asc" : "desc";
+      if (sortKey === "tanggal") orderByClause = { tanggal: dir };
+      else if (sortKey === "organisasi") orderByClause = { organisasi: dir };
+      else if (sortKey === "jenisSurat") orderByClause = { jenisSurat: dir };
+    }
+
     const [total, arsipSurats] = await Promise.all([
       prisma.arsipSurat.count({ where: whereClause }),
       prisma.arsipSurat.findMany({
         where: whereClause,
-        orderBy: {
-          tanggal: "desc",
-        },
+        orderBy: orderByClause,
         skip: (page - 1) * limit,
         take: limit,
       }),
@@ -107,14 +122,10 @@ export async function getArsipSurats(
     };
   }
 
-  // If query exists, we must fetch ALL matches (by org/type) then filter in memory
-  // This is unavoidable with encrypted searchable fields unless we use blind indexing
+  // If query exists or sorting by encrypted fields, we must fetch ALL matches then process in memory
   const arsipSurats = await prisma.arsipSurat.findMany({
     where: whereClause,
-    orderBy: {
-      tanggal: "desc",
-    },
-    take: 500, // Safety limit for in-memory search
+    take: 2000, // Safety limit for in-memory processing
   });
 
   // Decrypt data
@@ -127,16 +138,40 @@ export async function getArsipSurats(
   }));
 
   // Filter keys that are encrypted (in-memory) if query exists
-  const lowerQuery = query.toLowerCase();
-  const filtered = decryptedArsip.filter(
-    (item: ArsipSurat) =>
-      item.noSurat.toLowerCase().includes(lowerQuery) ||
-      item.perihal.toLowerCase().includes(lowerQuery) ||
-      item.pengirimPenerima.toLowerCase().includes(lowerQuery) ||
-      (item.deskripsi && item.deskripsi.toLowerCase().includes(lowerQuery)),
-  );
+  let filtered = decryptedArsip;
+  if (query) {
+    const lowerQuery = query.toLowerCase();
+    filtered = decryptedArsip.filter(
+      (item: any) =>
+        item.noSurat.toLowerCase().includes(lowerQuery) ||
+        item.perihal.toLowerCase().includes(lowerQuery) ||
+        item.pengirimPenerima.toLowerCase().includes(lowerQuery) ||
+        (item.deskripsi && item.deskripsi.toLowerCase().includes(lowerQuery)),
+    );
+  }
 
-  // Manual pagination for filtered results
+  // Sorting in-memory
+  const actualSortKey = sortKey || "tanggal";
+  const actualSortDir = sortDir || "desc";
+
+  filtered.sort((a: any, b: any) => {
+    let aVal: any;
+    let bVal: any;
+
+    if (actualSortKey === "tanggal") {
+      aVal = new Date(a.tanggal).getTime();
+      bVal = new Date(b.tanggal).getTime();
+    } else {
+      aVal = (a[actualSortKey] ?? "").toString().toLowerCase();
+      bVal = (b[actualSortKey] ?? "").toString().toLowerCase();
+    }
+
+    if (aVal < bVal) return actualSortDir === "asc" ? -1 : 1;
+    if (aVal > bVal) return actualSortDir === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  // Manual pagination for processed results
   const total = filtered.length;
   const startIndex = (page - 1) * limit;
   const paginatedData = filtered.slice(startIndex, startIndex + limit);

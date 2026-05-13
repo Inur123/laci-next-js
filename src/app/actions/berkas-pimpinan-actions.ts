@@ -24,6 +24,8 @@ export async function getBerkasPimpinans(
   query?: string,
   page: number = 1,
   limit: number = 10,
+  sortKey?: string | null,
+  sortDir?: "asc" | "desc",
 ) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
@@ -43,14 +45,17 @@ export async function getBerkasPimpinans(
     periodeId: periodeAktif.id,
   };
 
-  // 1. Optimized Path: No search query -> DB Pagination
-  if (!query) {
+  const isEncryptedSort = sortKey === "nama" || sortKey === "catatan";
+
+  // 1. Optimized Path: No search query and sorting by unencrypted field -> DB Pagination
+  if (!query && !isEncryptedSort) {
+    const dir = sortDir === "asc" ? "asc" : "desc";
     const [total, berkas] = await Promise.all([
       prisma.berkasPimpinan.count({ where: whereClause }),
       prisma.berkasPimpinan.findMany({
         where: whereClause,
         orderBy: {
-          tanggal: "desc",
+          tanggal: sortKey === "tanggal" ? dir : "desc",
         },
         skip: (page - 1) * limit,
         take: limit,
@@ -70,11 +75,10 @@ export async function getBerkasPimpinans(
     };
   }
 
-  // 2. Search Path: Fetch all, decrypt, filter, then paginate manually
+  // 2. Search & Encrypted Sort Path: Fetch matches, process in memory
   const allBerkas = await prisma.berkasPimpinan.findMany({
     where: whereClause,
-    orderBy: { tanggal: "desc" },
-    take: 500, // Safety limit for in-memory search
+    take: 2000, // Safety limit for in-memory processing
   });
 
   const decryptedAll = allBerkas.map((item: BerkasPimpinan) => ({
@@ -83,12 +87,36 @@ export async function getBerkasPimpinans(
     catatan: item.catatan ? decryptText(item.catatan) : null,
   }));
 
-  const searchLower = query.toLowerCase();
-  const filtered = decryptedAll.filter(
-    (item) =>
-      item.nama.toLowerCase().includes(searchLower) ||
-      (item.catatan && item.catatan.toLowerCase().includes(searchLower)),
-  );
+  let filtered = decryptedAll;
+  if (query) {
+    const searchLower = query.toLowerCase();
+    filtered = decryptedAll.filter(
+      (item) =>
+        item.nama.toLowerCase().includes(searchLower) ||
+        (item.catatan && item.catatan.toLowerCase().includes(searchLower)),
+    );
+  }
+
+  // Sorting in-memory
+  const actualSortKey = sortKey || "tanggal";
+  const actualSortDir = sortDir || "desc";
+
+  filtered.sort((a: any, b: any) => {
+    let aVal: any;
+    let bVal: any;
+
+    if (actualSortKey === "tanggal") {
+      aVal = new Date(a.tanggal).getTime();
+      bVal = new Date(b.tanggal).getTime();
+    } else {
+      aVal = (a[actualSortKey] ?? "").toString().toLowerCase();
+      bVal = (b[actualSortKey] ?? "").toString().toLowerCase();
+    }
+
+    if (aVal < bVal) return actualSortDir === "asc" ? -1 : 1;
+    if (aVal > bVal) return actualSortDir === "asc" ? 1 : -1;
+    return 0;
+  });
 
   const total = filtered.length;
   const totalPages = Math.ceil(total / limit);

@@ -293,54 +293,22 @@ export function EmailLogClient({
   const [sortKey, setSortKey] = useState<SortKey | null>("createdAt");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
-  const handleSort = (key: SortKey) => {
-    if (sortKey === key) {
-      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setSortKey(key);
-      setSortDir("asc");
-    }
-  };
-
-  const SortIcon = ({ col }: { col: SortKey }) => {
-    if (sortKey !== col)
-      return (
-        <ArrowUpDown className="ml-1.5 h-3.5 w-3.5 text-slate-400 inline-block" />
-      );
-    return sortDir === "asc" ? (
-      <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
-    ) : (
-      <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
-    );
-  };
-
-  const sortedData = [...data].sort((a, b) => {
-    if (!sortKey) return 0;
-    const aVal =
-      sortKey === "createdAt"
-        ? new Date(a.createdAt).getTime()
-        : (a[sortKey] ?? "").toString().toLowerCase();
-    const bVal =
-      sortKey === "createdAt"
-        ? new Date(b.createdAt).getTime()
-        : (b[sortKey] ?? "").toString().toLowerCase();
-    if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
-    if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
-    return 0;
-  });
-
   const fetchData = useCallback(
     async (
       search: string,
       type: string,
       status: string,
       page: number,
+      sKey: SortKey | null = sortKey,
+      sDir: SortDir = sortDir,
     ) => {
       try {
         const filters: EmailLogFilters = {};
         if (search) filters.search = search;
         if (type !== "ALL") filters.type = type;
         if (status !== "ALL") filters.status = status;
+        if (sKey) filters.sortKey = sKey;
+        if (sDir) filters.sortDir = sDir;
 
         const [result, newStats] = await Promise.all([
           getEmailLogs(filters, page, 20),
@@ -355,17 +323,40 @@ export function EmailLogClient({
         toast.error("Gagal memuat data email");
       }
     },
-    [],
+    [sortKey, sortDir],
   );
 
-  // Debounced search
+  const handleSort = (key: SortKey) => {
+    setCurrentPage(1);
+    const nextDir = sortKey === key && sortDir === "asc" ? "desc" : "asc";
+    setSortKey(key);
+    setSortDir(nextDir);
+    fetchData(searchTerm, typeFilter, statusFilter, 1, key, nextDir);
+  };
+
+  const SortIcon = ({ col }: { col: SortKey }) => {
+    if (sortKey !== col)
+      return (
+        <ArrowUpDown className="ml-1.5 h-3.5 w-3.5 text-slate-400 inline-block" />
+      );
+    return sortDir === "asc" ? (
+      <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+    ) : (
+      <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
+    );
+  };
+
+  const sortedData = data;
+
+  // Debounced search for keyword only
   useEffect(() => {
     const timer = setTimeout(() => {
       setCurrentPage(1);
       fetchData(searchTerm, typeFilter, statusFilter, 1);
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchTerm, typeFilter, statusFilter, fetchData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
 
   // Realtime listener for EmailLog mutations
   useEffect(() => {
@@ -393,9 +384,12 @@ export function EmailLogClient({
   }, [searchTerm, typeFilter, statusFilter, currentPage, fetchData]);
 
   const handleFilterChange = (key: string, value: string) => {
+    const nType = key === "type" ? value : typeFilter;
+    const nStatus = key === "status" ? value : statusFilter;
     if (key === "type") setTypeFilter(value);
     if (key === "status") setStatusFilter(value);
     setCurrentPage(1);
+    fetchData(searchTerm, nType, nStatus, 1);
   };
 
   const handlePageChange = (page: number) => {
@@ -407,8 +401,10 @@ export function EmailLogClient({
     setSearchTerm("");
     setTypeFilter("ALL");
     setStatusFilter("ALL");
+    setSortKey("createdAt");
+    setSortDir("desc");
     setCurrentPage(1);
-    fetchData("", "ALL", "ALL", 1);
+    fetchData("", "ALL", "ALL", 1, "createdAt", "desc");
   };
 
   const handleRetry = async (logId: string) => {
@@ -446,7 +442,11 @@ export function EmailLogClient({
   };
 
   const hasFilters =
-    searchTerm !== "" || typeFilter !== "ALL" || statusFilter !== "ALL";
+    searchTerm !== "" ||
+    typeFilter !== "ALL" ||
+    statusFilter !== "ALL" ||
+    sortKey !== "createdAt" ||
+    sortDir !== "desc";
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
@@ -570,8 +570,14 @@ export function EmailLogClient({
                       <SortIcon col="to" />
                     </span>
                   </TableHead>
-                  <TableHead className="whitespace-nowrap hidden md:table-cell text-slate-500 font-semibold h-12">
-                    Subjek
+                  <TableHead
+                    className="whitespace-nowrap hidden md:table-cell text-slate-500 font-semibold h-12 cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    onClick={() => handleSort("subject")}
+                  >
+                    <span className="inline-flex items-center">
+                      Subjek
+                      <SortIcon col="subject" />
+                    </span>
                   </TableHead>
                   <TableHead
                     className="w-[140px] whitespace-nowrap text-slate-500 font-semibold h-12 cursor-pointer select-none hover:bg-slate-100 transition-colors"

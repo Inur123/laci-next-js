@@ -193,24 +193,8 @@ export function ReferensiPengajuanList({
     );
   };
 
-  const sortedDisplayedItems = [...data].sort((a, b) => {
-    if (!sortKey) return 0;
-    let aVal: string | number;
-    let bVal: string | number;
-    if (sortKey === "tanggal") {
-      aVal = new Date(a.tanggal).getTime();
-      bVal = new Date(b.tanggal).getTime();
-    } else if (sortKey === "pengaju") {
-      aVal = (a.user?.name ?? "").toLowerCase();
-      bVal = (b.user?.name ?? "").toLowerCase();
-    } else {
-      aVal = ((a as any)[sortKey] ?? "").toString().toLowerCase();
-      bVal = ((b as any)[sortKey] ?? "").toString().toLowerCase();
-    }
-    if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
-    if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
-    return 0;
-  });
+  // Data sudah diurutkan secara global dari server
+  const sortedDisplayedItems = data;
 
   // ── Fetch Data ────────────────────────────────────────────────────────────
   const fetchData = useCallback(
@@ -220,6 +204,8 @@ export function ReferensiPengajuanList({
       penerima: string,
       pac: string,
       page: number,
+      sKey: SortKey | null = sortKey,
+      sDir: SortDir = sortDir,
     ) => {
       try {
         const result = await getPengajuanForReferensiPac(
@@ -229,6 +215,8 @@ export function ReferensiPengajuanList({
           status,
           penerima,
           pac,
+          sKey,
+          sDir,
         );
         setData(result.data as PengajuanItem[]);
         setTotalPages(result.totalPages);
@@ -237,7 +225,7 @@ export function ReferensiPengajuanList({
         toast.error("Gagal memuat data");
       }
     },
-    [],
+    [sortKey, sortDir],
   );
 
   // ── Load PAC users on mount ───────────────────────────────────────────────

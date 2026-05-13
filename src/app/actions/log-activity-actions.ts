@@ -13,6 +13,8 @@ export type LogActivityFilters = {
   endDate?: string;
   periodeId?: string;
   userId?: string;
+  sortKey?: string | null;
+  sortDir?: "asc" | "desc";
 };
 
 /**
@@ -68,6 +70,19 @@ export async function getPersonalLogs(
       where.createdAt = createdAt;
     }
 
+    const orderBy: any = {};
+    if (filters.sortKey) {
+      if (filters.sortKey === "userName") {
+        orderBy.user = { name: filters.sortDir || "asc" };
+      } else if (filters.sortKey === "createdAt") {
+        orderBy.createdAt = filters.sortDir || "desc";
+      } else {
+        orderBy[filters.sortKey] = filters.sortDir || "asc";
+      }
+    } else {
+      orderBy.createdAt = "desc";
+    }
+
     const [logs, total] = await Promise.all([
       prisma.logActivity.findMany({
         where,
@@ -93,9 +108,7 @@ export async function getPersonalLogs(
             },
           },
         },
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy,
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),
@@ -361,6 +374,19 @@ export async function getGlobalLogs(
       where.userId = filters.userId;
     }
 
+    const orderBy: any = {};
+    if (filters.sortKey) {
+      if (filters.sortKey === "userName") {
+        orderBy.user = { name: filters.sortDir || "asc" };
+      } else if (filters.sortKey === "createdAt") {
+        orderBy.createdAt = filters.sortDir || "desc";
+      } else {
+        orderBy[filters.sortKey] = filters.sortDir || "asc";
+      }
+    } else {
+      orderBy.createdAt = "desc";
+    }
+
     const [logs, total] = await Promise.all([
       prisma.logActivity.findMany({
         where,
@@ -386,9 +412,7 @@ export async function getGlobalLogs(
             },
           },
         },
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy,
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),

@@ -10,9 +10,16 @@ import { isPresensiOpen as checkIsPresensiOpen } from "@/lib/presensi-utils";
 import { notifyRealtime } from "@/lib/realtime";
 
 /**
- * Get List of Presensi Events
+ * Get List of Presensi Events with Pagination, Search, and Global Sorting
  */
-export async function getPresensiList() {
+export async function getPresensiList(
+  query?: string,
+  page: number = 1,
+  limit: number = 10,
+  statusFilter?: string,
+  sortKey?: string | null,
+  sortDir?: "asc" | "desc",
+) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
@@ -21,7 +28,52 @@ export async function getPresensiList() {
     where: { userId: session.user.id, isActive: true },
   });
 
-  const presensi = await prisma.presensi.findMany({
+  const whereClause: any = {
+    userId: session.user.id,
+    periodeId: activePeriode?.id || undefined,
+  };
+
+  const isCustomSortOrFilter =
+    statusFilter === "OPEN" ||
+    statusFilter === "CLOSED" ||
+    sortKey === "isActive";
+
+  if (!isCustomSortOrFilter) {
+    if (query) {
+      whereClause.OR = [
+        { namaKegiatan: { contains: query, mode: "insensitive" } },
+        { tempat: { contains: query, mode: "insensitive" } },
+        { penyelenggara: { contains: query, mode: "insensitive" } },
+      ];
+    }
+
+    const dir = sortDir === "asc" ? "asc" : "desc";
+    const actualSort = sortKey && sortKey !== "isActive" ? sortKey : "tanggal";
+
+    const [total, presensiList] = await Promise.all([
+      prisma.presensi.count({ where: whereClause }),
+      prisma.presensi.findMany({
+        where: whereClause,
+        orderBy: { [actualSort]: dir },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          _count: {
+            select: { dataPresensi: true },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      data: presensiList,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  // Jika melibatkan filter/sort kustom berbasis fungsi isPresensiOpen
+  const allPresensi = await prisma.presensi.findMany({
     where: {
       userId: session.user.id,
       periodeId: activePeriode?.id || undefined,
@@ -34,9 +86,56 @@ export async function getPresensiList() {
         select: { dataPresensi: true },
       },
     },
+    take: 2000,
   });
 
-  return presensi;
+  let filtered = allPresensi;
+  if (query) {
+    const q = query.toLowerCase();
+    filtered = filtered.filter(
+      (item) =>
+        item.namaKegiatan?.toLowerCase().includes(q) ||
+        item.tempat?.toLowerCase().includes(q) ||
+        item.penyelenggara?.toLowerCase().includes(q),
+    );
+  }
+
+  if (statusFilter === "OPEN") {
+    filtered = filtered.filter((item) => checkIsPresensiOpen(item));
+  } else if (statusFilter === "CLOSED") {
+    filtered = filtered.filter((item) => !checkIsPresensiOpen(item));
+  }
+
+  if (sortKey) {
+    const isAsc = sortDir === "asc";
+    filtered.sort((a: any, b: any) => {
+      if (sortKey === "tanggal") {
+        const aTime = new Date(a.tanggal).getTime();
+        const bTime = new Date(b.tanggal).getTime();
+        return isAsc ? aTime - bTime : bTime - aTime;
+      }
+      if (sortKey === "isActive") {
+        const aOpen = checkIsPresensiOpen(a) ? 1 : 0;
+        const bOpen = checkIsPresensiOpen(b) ? 1 : 0;
+        return isAsc ? aOpen - bOpen : bOpen - aOpen;
+      }
+      const aVal = (a[sortKey] ?? "").toString().toLowerCase();
+      const bVal = (b[sortKey] ?? "").toString().toLowerCase();
+      if (aVal < bVal) return isAsc ? -1 : 1;
+      if (aVal > bVal) return isAsc ? 1 : -1;
+      return 0;
+    });
+  }
+
+  const total = filtered.length;
+  const startIndex = (page - 1) * limit;
+  const paginatedData = filtered.slice(startIndex, startIndex + limit);
+
+  return {
+    data: paginatedData,
+    total,
+    totalPages: Math.ceil(total / limit),
+  };
 }
 
 /**

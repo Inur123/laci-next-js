@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -105,43 +105,39 @@ export function UserList({
     );
   };
 
-  const sortedData = [...data].sort((a, b) => {
-    if (!sortKey) return 0;
-    if (sortKey === "isActive") {
-      return sortDir === "asc"
-        ? Number(a.isActive) - Number(b.isActive)
-        : Number(b.isActive) - Number(a.isActive);
-    }
-    if (sortKey === "emailVerified") {
-      return sortDir === "asc"
-        ? Number(!!a.emailVerified) - Number(!!b.emailVerified)
-        : Number(!!b.emailVerified) - Number(!!a.emailVerified);
-    }
-    const aVal = (a[sortKey] ?? "").toLowerCase();
-    const bVal = (b[sortKey] ?? "").toLowerCase();
-    if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
-    if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
-    return 0;
-  });
+  const sortedData = data;
 
-  const fetchData = async (
-    query: string,
-    status: string,
-    emailStatus: string,
-    page: number,
-  ) => {
-    setIsLoading(true);
-    try {
-      const result = await getPACUsers(query, page, 10, status, emailStatus);
-      setData(result.data as UserListItem[]);
-      setTotalPages(result.totalPages);
-      setTotalItems(result.total);
-    } catch {
-      toast.error("Gagal memuat data user");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const fetchData = useCallback(
+    async (
+      query: string,
+      status: string,
+      emailStatus: string,
+      page: number,
+      sKey: SortKey | null = sortKey,
+      sDir: SortDir = sortDir,
+    ) => {
+      setIsLoading(true);
+      try {
+        const result = await getPACUsers(
+          query,
+          page,
+          10,
+          status,
+          emailStatus,
+          sKey,
+          sDir,
+        );
+        setData(result.data as UserListItem[]);
+        setTotalPages(result.totalPages);
+        setTotalItems(result.total);
+      } catch {
+        toast.error("Gagal memuat data user");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [sortKey, sortDir],
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -149,7 +145,7 @@ export function UserList({
       fetchData(searchTerm, statusFilter, emailStatusFilter, 1);
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchTerm, statusFilter, emailStatusFilter]);
+  }, [searchTerm, statusFilter, emailStatusFilter, fetchData]);
 
   // Realtime listener for user updates
   useEffect(() => {
@@ -174,13 +170,14 @@ export function UserList({
         realtimeTimerRef.current = null;
       }
     };
-  }, [searchTerm, statusFilter, emailStatusFilter, currentPage]);
+  }, [searchTerm, statusFilter, emailStatusFilter, currentPage, fetchData]);
 
   const handleReset = () => {
     setSearchTerm("");
     setStatusFilter("ALL");
     setEmailStatusFilter("ALL");
     setCurrentPage(1);
+    fetchData("", "ALL", "ALL", 1);
   };
 
   const handlePageChange = (page: number) => {

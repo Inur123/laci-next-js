@@ -230,58 +230,35 @@ export function LogActivityList({
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  // Sort state (for local sorting by time)
+  // Sort state global
+  type LogSortKey = "createdAt" | "action" | "module" | "userName";
   type SortDir = "asc" | "desc";
+  const [sortKey, setSortKey] = useState<LogSortKey | null>("createdAt");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
-  type LogSortKey = "action" | "module" | "userName";
-  const [logSortKey, setLogSortKey] = useState<LogSortKey | null>(null);
-  const [logSortDir, setLogSortDir] = useState<SortDir>("asc");
 
-  const toggleSort = () =>
-    setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
-
-  const handleLogSort = (key: LogSortKey) => {
-    if (logSortKey === key) {
-      setLogSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+  const handleSort = (key: LogSortKey) => {
+    updateUrl({ page: "1" });
+    if (sortKey === key) {
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
-      setLogSortKey(key);
-      setLogSortDir("asc");
+      setSortKey(key);
+      setSortDir("asc");
     }
   };
 
   const LogSortIcon = ({ col }: { col: LogSortKey }) => {
-    if (logSortKey !== col)
+    if (sortKey !== col)
       return (
         <ArrowUpDown className="ml-1.5 h-3.5 w-3.5 text-slate-400 inline-block" />
       );
-    return logSortDir === "asc" ? (
+    return sortDir === "asc" ? (
       <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
     ) : (
       <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
     );
   };
 
-  const sortedLogs = [...logs].sort((a, b) => {
-    // First apply time sort
-    const aTime = new Date(a.createdAt).getTime();
-    const bTime = new Date(b.createdAt).getTime();
-    // If secondary sort key is set, apply it first
-    if (logSortKey) {
-      const getVal = (item: typeof a) => {
-        if (logSortKey === "action") return item.action ?? "";
-        if (logSortKey === "module") return item.module ?? "";
-        if (logSortKey === "userName") return item.user?.name ?? "";
-        return "";
-      };
-      const aVal = getVal(a).toLowerCase();
-      const bVal = getVal(b).toLowerCase();
-      if (aVal !== bVal) {
-        if (aVal < bVal) return logSortDir === "asc" ? -1 : 1;
-        return logSortDir === "asc" ? 1 : -1;
-      }
-    }
-    return sortDir === "asc" ? aTime - bTime : bTime - aTime;
-  });
+  const sortedLogs = logs;
 
   // Detect if user has active filters or pagination
   const isDirty =
@@ -290,43 +267,52 @@ export function LogActivityList({
     actionFilter !== "ALL" ||
     moduleFilter !== "ALL" ||
     dateRange !== undefined ||
-    userFilter !== "ALL";
+    userFilter !== "ALL" ||
+    sortKey !== "createdAt" ||
+    sortDir !== "desc";
 
-  const fetchData = async (
-    search: string,
-    action: string,
-    module: string,
-    start: string,
-    end: string,
-    page: number,
-    view: "personal" | "global",
-    userId?: string,
-    options: { silent?: boolean } = {},
-  ) => {
-    if (!options.silent) setIsLoading(true);
-    try {
-      const filters: LogActivityFilters = {};
-      if (search) filters.search = search;
-      if (action !== "ALL") filters.action = action;
-      if (module !== "ALL") filters.module = module;
-      if (start) filters.startDate = start;
-      if (end) filters.endDate = end;
-      if (userId && userId !== "ALL") filters.userId = userId;
+  const fetchData = React.useCallback(
+    async (
+      search: string,
+      action: string,
+      module: string,
+      start: string,
+      end: string,
+      page: number,
+      view: "personal" | "global",
+      userId?: string,
+      sKey: LogSortKey | null = sortKey,
+      sDir: SortDir = sortDir,
+      options: { silent?: boolean } = {},
+    ) => {
+      if (!options.silent) setIsLoading(true);
+      try {
+        const filters: LogActivityFilters = {};
+        if (search) filters.search = search;
+        if (action !== "ALL") filters.action = action;
+        if (module !== "ALL") filters.module = module;
+        if (start) filters.startDate = start;
+        if (end) filters.endDate = end;
+        if (userId && userId !== "ALL") filters.userId = userId;
+        if (sKey) filters.sortKey = sKey;
+        if (sDir) filters.sortDir = sDir;
 
-      const data =
-        view === "global"
-          ? await getGlobalLogs(filters, page, 20)
-          : await getPersonalLogs(filters, page, 20);
+        const data =
+          view === "global"
+            ? await getGlobalLogs(filters, page, 20)
+            : await getPersonalLogs(filters, page, 20);
 
-      setLogs(data.data as LogActivityData[]);
-      setTotalPages(data.totalPages);
-      setTotalItems(data.total);
-    } catch (error) {
-      console.error("Error fetching logs:", error);
-    } finally {
-      if (!options.silent) setIsLoading(false);
-    }
-  };
+        setLogs(data.data as LogActivityData[]);
+        setTotalPages(data.totalPages);
+        setTotalItems(data.total);
+      } catch (error) {
+        console.error("Error fetching logs:", error);
+      } finally {
+        if (!options.silent) setIsLoading(false);
+      }
+    },
+    [sortKey, sortDir],
+  );
 
   // REALTIME FIX: Smart Sync
   // When server props (initialLogs) update due to realtime router.refresh():
@@ -393,6 +379,8 @@ export function LogActivityList({
           currentPage,
           currentView,
           userFilter,
+          sortKey,
+          sortDir,
           { silent: true },
         );
       }, 300);
@@ -413,9 +401,11 @@ export function LogActivityList({
     currentPage,
     currentView,
     userFilter,
+    sortKey,
+    sortDir,
+    fetchData,
   ]);
 
-  // Debounced effect for search and dates
   // Debounced effect for search and dates
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -443,6 +433,7 @@ export function LogActivityList({
     currentPage,
     currentView,
     userFilter,
+    fetchData,
   ]);
 
   const handlePageChange = (page: number) => {
@@ -470,6 +461,8 @@ export function LogActivityList({
     setModuleFilter("ALL");
     setDateRange(undefined);
     setUserFilter("ALL");
+    setSortKey("createdAt");
+    setSortDir("desc");
     router.push(window.location.pathname);
   };
 
@@ -552,7 +545,9 @@ export function LogActivityList({
                 actionFilter !== "ALL" ||
                 moduleFilter !== "ALL" ||
                 dateRange !== undefined ||
-                userFilter !== "ALL"
+                userFilter !== "ALL" ||
+                sortKey !== "createdAt" ||
+                sortDir !== "desc"
                 ? "text-slate-900 border-slate-300 opacity-100"
                 : "text-slate-400 border-slate-200 opacity-50 cursor-not-allowed",
             )}
@@ -563,7 +558,9 @@ export function LogActivityList({
               actionFilter === "ALL" &&
               moduleFilter === "ALL" &&
               dateRange === undefined &&
-              userFilter === "ALL"
+              userFilter === "ALL" &&
+              sortKey === "createdAt" &&
+              sortDir === "desc"
             }
           >
             <RefreshCcw className="mr-2 h-3.5 w-3.5" />
@@ -584,21 +581,17 @@ export function LogActivityList({
                   </TableHead>
                   <TableHead
                     className="w-[200px] whitespace-nowrap text-slate-500 font-semibold h-12 cursor-pointer select-none hover:bg-slate-100 transition-colors"
-                    onClick={() => toggleSort()}
+                    onClick={() => handleSort("createdAt")}
                   >
                     <span className="inline-flex items-center">
                       Waktu
-                      {sortDir === "asc" ? (
-                        <ArrowUp className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
-                      ) : (
-                        <ArrowDown className="ml-1.5 h-3.5 w-3.5 text-slate-600 inline-block" />
-                      )}
+                      <LogSortIcon col="createdAt" />
                     </span>
                   </TableHead>
                   {currentView === "global" && (
                     <TableHead
                       className="w-[180px] whitespace-nowrap text-slate-500 font-semibold h-12 cursor-pointer select-none hover:bg-slate-100 transition-colors"
-                      onClick={() => handleLogSort("userName")}
+                      onClick={() => handleSort("userName")}
                     >
                       <span className="inline-flex items-center">
                         User
@@ -608,7 +601,7 @@ export function LogActivityList({
                   )}
                   <TableHead
                     className="w-[130px] whitespace-nowrap text-slate-500 font-semibold h-12 cursor-pointer select-none hover:bg-slate-100 transition-colors"
-                    onClick={() => handleLogSort("action")}
+                    onClick={() => handleSort("action")}
                   >
                     <span className="inline-flex items-center">
                       Entitas
@@ -617,7 +610,7 @@ export function LogActivityList({
                   </TableHead>
                   <TableHead
                     className="w-[160px] whitespace-nowrap text-slate-500 font-semibold h-12 cursor-pointer select-none hover:bg-slate-100 transition-colors"
-                    onClick={() => handleLogSort("module")}
+                    onClick={() => handleSort("module")}
                   >
                     <span className="inline-flex items-center">
                       Menu

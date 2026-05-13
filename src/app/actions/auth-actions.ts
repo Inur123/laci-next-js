@@ -113,6 +113,8 @@ export async function getPACUsers(
   limit: number = 10,
   status?: string,
   emailStatus?: string,
+  sortKey?: string | null,
+  sortDir: "asc" | "desc" = "asc",
 ) {
   const session = await auth();
   if (session?.user?.role !== "SEKRETARIS_CABANG") {
@@ -138,11 +140,15 @@ export async function getPACUsers(
     where.emailVerified = emailStatus === "VERIFIED";
   }
 
+  const orderBy: Prisma.UserOrderByWithRelationInput = sortKey
+    ? { [sortKey]: sortDir }
+    : { createdAt: "desc" };
+
   const [total, users] = await Promise.all([
     prisma.user.count({ where }),
     prisma.user.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy,
       skip: (page - 1) * limit,
       take: limit,
     }),

@@ -22,6 +22,8 @@ export async function getAnggotaList(
   limit: number = 10,
   userId?: string,
   periodeId?: string,
+  sortKey?: string | null,
+  sortDir?: "asc" | "desc",
 ) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
@@ -53,12 +55,23 @@ export async function getAnggotaList(
     }
   }
 
-  if (!query) {
+  // Apakah pengurutan memerlukan dekripsi atau relasi?
+  const needsInMemorySort =
+    sortKey === "namaLengkap" ||
+    sortKey === "jabatan" ||
+    sortKey === "noHp" ||
+    sortKey === "periode" ||
+    sortKey === "dibuatOleh";
+
+  if (!query && !needsInMemorySort) {
+    const dir = sortDir === "asc" ? "asc" : "desc";
+    const actualSort = sortKey === "jenisKelamin" ? "jenisKelamin" : "createdAt";
+
     const [total, allAnggota] = await Promise.all([
       prisma.anggota.count({ where: whereClause }),
       prisma.anggota.findMany({
         where: whereClause,
-        orderBy: { createdAt: "desc" },
+        orderBy: { [actualSort]: dir },
         skip: (page - 1) * limit,
         take: limit,
         include: {
@@ -100,6 +113,7 @@ export async function getAnggotaList(
     return { data: decryptedData, total, totalPages: Math.ceil(total / limit) };
   }
 
+  // Jalur In-Memory Global Sort / Search
   const allAnggota = await prisma.anggota.findMany({
     where: whereClause,
     orderBy: { createdAt: "desc" },
@@ -109,7 +123,7 @@ export async function getAnggotaList(
       perkaderans: true,
       pendidikans: true,
     },
-    take: 500,
+    take: 3000, // Safety limit for global sorting
   });
 
   const decryptedData = allAnggota.map((item) => ({
@@ -139,14 +153,33 @@ export async function getAnggotaList(
     })),
   }));
 
-  const lowerQuery = query.toLowerCase();
-  const filtered = decryptedData.filter(
-    (item) =>
-      item.namaLengkap.toLowerCase().includes(lowerQuery) ||
-      (item.jabatan && item.jabatan.toLowerCase().includes(lowerQuery)) ||
-      (item.nik && item.nik.toLowerCase().includes(lowerQuery)) ||
-      (item.nia && item.nia.toLowerCase().includes(lowerQuery)),
-  );
+  let filtered = decryptedData;
+  if (query) {
+    const lowerQuery = query.toLowerCase();
+    filtered = decryptedData.filter(
+      (item) =>
+        item.namaLengkap.toLowerCase().includes(lowerQuery) ||
+        (item.jabatan && item.jabatan.toLowerCase().includes(lowerQuery)) ||
+        (item.nik && item.nik.toLowerCase().includes(lowerQuery)) ||
+        (item.nia && item.nia.toLowerCase().includes(lowerQuery)),
+    );
+  }
+
+  if (sortKey) {
+    const isAsc = sortDir === "asc";
+    filtered.sort((a, b) => {
+      const getVal = (item: any) => {
+        if (sortKey === "periode") return item.periode?.nama ?? "";
+        if (sortKey === "dibuatOleh") return item.user?.name ?? "";
+        return ((item as any)[sortKey] ?? "").toString();
+      };
+      const aVal = getVal(a).toLowerCase();
+      const bVal = getVal(b).toLowerCase();
+      if (aVal < bVal) return isAsc ? -1 : 1;
+      if (aVal > bVal) return isAsc ? 1 : -1;
+      return 0;
+    });
+  }
 
   const total = filtered.length;
   const startIndex = (page - 1) * limit;

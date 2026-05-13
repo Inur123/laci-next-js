@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -72,14 +72,20 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface PresensiListProps {
   data: any[];
+  totalPages?: number;
+  totalItems?: number;
   userRole?: string;
 }
 
 export function PresensiList({
   data: initialData,
+  totalPages: initialTotalPages = 1,
+  totalItems: initialTotalItems = 0,
   userRole = "SEKRETARIS_PAC",
 }: PresensiListProps) {
   const [data, setData] = useState<any[]>(initialData);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
+  const [totalItems, setTotalItems] = useState(initialTotalItems);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [optimisticHiddenIds, setOptimisticHiddenIds] = useState<string[]>([]);
@@ -92,6 +98,49 @@ export function PresensiList({
   const realtimeTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+
+  // Sort state
+  type SortKey =
+    | "namaKegiatan"
+    | "tanggal"
+    | "jamMulai"
+    | "tempat"
+    | "isActive";
+  type SortDir = "asc" | "desc";
+  const [sortKey, setSortKey] = useState<SortKey | null>("tanggal");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  const fetchData = useCallback(
+    async (
+      query: string,
+      status: string,
+      page: number,
+      sKey: SortKey | null = sortKey,
+      sDir: SortDir = sortDir,
+    ) => {
+      try {
+        const result = await getPresensiList(
+          query,
+          page,
+          10,
+          status,
+          sKey,
+          sDir,
+        );
+        setData(result.data);
+        setTotalPages(result.totalPages);
+        setTotalItems(result.total);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    },
+    [sortKey, sortDir],
+  );
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    fetchData(searchTerm, statusFilter, page);
+  };
 
   // Real-time tick to update status badges every second
   const [, setTick] = useState(0);
@@ -112,7 +161,7 @@ export function PresensiList({
       toast.error(result.error);
     } else {
       toast.success(result.success ?? "Presensi berhasil dihapus");
-      setData((prev) => prev.filter((item) => item.id !== id));
+      fetchData(searchTerm, statusFilter, currentPage);
     }
   };
 
@@ -139,16 +188,14 @@ export function PresensiList({
         if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
         realtimeTimerRef.current = setTimeout(() => {
           realtimeTimerRef.current = null;
-          getPresensiList().then((freshData) => {
-            if (freshData) setData(freshData);
-          });
+          fetchData(searchTerm, statusFilter, currentPage);
         }, 500);
       }
     };
 
     window.addEventListener("laci-realtime", handleRealtime);
     return () => window.removeEventListener("laci-realtime", handleRealtime);
-  }, []);
+  }, [searchTerm, statusFilter, currentPage, fetchData]);
 
   const handleStatusUpdate = async (
     id: string,
@@ -158,43 +205,12 @@ export function PresensiList({
     const result = await updatePresensiStatus(id, mode);
     if (result.success) {
       toast.success(result.success);
-      if (result.data) {
-        setData((prev) =>
-          prev.map((item) => (item.id === id ? result.data : item)),
-        );
-      }
+      fetchData(searchTerm, statusFilter, currentPage);
     } else {
       toast.error(result.error);
     }
     setLoadingId(null);
   };
-
-  const filteredData = data.filter((item) => {
-    if (optimisticHiddenIds.includes(item.id)) return false;
-    const itemIsOpen = isPresensiOpen(item);
-    if (statusFilter === "OPEN" && !itemIsOpen) return false;
-    if (statusFilter === "CLOSED" && itemIsOpen) return false;
-    if (searchTerm) {
-      const q = searchTerm.toLowerCase();
-      return (
-        item.namaKegiatan?.toLowerCase().includes(q) ||
-        item.tempat?.toLowerCase().includes(q) ||
-        item.penyelenggara?.toLowerCase().includes(q)
-      );
-    }
-    return true;
-  });
-
-  // Sort state
-  type SortKey =
-    | "namaKegiatan"
-    | "tanggal"
-    | "jamMulai"
-    | "tempat"
-    | "isActive";
-  type SortDir = "asc" | "desc";
-  const [sortKey, setSortKey] = useState<SortKey | null>("tanggal");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -217,37 +233,22 @@ export function PresensiList({
     );
   };
 
-  const sortedFilteredData = [...filteredData].sort((a, b) => {
-    if (!sortKey) return 0;
-    if (sortKey === "tanggal") {
-      const aTime = new Date(a.tanggal).getTime();
-      const bTime = new Date(b.tanggal).getTime();
-      return sortDir === "asc" ? aTime - bTime : bTime - aTime;
-    }
-    if (sortKey === "isActive") {
-      // sort by open/closed using isPresensiOpen
-      const aOpen = isPresensiOpen(a) ? 1 : 0;
-      const bOpen = isPresensiOpen(b) ? 1 : 0;
-      return sortDir === "asc" ? aOpen - bOpen : bOpen - aOpen;
-    }
-    const aVal = ((a as any)[sortKey] ?? "").toString().toLowerCase();
-    const bVal = ((b as any)[sortKey] ?? "").toString().toLowerCase();
-    if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
-    if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
-    return 0;
-  });
+  const visibleData = data.filter((item) => !optimisticHiddenIds.includes(item.id));
 
-  const totalItems = sortedFilteredData.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const visibleData = sortedFilteredData.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
+  // Debounced Search Update
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCurrentPage(1);
+      fetchData(searchTerm, statusFilter, 1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm, statusFilter, fetchData]);
 
   const handleReset = () => {
     setSearchTerm("");
     setStatusFilter("ALL");
     setCurrentPage(1);
+    fetchData("", "ALL", 1);
   };
 
   const isFiltered = searchTerm !== "" || statusFilter !== "ALL";
@@ -575,7 +576,7 @@ export function PresensiList({
                               onClick={(e) => {
                                 e.preventDefault();
                                 if (currentPage > 1)
-                                  setCurrentPage(currentPage - 1);
+                                  handlePageChange(currentPage - 1);
                               }}
                               className={
                                 currentPage === 1
@@ -599,7 +600,7 @@ export function PresensiList({
                                     href="#"
                                     onClick={(e) => {
                                       e.preventDefault();
-                                      setCurrentPage(page);
+                                      handlePageChange(page);
                                     }}
                                     isActive={currentPage === page}
                                     className="cursor-pointer"
@@ -623,7 +624,7 @@ export function PresensiList({
                               onClick={(e) => {
                                 e.preventDefault();
                                 if (currentPage < totalPages)
-                                  setCurrentPage(currentPage + 1);
+                                  handlePageChange(currentPage + 1);
                               }}
                               className={
                                 currentPage === totalPages

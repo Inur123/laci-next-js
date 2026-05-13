@@ -102,13 +102,48 @@ export function ArsipSuratList({
   const [sortKey, setSortKey] = useState<SortKey | null>("tanggal");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
+  // Function to fetch data with sorting parameters
+  const fetchData = async (
+    query: string,
+    org: string,
+    jenis: string,
+    page: number,
+    sKey: SortKey | null = sortKey,
+    sDir: SortDir = sortDir,
+  ) => {
+    setIsLoading(true);
+    try {
+      const result = await getArsipSurats(
+        query,
+        org,
+        jenis,
+        page,
+        10,
+        sKey,
+        sDir,
+      );
+      setData(result.data as DecryptedArsipSurat[]);
+      setTotalPages(result.totalPages);
+      setTotalItems(result.total);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toast.error("Gagal memuat data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSort = (key: SortKey) => {
+    let newDir: SortDir = "asc";
     if (sortKey === key) {
-      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+      newDir = sortDir === "asc" ? "desc" : "asc";
+      setSortDir(newDir);
     } else {
       setSortKey(key);
       setSortDir("asc");
     }
+    setCurrentPage(1);
+    fetchData(searchTerm, orgFilter, jenisFilter, 1, key, newDir);
   };
 
   const SortIcon = ({ col }: { col: SortKey }) => {
@@ -123,46 +158,12 @@ export function ArsipSuratList({
     );
   };
 
-  const sortedData = [...data].sort((a, b) => {
-    if (!sortKey) return 0;
-    let aVal: string | number = "";
-    let bVal: string | number = "";
-    if (sortKey === "tanggal") {
-      aVal = new Date(a.tanggal).getTime();
-      bVal = new Date(b.tanggal).getTime();
-    } else {
-      aVal = ((a as any)[sortKey] ?? "").toString().toLowerCase();
-      bVal = ((b as any)[sortKey] ?? "").toString().toLowerCase();
-    }
-    if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
-    if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
-    return 0;
-  });
+  // Server sudah melakukan pengurutan secara global, sehingga klien cukup langsung menampilkan datanya
+  const sortedData = data;
 
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [optimisticHiddenIds, setOptimisticHiddenIds] = useState<string[]>([]);
   const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Function to fetch data
-  const fetchData = async (
-    query: string,
-    org: string,
-    jenis: string,
-    page: number,
-  ) => {
-    setIsLoading(true);
-    try {
-      const result = await getArsipSurats(query, org, jenis, page, 10);
-      setData(result.data as DecryptedArsipSurat[]);
-      setTotalPages(result.totalPages);
-      setTotalItems(result.total);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      toast.error("Gagal memuat data");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // Debounced Search Update
   useEffect(() => {
