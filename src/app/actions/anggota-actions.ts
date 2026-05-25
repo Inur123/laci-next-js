@@ -48,10 +48,8 @@ export async function getAnggotaList(
     if (userId && userId !== "ALL") whereClause.userId = userId;
     if (periodeId) {
       whereClause.periodeId = periodeId;
-    } else if (periodeAktif) {
-      whereClause.periode = { nama: periodeAktif.nama };
     } else {
-      return { data: [], total: 0, totalPages: 0 };
+      whereClause.periode = { isActive: true };
     }
   }
 
@@ -508,18 +506,7 @@ export async function getAnggotaStats(userId?: string) {
 
   if (isCabang) {
     if (userId && userId !== "ALL") where.userId = userId;
-    if (active) where.periode = { nama: active.nama };
-    else
-      return {
-        total: 0,
-        lakiLaki: 0,
-        perempuan: 0,
-        makesta: 0,
-        lakmud: 0,
-        latin: 0,
-        latpel: 0,
-        lakut: 0,
-      };
+    where.periode = { isActive: true };
   } else {
     if (!active) return null;
     where = { userId: session.user.id, periodeId: active.id };
