@@ -848,12 +848,13 @@ export function PengajuanBerkasList({
                               </Button>
                             )}
 
-                            {!isCabangView && item.status === "DITOLAK" && (
+                            {(!isCabangView || userRole === "SEKRETARIS_CABANG") && (
                               <Button
                                 size="sm"
                                 variant="outline"
                                 className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
                                 onClick={() => setConfirmDeleteId(item.id)}
+                                title="Hapus"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>

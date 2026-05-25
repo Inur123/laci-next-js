@@ -202,8 +202,9 @@ export async function DELETE(
   const { id } = await params;
 
   try {
+    const isCabang = session.user.role === "SEKRETARIS_CABANG";
     const existing = await prisma.pengajuanBerkas.findFirst({
-      where: { id, userId: session.user.id },
+      where: isCabang ? { id } : { id, userId: session.user.id },
     });
 
     if (!existing)

@@ -1031,23 +1031,34 @@ export async function updatePengajuanBerkas(id: string, formData: FormData) {
 }
 
 /**
- * Delete Pengajuan PAC (only if status is DITOLAK)
+ * Delete Pengajuan PAC/Cabang
  */
 export async function deletePengajuanBerkas(id: string) {
   const session = await auth();
   if (!session?.user?.id) return { error: "Belum terautentikasi" };
 
   try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+
+    if (!user) return { error: "User tidak ditemukan" };
+
+    const isCabang = user.role === "SEKRETARIS_CABANG";
+    const isPac = user.role === "SEKRETARIS_PAC";
+
+    if (!isCabang && !isPac) {
+      return { error: "Role tidak diizinkan" };
+    }
+
     const pengajuan = await prisma.pengajuanBerkas.findFirst({
-      where: { id, userId: session.user.id },
+      where: isCabang
+        ? { id }
+        : { id, userId: session.user.id },
     });
 
     if (!pengajuan) return { error: "Pengajuan tidak ditemukan" };
-    if (pengajuan.status !== "DITOLAK") {
-      return {
-        error: "Hanya pengajuan dengan status DITOLAK yang dapat dihapus",
-      };
-    }
 
     if (pengajuan.file && !pengajuan.file.startsWith("/storage")) {
       try {
