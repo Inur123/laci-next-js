@@ -198,12 +198,12 @@ export function ArsipSuratForm({ arsipSurat, userRole }: ArsipSuratFormProps) {
       return;
     }
 
-    // Validate Organisasi (Optional now)
-    // const organisasi = formData.get("organisasi");
-    // if (!organisasi) {
-    //   toast.error("Organisasi harus dipilih");
-    //   return;
-    // }
+    // Validate Organisasi
+    const organisasi = formData.get("organisasi");
+    if (!organisasi) {
+      toast.error("Organisasi harus dipilih");
+      return;
+    }
 
     // Validate Pengirim/Penerima
     const pengirimPenerima = formData.get("pengirimPenerima");
@@ -326,7 +326,9 @@ export function ArsipSuratForm({ arsipSurat, userRole }: ArsipSuratFormProps) {
 
               {/* Organisasi */}
               <div className="space-y-2">
-                <Label htmlFor="organisasi">Organisasi</Label>
+                <Label htmlFor="organisasi">
+                  Organisasi <span className="text-red-500">*</span>
+                </Label>
                 <Select
                   name="organisasi"
                   defaultValue={arsipSurat?.organisasi || undefined}
@@ -406,7 +408,9 @@ export function ArsipSuratForm({ arsipSurat, userRole }: ArsipSuratFormProps) {
 
               {/* Perihal */}
               <div className="space-y-2">
-                <Label htmlFor="perihal">Perihal</Label>
+                <Label htmlFor="perihal">
+                  Perihal <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="perihal"
                   name="perihal"

@@ -61,6 +61,12 @@ export async function GET(request: Request) {
 
     if (mode === "me") {
       whereClause.userId = session.user.id;
+      const periodeAktifPac = await prisma.periode.findFirst({
+        where: { userId: session.user.id, isActive: true },
+      });
+      if (!periodeAktifPac)
+        return NextResponse.json({ success: true, data: [] });
+      whereClause.periodeIdPac = periodeAktifPac.id;
     } else if (mode === "cabang") {
       if (user?.role !== "SEKRETARIS_CABANG")
         return NextResponse.json(

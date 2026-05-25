@@ -117,8 +117,19 @@ export async function getPengajuanBerkass(
     throw new Error("Only PAC can access their submissions");
   }
 
+  // Get active period
+  const periodeAktif = await prisma.periode.findFirst({
+    where: {
+      userId: session.user.id,
+      isActive: true,
+    },
+  });
+
+  if (!periodeAktif) return { data: [], total: 0, totalPages: 0 };
+
   const whereClause: Prisma.PengajuanBerkasWhereInput = {
     userId: session.user.id,
+    periodeIdPac: periodeAktif.id,
   };
 
   if (
@@ -1167,10 +1178,24 @@ export async function getPengajuanBerkasStats(userId?: string) {
 
   // For Cabang, we show stats for all PACs in their active periode
   // For PAC, we show stats for their own pengajuan
-  const whereClause: { userId?: string; periodeId?: string } = {};
+  const whereClause: { userId?: string; periodeId?: string; periodeIdPac?: string } = {};
 
   if (!isCabang) {
     whereClause.userId = session.user.id;
+    // Get PAC's active period
+    const periodeAktifPac = await prisma.periode.findFirst({
+      where: {
+        userId: session.user.id,
+        isActive: true,
+      },
+    });
+
+    if (periodeAktifPac) {
+      whereClause.periodeIdPac = periodeAktifPac.id;
+    } else {
+      // If there is no active period, set a non-matching ID so stats return empty
+      whereClause.periodeIdPac = "none";
+    }
   } else {
     // If specific userId requested and it's not ALL, use it
     if (userId && userId !== "ALL") {

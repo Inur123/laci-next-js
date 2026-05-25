@@ -201,15 +201,6 @@ export function DashboardPersonal({
           borderColor: "border-pink-100",
           count: stats.presensi,
         },
-        {
-          title: "Agenda Kegiatan",
-          icon: BarChart3,
-          href: "/dashboard/agenda-kegiatan",
-          color: "text-rose-600",
-          bgColor: "bg-rose-100/50",
-          borderColor: "border-rose-100",
-          count: stats.kegiatan,
-        },
       ];
 
   // Data for Charts
@@ -233,7 +224,6 @@ export function DashboardPersonal({
           fill: "#16a34a",
         }, // Green
         { name: "Periode", total: stats.periode, fill: "#0891b2" }, // Cyan
-        { name: "Kegiatan", total: stats.kegiatan, fill: "#e11d48" }, // Rose
         { name: "Presensi", total: stats.presensi, fill: "#db2777" }, // Pink
       ];
 

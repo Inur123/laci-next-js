@@ -289,7 +289,6 @@ export async function createArsipSurat(formData: FormData) {
     };
   }
 
-  // Extract form data
   const rawOrganisasi = formData.get("organisasi")?.toString();
   const organisasi = (
     rawOrganisasi ? rawOrganisasi : null
@@ -300,6 +299,9 @@ export async function createArsipSurat(formData: FormData) {
   const pengirimPenerima = formData.get("pengirimPenerima") as string;
   const deskripsi = formData.get("deskripsi") as string;
   const perihal = formData.get("perihal") as string;
+
+  if (!organisasi) return { error: "Organisasi harus dipilih" };
+  if (!perihal?.trim()) return { error: "Perihal harus diisi" };
   const file = formData.get("file") as File | null;
   if (file && file instanceof File && file.size > 2 * 1024 * 1024) {
     return { error: "Ukuran file maksimal 2MB" };
@@ -389,6 +391,9 @@ export async function updateArsipSurat(id: string, formData: FormData) {
     const pengirimPenerima = formData.get("pengirimPenerima") as string;
     const deskripsi = formData.get("deskripsi") as string;
     const perihal = formData.get("perihal") as string;
+
+    if (!organisasi) return { error: "Organisasi harus dipilih" };
+    if (!perihal?.trim()) return { error: "Perihal harus diisi" };
     const file = formData.get("file") as File | null;
     if (file && file instanceof File && file.size > 2 * 1024 * 1024) {
       return { error: "Ukuran file maksimal 2MB" };
