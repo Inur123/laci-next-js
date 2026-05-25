@@ -25,6 +25,22 @@ export async function getAnggotaList(
   sortKey?: string | null,
   sortDir?: "asc" | "desc",
 ) {
+  console.log("[ANGGOTA_LOG] getAnggotaList:", {
+    query,
+    page,
+    limit,
+    userId,
+    periodeId,
+    sortKey,
+    sortDir,
+    needsInMemorySort:
+      sortKey === "namaLengkap" ||
+      sortKey === "jabatan" ||
+      sortKey === "noHp" ||
+      sortKey === "periode" ||
+      sortKey === "dibuatOleh"
+  });
+
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
@@ -165,6 +181,7 @@ export async function getAnggotaList(
 
   if (sortKey) {
     const isAsc = sortDir === "asc";
+    console.log(`[ANGGOTA_LOG] Before sort, first 3 names:`, filtered.slice(0, 3).map(i => i.namaLengkap));
     filtered.sort((a, b) => {
       const getVal = (item: any) => {
         if (sortKey === "periode") return item.periode?.nama ?? "";
@@ -177,11 +194,13 @@ export async function getAnggotaList(
       if (aVal > bVal) return isAsc ? 1 : -1;
       return 0;
     });
+    console.log(`[ANGGOTA_LOG] After sort, first 3 names:`, filtered.slice(0, 3).map(i => i.namaLengkap));
   }
 
   const total = filtered.length;
   const startIndex = (page - 1) * limit;
   const paginatedData = filtered.slice(startIndex, startIndex + limit);
+  console.log(`[ANGGOTA_LOG] Paginated data count: ${paginatedData.length}, startIndex: ${startIndex}, limit: ${limit}`);
 
   return { data: paginatedData, total, totalPages: Math.ceil(total / limit) };
 }
