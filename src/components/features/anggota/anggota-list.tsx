@@ -166,8 +166,8 @@ export function AnggotaList({
       query: string,
       page: number,
       userId: string,
-      sKey: SortKey | null = sortKey,
-      sDir: SortDir = sortDir,
+      sKey: SortKey | null,
+      sDir: SortDir,
     ) => {
       try {
         const result = await getAnggotaList(
@@ -187,18 +187,18 @@ export function AnggotaList({
         toast.error("Gagal memuat data");
       }
     },
-    [sortKey, sortDir],
+    [],
   );
 
   // Debounced Search Update
   useEffect(() => {
     const timer = setTimeout(() => {
       setCurrentPage(1);
-      fetchData(searchTerm, 1, selectedUser);
+      fetchData(searchTerm, 1, selectedUser, sortKey, sortDir);
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, selectedUser, fetchData]);
+  }, [searchTerm, selectedUser, sortKey, sortDir, fetchData]);
 
   useEffect(() => {
     const handler = (event: Event) => {
@@ -211,7 +211,7 @@ export function AnggotaList({
       if (realtimeTimerRef.current) return;
       realtimeTimerRef.current = setTimeout(() => {
         realtimeTimerRef.current = null;
-        fetchData(searchTerm, currentPage, selectedUser);
+        fetchData(searchTerm, currentPage, selectedUser, sortKey, sortDir);
       }, 300);
     };
     window.addEventListener("laci-realtime", handler as EventListener);
@@ -222,25 +222,25 @@ export function AnggotaList({
         realtimeTimerRef.current = null;
       }
     };
-  }, [searchTerm, currentPage, selectedUser, fetchData]);
+  }, [searchTerm, currentPage, selectedUser, sortKey, sortDir, fetchData]);
 
   const handleUserFilterChange = (value: string) => {
     setSelectedUser(value);
     setCurrentPage(1);
-    fetchData(searchTerm, 1, value);
+    fetchData(searchTerm, 1, value, sortKey, sortDir);
   };
 
   const handleResetFilters = () => {
     setSearchTerm("");
     setSelectedUser("ALL");
     setCurrentPage(1);
-    fetchData("", 1, "ALL");
+    fetchData("", 1, "ALL", sortKey, sortDir);
   };
 
   // Handle Page Change
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    fetchData(searchTerm, page, selectedUser);
+    fetchData(searchTerm, page, selectedUser, sortKey, sortDir);
   };
 
   const handleDelete = async () => {
@@ -256,7 +256,7 @@ export function AnggotaList({
       toast.error(result.error);
     } else {
       toast.success("Anggota berhasil dihapus");
-      fetchData(searchTerm, currentPage, selectedUser);
+      fetchData(searchTerm, currentPage, selectedUser, sortKey, sortDir);
     }
   };
 
