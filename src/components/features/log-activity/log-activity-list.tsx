@@ -28,7 +28,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { useRouter, useSearchParams } from "next/navigation";
 import { UserFilterSelect } from "@/components/shared/user-filter-select";
 import { Label } from "@/components/ui/label";
 import { RefreshCcw, Eye, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
@@ -173,9 +172,6 @@ export function LogActivityList({
   userRole,
   pacUsers = [],
 }: LogActivityListProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
   // Local data state
   const [logs, setLogs] = useState<LogActivityData[]>(initialLogs);
   const [totalPages, setTotalPages] = useState(initialTotalPages);
@@ -193,42 +189,14 @@ export function LogActivityList({
     setCurrentPage(initialCurrentPage);
   }, [initialLogs, initialTotalPages, initialTotalItems, initialCurrentPage]);
 
-  // Filter state initialized from URL
-  const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
-  const [actionFilter, setActionFilter] = useState(
-    searchParams.get("action") || "ALL",
-  );
-  const [moduleFilter, setModuleFilter] = useState(
-    searchParams.get("module") || "ALL",
-  );
+  // Filter state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [actionFilter, setActionFilter] = useState("ALL");
+  const [moduleFilter, setModuleFilter] = useState("ALL");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [userFilter, setUserFilter] = useState(
-    searchParams.get("userId") || "ALL",
-  );
-
-  // Sync state with URL when it changes (e.g., back/forward buttons)
-  React.useEffect(() => {
-    setSearchTerm(searchParams.get("q") || "");
-    setActionFilter(searchParams.get("action") || "ALL");
-    setModuleFilter(searchParams.get("module") || "ALL");
-    setUserFilter(searchParams.get("userId") || "ALL");
-    setCurrentPage(Number(searchParams.get("page")) || 1);
-  }, [searchParams]);
+  const [userFilter, setUserFilter] = useState("ALL");
 
   const isCabang = userRole === "SEKRETARIS_CABANG";
-
-  // Helper to update URL
-  const updateUrl = (newParams: Record<string, string | null>) => {
-    const params = new URLSearchParams(searchParams.toString());
-    Object.entries(newParams).forEach(([key, value]) => {
-      if (value === null || value === "ALL" || value === "") {
-        params.delete(key);
-      } else {
-        params.set(key, value);
-      }
-    });
-    router.push(`?${params.toString()}`, { scroll: false });
-  };
 
   // Sort state global
   type LogSortKey = "createdAt" | "action" | "module" | "userName";
@@ -237,13 +205,29 @@ export function LogActivityList({
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   const handleSort = (key: LogSortKey) => {
-    updateUrl({ page: "1" });
+    let nextDir: SortDir = "asc";
     if (sortKey === key) {
-      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+      nextDir = sortDir === "asc" ? "desc" : "asc";
+      setSortDir(nextDir);
     } else {
       setSortKey(key);
       setSortDir("asc");
     }
+    setCurrentPage(1);
+    const start = formatDateForInput(dateRange?.from);
+    const end = formatDateForInput(dateRange?.to || dateRange?.from);
+    fetchData(
+      searchTerm,
+      actionFilter,
+      moduleFilter,
+      start,
+      end,
+      1,
+      currentView,
+      userFilter,
+      key,
+      nextDir,
+    );
   };
 
   const LogSortIcon = ({ col }: { col: LogSortKey }) => {
@@ -429,24 +413,71 @@ export function LogActivityList({
     userFilter,
     fetchData,
   ]);
-
   const handlePageChange = (page: number) => {
-    updateUrl({ page: page.toString() });
+    setCurrentPage(page);
+    const start = formatDateForInput(dateRange?.from);
+    const end = formatDateForInput(dateRange?.to || dateRange?.from);
+    fetchData(
+      searchTerm,
+      actionFilter,
+      moduleFilter,
+      start,
+      end,
+      page,
+      currentView,
+      userFilter,
+    );
   };
 
   const handleActionFilterChange = (val: string) => {
     setActionFilter(val);
-    updateUrl({ action: val, page: "1" });
+    setCurrentPage(1);
+    const start = formatDateForInput(dateRange?.from);
+    const end = formatDateForInput(dateRange?.to || dateRange?.from);
+    fetchData(
+      searchTerm,
+      val,
+      moduleFilter,
+      start,
+      end,
+      1,
+      currentView,
+      userFilter,
+    );
   };
 
   const handleModuleFilterChange = (val: string) => {
     setModuleFilter(val);
-    updateUrl({ module: val, page: "1" });
+    setCurrentPage(1);
+    const start = formatDateForInput(dateRange?.from);
+    const end = formatDateForInput(dateRange?.to || dateRange?.from);
+    fetchData(
+      searchTerm,
+      actionFilter,
+      val,
+      start,
+      end,
+      1,
+      currentView,
+      userFilter,
+    );
   };
 
   const handleUserFilterSelect = (val: string) => {
     setUserFilter(val);
-    updateUrl({ userId: val, page: "1" });
+    setCurrentPage(1);
+    const start = formatDateForInput(dateRange?.from);
+    const end = formatDateForInput(dateRange?.to || dateRange?.from);
+    fetchData(
+      searchTerm,
+      actionFilter,
+      moduleFilter,
+      start,
+      end,
+      1,
+      currentView,
+      val,
+    );
   };
 
   const handleReset = () => {
@@ -457,8 +488,10 @@ export function LogActivityList({
     setUserFilter("ALL");
     setSortKey("createdAt");
     setSortDir("desc");
-    router.push(window.location.pathname);
+    setCurrentPage(1);
+    fetchData("", "ALL", "ALL", "", "", 1, currentView, "ALL", "createdAt", "desc");
   };
+
 
   return (
     <div className="space-y-6">

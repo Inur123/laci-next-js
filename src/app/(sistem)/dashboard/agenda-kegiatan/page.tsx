@@ -18,7 +18,7 @@ export const metadata = {
   description: "Manajemen jadwal dan agenda kegiatan organisasi.",
 };
 
-type SearchParams = Promise<{ query?: string; page?: string }>;
+type SearchParams = Promise<{ query?: string; page?: string; sortKey?: string; sortDir?: string }>;
 
 export default async function KegiatanPage({
   searchParams,
@@ -128,9 +128,11 @@ async function KegiatanContent({
   const params = await searchParams;
   const query = params.query || "";
   const page = Number(params.page) || 1;
+  const sortKey = (params.sortKey as string) || "tanggalMulai";
+  const sortDir = (params.sortDir as "asc" | "desc") || "desc";
 
   const [{ data, totalPages, total }, stats] = await Promise.all([
-    getAgendaKegiatanList(query, page),
+    getAgendaKegiatanList(query, page, 10, undefined, sortKey, sortDir),
     getAgendaKegiatanStats(),
   ]);
 

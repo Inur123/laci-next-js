@@ -47,10 +47,12 @@ async function ReferensiContent({
   const page = Number(params.page) || 1;
   const limit = 10;
 
+  const sortKey = (params.sortKey as string) || "tanggal";
+  const sortDir = (params.sortDir as "asc" | "desc") || "desc";
   const userIdParam = (params.userId as string) || "ALL";
 
   const [result, users] = await Promise.all([
-    getPengajuanForReferensiPac(q, page, limit, "ALL", "ALL", userIdParam),
+    getPengajuanForReferensiPac(q, page, limit, "ALL", "ALL", userIdParam, sortKey, sortDir),
     getActivePacUsersForReferensi(),
   ]);
 

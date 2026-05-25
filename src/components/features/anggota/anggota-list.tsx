@@ -113,10 +113,8 @@ export function AnggotaList({
   ]);
 
   // Filter state
-  const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
-  const [selectedUser, setSelectedUser] = useState(
-    searchParams.get("userId") || "ALL",
-  );
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedUser, setSelectedUser] = useState("ALL");
 
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [optimisticHiddenIds, setOptimisticHiddenIds] = useState<string[]>([]);
@@ -131,20 +129,8 @@ export function AnggotaList({
     | "periode"
     | "dibuatOleh";
   type SortDir = "asc" | "desc";
-  const [sortKey, setSortKey] = useState<SortKey | null>(
-    (searchParams.get("sortKey") as SortKey) || "namaLengkap",
-  );
-  const [sortDir, setSortDir] = useState<SortDir>(
-    (searchParams.get("sortDir") as SortDir) || "asc",
-  );
-
-  // Sync state with URL when search params change
-  useEffect(() => {
-    setSelectedUser(searchParams.get("userId") || "ALL");
-    setSearchTerm(searchParams.get("q") || "");
-    setSortKey((searchParams.get("sortKey") as SortKey) || "namaLengkap");
-    setSortDir((searchParams.get("sortDir") as SortDir) || "asc");
-  }, [searchParams]);
+  const [sortKey, setSortKey] = useState<SortKey | null>("namaLengkap");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
 
   const handleSort = (key: SortKey) => {
     let nextDir: SortDir = "asc";
@@ -155,12 +141,8 @@ export function AnggotaList({
       setSortKey(key);
       setSortDir("asc");
     }
-
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("sortKey", key);
-    params.set("sortDir", nextDir);
-    params.set("page", "1");
-    router.push(`?${params.toString()}`, { scroll: false });
+    setCurrentPage(1);
+    fetchData(searchTerm, 1, selectedUser, key, nextDir);
   };
 
   const SortIcon = ({ col }: { col: SortKey }) => {
@@ -213,15 +195,6 @@ export function AnggotaList({
     const timer = setTimeout(() => {
       setCurrentPage(1);
       fetchData(searchTerm, 1, selectedUser);
-
-      const params = new URLSearchParams(searchParams.toString());
-      if (searchTerm) {
-        params.set("q", searchTerm);
-      } else {
-        params.delete("q");
-      }
-      params.set("page", "1");
-      router.push(`?${params.toString()}`, { scroll: false });
     }, 500);
 
     return () => clearTimeout(timer);
@@ -254,41 +227,20 @@ export function AnggotaList({
   const handleUserFilterChange = (value: string) => {
     setSelectedUser(value);
     setCurrentPage(1);
-
-    // Update URL to trigger server-side re-render of statistics
-    const params = new URLSearchParams(searchParams.toString());
-    if (value === "ALL") {
-      params.delete("userId");
-    } else {
-      params.set("userId", value);
-    }
-    params.set("page", "1");
-    router.push(`?${params.toString()}`, { scroll: false });
+    fetchData(searchTerm, 1, value);
   };
 
   const handleResetFilters = () => {
     setSearchTerm("");
     setSelectedUser("ALL");
     setCurrentPage(1);
-
-    // Reset URL
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("userId");
-    params.delete("q");
-    params.delete("sortKey");
-    params.delete("sortDir");
-    params.set("page", "1");
-    router.push(`?${params.toString()}`, { scroll: false });
+    fetchData("", 1, "ALL");
   };
 
   // Handle Page Change
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     fetchData(searchTerm, page, selectedUser);
-
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("page", page.toString());
-    router.push(`?${params.toString()}`, { scroll: false });
   };
 
   const handleDelete = async () => {

@@ -126,8 +126,10 @@ async function AnggotaContent({
 }) {
   const { q, page, userId, sortKey, sortDir } = await searchParams;
   const currentPage = Number(page) || 1;
+  const sKey = (sortKey as string) || "namaLengkap";
+  const sDir = (sortDir as "asc" | "desc") || "asc";
   const [{ data, total, totalPages }, activeUsers, stats] = await Promise.all([
-    getAnggotaList(q, currentPage, 10, userId, undefined, sortKey, sortDir as any),
+    getAnggotaList(q, currentPage, 10, userId, undefined, sKey, sDir),
     getActiveUsers(),
     getAnggotaStats(userId),
   ]);

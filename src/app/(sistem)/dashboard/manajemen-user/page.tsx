@@ -40,9 +40,11 @@ async function UsersContentWrapper({
   const q = (params.q as string) || "";
   const page = Number(params.page) || 1;
   const limit = 10;
+  const sortKey = (params.sortKey as string) || "name";
+  const sortDir = (params.sortDir as "asc" | "desc") || "asc";
 
   const [userData, stats] = await Promise.all([
-    getPACUsers(q, page, limit),
+    getPACUsers(q, page, limit, undefined, undefined, sortKey, sortDir),
     getUserStats(),
   ]);
 
