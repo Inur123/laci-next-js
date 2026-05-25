@@ -643,11 +643,6 @@ export function AnggotaList({
                               <span className="font-semibold text-slate-900 truncate text-sm">
                                 {capitalizeName(item.namaLengkap)}
                               </span>
-                              {item.jabatan && (
-                                <span className="text-[11px] text-slate-500 font-medium truncate">
-                                  {capitalizeName(item.jabatan)}
-                                </span>
-                              )}
                             </div>
                           </div>
                         </TableCell>

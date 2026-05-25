@@ -169,12 +169,6 @@ export default function AnggotaDetailClient({
                 <h3 className="font-bold text-lg leading-tight">
                   {capitalizeName(anggota.namaLengkap)}
                 </h3>
-                <Badge
-                  variant="secondary"
-                  className="bg-primary/10 text-primary border-none font-bold"
-                >
-                  {anggota.jabatan || "ANGGOTA"}
-                </Badge>
               </div>
 
               <div className="mt-6 w-full space-y-3 pt-6 border-t border-slate-100">

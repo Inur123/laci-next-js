@@ -110,32 +110,29 @@ export function PresensiList({
   const [sortKey, setSortKey] = useState<SortKey | null>("tanggal");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
-  const fetchData = useCallback(
-    async (
-      query: string,
-      status: string,
-      page: number,
-      sKey: SortKey | null = sortKey,
-      sDir: SortDir = sortDir,
-    ) => {
-      try {
-        const result = await getPresensiList(
-          query,
-          page,
-          10,
-          status,
-          sKey,
-          sDir,
-        );
-        setData(result.data);
-        setTotalPages(result.totalPages);
-        setTotalItems(result.total);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    },
-    [sortKey, sortDir],
-  );
+  const fetchData = async (
+    query: string,
+    status: string,
+    page: number,
+    sKey: SortKey | null = sortKey,
+    sDir: SortDir = sortDir,
+  ) => {
+    try {
+      const result = await getPresensiList(
+        query,
+        page,
+        10,
+        status,
+        sKey,
+        sDir,
+      );
+      setData(result.data);
+      setTotalPages(result.totalPages);
+      setTotalItems(result.total);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -195,7 +192,7 @@ export function PresensiList({
 
     window.addEventListener("laci-realtime", handleRealtime);
     return () => window.removeEventListener("laci-realtime", handleRealtime);
-  }, [searchTerm, statusFilter, currentPage, fetchData]);
+  }, [searchTerm, statusFilter, currentPage]);
 
   const handleStatusUpdate = async (
     id: string,
@@ -213,12 +210,16 @@ export function PresensiList({
   };
 
   const handleSort = (key: SortKey) => {
+    let newDir: SortDir = "asc";
     if (sortKey === key) {
-      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+      newDir = sortDir === "asc" ? "desc" : "asc";
+      setSortDir(newDir);
     } else {
       setSortKey(key);
       setSortDir("asc");
     }
+    setCurrentPage(1);
+    fetchData(searchTerm, statusFilter, 1, key, newDir);
   };
 
   const SortIcon = ({ col }: { col: SortKey }) => {
@@ -235,14 +236,13 @@ export function PresensiList({
 
   const visibleData = data.filter((item) => !optimisticHiddenIds.includes(item.id));
 
-  // Debounced Search Update
   useEffect(() => {
     const timer = setTimeout(() => {
       setCurrentPage(1);
       fetchData(searchTerm, statusFilter, 1);
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchTerm, statusFilter, fetchData]);
+  }, [searchTerm, statusFilter]);
 
   const handleReset = () => {
     setSearchTerm("");
@@ -253,18 +253,7 @@ export function PresensiList({
 
   const isFiltered = searchTerm !== "" || statusFilter !== "ALL";
 
-  // Hanya tampil Alert kosong jika benar-benar tidak ada data sama sekali
-  if (data.length === 0) {
-    return (
-      <Alert>
-        <CalendarDays className="h-4 w-4" />
-        <AlertTitle>Informasi</AlertTitle>
-        <AlertDescription>
-          Belum ada kegiatan presensi yang dibuat.
-        </AlertDescription>
-      </Alert>
-    );
-  }
+
 
   return (
     <>
@@ -282,10 +271,7 @@ export function PresensiList({
               placeholder="Cari nama, tempat, atau penyelenggara..."
               className="pl-9 w-full bg-white h-9 text-sm"
               value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
