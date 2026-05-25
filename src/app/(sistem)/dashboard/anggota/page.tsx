@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   title: "Data Anggota | Laci Digital",
 };
 
-type SearchParams = Promise<{ q?: string; page?: string; userId?: string }>;
+type SearchParams = Promise<{ q?: string; page?: string; userId?: string; sortKey?: string; sortDir?: string }>;
 
 export default async function AnggotaPage({
   searchParams,
@@ -124,10 +124,10 @@ async function AnggotaContent({
   searchParams: SearchParams;
   userRole?: string;
 }) {
-  const { q, page, userId } = await searchParams;
+  const { q, page, userId, sortKey, sortDir } = await searchParams;
   const currentPage = Number(page) || 1;
   const [{ data, total, totalPages }, activeUsers, stats] = await Promise.all([
-    getAnggotaList(q, currentPage, 10, userId),
+    getAnggotaList(q, currentPage, 10, userId, undefined, sortKey, sortDir as any),
     getActiveUsers(),
     getAnggotaStats(userId),
   ]);

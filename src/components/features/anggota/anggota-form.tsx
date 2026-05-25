@@ -74,6 +74,15 @@ interface AnggotaFormProps {
   userRole?: string;
 }
 
+// Helper to convert Date to timezone-safe YYYY-MM-DD string
+const toLocalYYYYMMDD = (dateInput: Date | string) => {
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return "";
+  const offset = d.getTimezoneOffset();
+  const localDate = new Date(d.getTime() - offset * 60 * 1000);
+  return localDate.toISOString().split("T")[0];
+};
+
 export function AnggotaForm({ anggota, userRole }: AnggotaFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,7 +101,7 @@ export function AnggotaForm({ anggota, userRole }: AnggotaFormProps) {
   >(
     anggota?.perkaderans?.map((p) => ({
       namaPerkaderan: p.namaPerkaderan,
-      tanggal: new Date(p.tanggal).toISOString().split("T")[0],
+      tanggal: toLocalYYYYMMDD(p.tanggal),
       tempat: p.tempat,
     })) || [{ namaPerkaderan: "", tanggal: "", tempat: "" }],
   );
@@ -904,7 +913,7 @@ export function AnggotaForm({ anggota, userRole }: AnggotaFormProps) {
                             updatePerkaderan(
                               index,
                               "tanggal",
-                              date ? date.toISOString().split("T")[0] : "",
+                              date ? toLocalYYYYMMDD(date) : "",
                             )
                           }
                           placeholder="Pilih tanggal"

@@ -49,6 +49,16 @@ export async function GET(request: Request) {
           data: { total: 0, lakiLaki: 0, perempuan: 0 },
         });
       whereClause = { userId: session.user.id, periodeId: periodeAktif.id };
+    } else {
+      const periodeAktif = await prisma.periode.findFirst({
+        where: { userId: session.user.id, isActive: true },
+      });
+      if (!periodeAktif)
+        return NextResponse.json({
+          success: true,
+          data: { total: 0, lakiLaki: 0, perempuan: 0 },
+        });
+      whereClause = { periodeId: periodeAktif.id };
     }
 
     const [total, lakiLaki, perempuan, perkaderans] = await Promise.all([

@@ -70,6 +70,14 @@ export async function GET(request: Request) {
         userId: session.user.id,
         periodeId: periodeAktif.id,
       };
+    } else {
+      const periodeAktif = await prisma.periode.findFirst({
+        where: { userId: session.user.id, isActive: true },
+      });
+      if (!periodeAktif) return NextResponse.json({ success: true, data: [] });
+      whereClause = {
+        periodeId: periodeAktif.id,
+      };
     }
 
     const dbData = await prisma.anggota.findMany({

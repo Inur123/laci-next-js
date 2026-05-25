@@ -324,10 +324,8 @@ export function LogActivityList({
       setTotalPages(initialTotalPages);
       setTotalItems(initialTotalItems);
     } else {
-      const start = dateRange?.from
-        ? dateRange.from.toISOString().split("T")[0]
-        : "";
-      const end = dateRange?.to ? dateRange.to.toISOString().split("T")[0] : "";
+      const start = formatDateForInput(dateRange?.from);
+      const end = formatDateForInput(dateRange?.to);
 
       // Refetch with current filters
       fetchData(
@@ -364,12 +362,8 @@ export function LogActivityList({
       if (realtimeTimerRef.current) return;
       realtimeTimerRef.current = setTimeout(() => {
         realtimeTimerRef.current = null;
-        const start = dateRange?.from
-          ? dateRange.from.toISOString().split("T")[0]
-          : "";
-        const end = dateRange?.to
-          ? dateRange.to.toISOString().split("T")[0]
-          : "";
+        const start = formatDateForInput(dateRange?.from);
+        const end = formatDateForInput(dateRange?.to);
         fetchData(
           searchTerm,
           actionFilter,

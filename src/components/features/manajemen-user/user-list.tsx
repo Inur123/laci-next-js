@@ -341,7 +341,13 @@ export function UserList({
                         <div className="flex items-center gap-3">
                           <Avatar className="h-9 w-9 border shadow-sm flex-shrink-0">
                             <AvatarImage
-                              src={user.image || ""}
+                              src={
+                                user.image
+                                  ? user.image.startsWith("http")
+                                    ? user.image
+                                    : `/api/manajemen-user/${user.id}/image?v=${user.image}`
+                                  : ""
+                              }
                               className="object-cover"
                             />
                             <AvatarFallback className="bg-slate-100 text-slate-500 text-xs font-bold font-mono">

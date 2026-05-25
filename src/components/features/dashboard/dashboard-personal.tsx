@@ -62,7 +62,7 @@ export function DashboardPersonal({
           color: "text-blue-600",
           bgColor: "bg-blue-100/50",
           borderColor: "border-blue-100",
-          count: stats.globalAnggota || 0,
+          count: stats.anggota,
         },
         {
           title: "Arsip Surat",
@@ -206,7 +206,7 @@ export function DashboardPersonal({
   // Data for Charts
   const activityData = isCabang
     ? [
-        { name: "Anggota", total: stats.globalAnggota || 0, fill: "#2563eb" },
+        { name: "Anggota", total: stats.anggota, fill: "#2563eb" },
         { name: "Surat", total: stats.surat, fill: "#d97706" },
         { name: "SP", total: stats.berkasSP || 0, fill: "#4f46e5" },
         { name: "Pimpinan", total: stats.berkasPimpinan, fill: "#9333ea" },

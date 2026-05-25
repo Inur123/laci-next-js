@@ -303,7 +303,11 @@ export async function getLogMonitoringData(userId?: string) {
             month: "short",
           }),
           count,
-          rawDate: start.toISOString().split("T")[0],
+          rawDate: (() => {
+            const offset = start.getTimezoneOffset();
+            const local = new Date(start.getTime() - offset * 60 * 1000);
+            return local.toISOString().split("T")[0];
+          })(),
         };
       }),
     );

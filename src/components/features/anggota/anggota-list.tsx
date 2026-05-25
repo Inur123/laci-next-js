@@ -113,7 +113,7 @@ export function AnggotaList({
   ]);
 
   // Filter state
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
   const [selectedUser, setSelectedUser] = useState(
     searchParams.get("userId") || "ALL",
   );
@@ -131,16 +131,36 @@ export function AnggotaList({
     | "periode"
     | "dibuatOleh";
   type SortDir = "asc" | "desc";
-  const [sortKey, setSortKey] = useState<SortKey | null>("namaLengkap");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [sortKey, setSortKey] = useState<SortKey | null>(
+    (searchParams.get("sortKey") as SortKey) || "namaLengkap",
+  );
+  const [sortDir, setSortDir] = useState<SortDir>(
+    (searchParams.get("sortDir") as SortDir) || "asc",
+  );
+
+  // Sync state with URL when search params change
+  useEffect(() => {
+    setSelectedUser(searchParams.get("userId") || "ALL");
+    setSearchTerm(searchParams.get("q") || "");
+    setSortKey((searchParams.get("sortKey") as SortKey) || "namaLengkap");
+    setSortDir((searchParams.get("sortDir") as SortDir) || "asc");
+  }, [searchParams]);
 
   const handleSort = (key: SortKey) => {
+    let nextDir: SortDir = "asc";
     if (sortKey === key) {
-      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+      nextDir = sortDir === "asc" ? "desc" : "asc";
+      setSortDir(nextDir);
     } else {
       setSortKey(key);
       setSortDir("asc");
     }
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("sortKey", key);
+    params.set("sortDir", nextDir);
+    params.set("page", "1");
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
   const SortIcon = ({ col }: { col: SortKey }) => {
@@ -193,6 +213,15 @@ export function AnggotaList({
     const timer = setTimeout(() => {
       setCurrentPage(1);
       fetchData(searchTerm, 1, selectedUser);
+
+      const params = new URLSearchParams(searchParams.toString());
+      if (searchTerm) {
+        params.set("q", searchTerm);
+      } else {
+        params.delete("q");
+      }
+      params.set("page", "1");
+      router.push(`?${params.toString()}`, { scroll: false });
     }, 500);
 
     return () => clearTimeout(timer);
@@ -246,6 +275,8 @@ export function AnggotaList({
     const params = new URLSearchParams(searchParams.toString());
     params.delete("userId");
     params.delete("q");
+    params.delete("sortKey");
+    params.delete("sortDir");
     params.set("page", "1");
     router.push(`?${params.toString()}`, { scroll: false });
   };
@@ -254,6 +285,10 @@ export function AnggotaList({
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     fetchData(searchTerm, page, selectedUser);
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", page.toString());
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
   const handleDelete = async () => {
