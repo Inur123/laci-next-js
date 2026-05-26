@@ -14,6 +14,11 @@ import { History } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { LogActivitySkeleton } from "@/components/features/log-activity/log-activity-skeleton";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Riwayat Aktivitas | Laci Digital",
+};
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
