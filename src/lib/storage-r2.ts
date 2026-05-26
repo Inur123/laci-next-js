@@ -3,6 +3,7 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -96,4 +97,19 @@ export async function getR2SignedUrl(fileName: string, expiresIn = 3600) {
   });
 
   return getSignedUrl(R2, command, { expiresIn });
+}
+
+/**
+ * List files from Cloudflare R2 under backups/ prefix
+ */
+export async function listBackupsFromR2() {
+  if (!process.env.R2_ACCOUNT_ID) throw new Error("R2 configuration missing");
+
+  const command = new ListObjectsV2Command({
+    Bucket: BUCKET_NAME,
+    Prefix: "backups/",
+  });
+
+  const response = await R2.send(command);
+  return response.Contents || [];
 }

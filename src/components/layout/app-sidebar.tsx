@@ -16,6 +16,7 @@ import {
   Bug,
   QrCode,
   Mail,
+  Database,
 } from "lucide-react";
 import Image from "next/image";
 import {
@@ -209,6 +210,11 @@ export function AppSidebar({
         url: "/dashboard/log-email",
         icon: Mail,
       });
+      menuItems.push({
+        title: "Backup Database",
+        url: "/dashboard/backup",
+        icon: Database,
+      });
     }
   }
 
@@ -216,7 +222,7 @@ export function AppSidebar({
     <Sidebar className={themeClass}>
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-3">
-          <div className="relative h-10 w-10 flex-shrink-0">
+          <div className="relative h-10 w-10 shrink-0">
             <Image
               src="/images/logo-laci.webp"
               alt="Logo Laci"
@@ -427,7 +433,7 @@ export function AppSidebar({
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-56 rounded-lg"
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
             side="bottom"
             align="end"
             sideOffset={4}
