@@ -461,7 +461,7 @@ export function DashboardMonitoring({
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <Avatar className="h-6 w-6 border border-white shadow-sm">
-                          <AvatarImage src={pac.image || ""} />
+                          <AvatarImage src={pac.image ? `/api/manajemen-user/${pac.id}/image?v=${pac.image}` : ""} />
                           <AvatarFallback className="text-[10px]">
                             {pac.name.substring(0, 2)}
                           </AvatarFallback>
