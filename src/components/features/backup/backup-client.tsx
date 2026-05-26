@@ -207,15 +207,13 @@ export function BackupClient({ initialBackups }: { initialBackups: BackupItem[] 
                         <TableCell className="text-center font-medium text-slate-500">
                           {index + 1}
                         </TableCell>
-                        <TableCell className="font-medium truncate max-w-[200px] sm:max-w-none">
-                          <div className="flex flex-col">
-                            <span className="font-semibold text-slate-800 text-sm">
-                              {item.filename}
-                            </span>
-                            <span className="sm:hidden text-[10px] text-slate-400 mt-0.5">
-                              {formatDate(item.lastModified)}
-                            </span>
-                          </div>
+                        <TableCell className="font-medium max-w-[180px] md:max-w-[240px] truncate">
+                          <span className="font-semibold text-slate-800 text-sm block truncate" title={item.filename}>
+                            {item.filename}
+                          </span>
+                          <span className="sm:hidden text-[10px] text-slate-400 mt-0.5 block whitespace-nowrap">
+                            {formatDate(item.lastModified)}
+                          </span>
                         </TableCell>
                         <TableCell className="hidden sm:table-cell text-xs text-slate-600 font-medium whitespace-nowrap">
                           {formatDate(item.lastModified)}
