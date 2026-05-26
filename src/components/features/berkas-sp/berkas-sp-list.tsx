@@ -485,7 +485,7 @@ export function BerkasSPList({
   return (
     <div className="flex flex-col">
       <div className="flex flex-col md:flex-row gap-4 mb-4 items-end">
-        <div className="flex-[2] relative w-full">
+        <div className="flex-2 relative w-full">
           <Label className="text-xs font-medium mb-1 block">Cari Berkas</Label>
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

@@ -487,7 +487,7 @@ export function ArsipSuratList({
   return (
     <div className="flex flex-col">
       {/* Filter Section */}
-      <div className="flex-shrink-0 grid grid-cols-1 md:grid-cols-10 gap-4 items-end mb-4">
+      <div className="shrink-0 grid grid-cols-1 md:grid-cols-10 gap-4 items-end mb-4">
         <div className="md:col-span-4 relative">
           <Label className="text-xs font-medium mb-1 block">Cari Arsip</Label>
           <div className="relative">
