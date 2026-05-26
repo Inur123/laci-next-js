@@ -319,8 +319,9 @@ export function EmailLogClient({
         setTotalPages(result.totalPages);
         setTotalItems(result.total);
         setStats(newStats);
-      } catch {
-        toast.error("Gagal memuat data email");
+      } catch (error) {
+        const errMsg = error instanceof Error ? error.message : String(error);
+        toast.error(`Gagal memuat data email: ${errMsg}`);
       }
     },
     [sortKey, sortDir],

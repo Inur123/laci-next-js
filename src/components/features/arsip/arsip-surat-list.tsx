@@ -127,7 +127,8 @@ export function ArsipSuratList({
       setTotalItems(result.total);
     } catch (error) {
       console.error("Error fetching data:", error);
-      toast.error("Gagal memuat data");
+      const errMsg = error instanceof Error ? error.message : String(error);
+      toast.error(`Gagal memuat data: ${errMsg}`);
     } finally {
       setIsLoading(false);
     }

@@ -221,8 +221,9 @@ export function ReferensiPengajuanList({
         setData(result.data as PengajuanItem[]);
         setTotalPages(result.totalPages);
         setTotalItems(result.total);
-      } catch {
-        toast.error("Gagal memuat data");
+      } catch (error) {
+        const errMsg = error instanceof Error ? error.message : String(error);
+        toast.error(`Gagal memuat data: ${errMsg}`);
       }
     },
     [sortKey, sortDir],

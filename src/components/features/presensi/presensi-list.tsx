@@ -131,6 +131,8 @@ export function PresensiList({
       setTotalItems(result.total);
     } catch (error) {
       console.error("Error fetching data:", error);
+      const errMsg = error instanceof Error ? error.message : String(error);
+      toast.error(`Gagal memuat data: ${errMsg}`);
     }
   };
 

@@ -130,8 +130,9 @@ export function UserList({
         setData(result.data as UserListItem[]);
         setTotalPages(result.totalPages);
         setTotalItems(result.total);
-      } catch {
-        toast.error("Gagal memuat data user");
+      } catch (error) {
+        const errMsg = error instanceof Error ? error.message : String(error);
+        toast.error(`Gagal memuat data user: ${errMsg}`);
       } finally {
         setIsLoading(false);
       }
