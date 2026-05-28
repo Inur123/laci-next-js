@@ -144,6 +144,10 @@ async function AnggotaContent({
         currentPage={currentPage}
         totalItems={total}
         activeUsers={activeUsers}
+        initialSearchTerm={q || ""}
+        initialSelectedUser={userId || "ALL"}
+        initialSortKey={sKey}
+        initialSortDir={sDir}
       />
     </div>
   );

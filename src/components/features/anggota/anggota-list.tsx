@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -72,6 +71,15 @@ type AnggotaItem = {
   }>;
 };
 
+type SortKey =
+  | "namaLengkap"
+  | "jabatan"
+  | "jenisKelamin"
+  | "noHp"
+  | "periode"
+  | "dibuatOleh";
+type SortDir = "asc" | "desc";
+
 import { UserFilterSelect } from "@/components/shared/user-filter-select";
 import { ConfirmModal } from "@/components/shared/confirm-modal";
 
@@ -82,6 +90,10 @@ export function AnggotaList({
   currentPage: initialCurrentPage,
   totalItems: initialTotalItems,
   activeUsers,
+  initialSearchTerm = "",
+  initialSelectedUser = "ALL",
+  initialSortKey = "namaLengkap",
+  initialSortDir = "asc",
 }: {
   anggotaList: AnggotaItem[];
   userRole: string;
@@ -89,10 +101,11 @@ export function AnggotaList({
   currentPage: number;
   totalItems: number;
   activeUsers?: { id: string; name: string }[];
+  initialSearchTerm?: string;
+  initialSelectedUser?: string;
+  initialSortKey?: string;
+  initialSortDir?: string;
 }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
   // Local data state
   const [data, setData] = useState<AnggotaItem[]>(initialAnggotaList);
   const [totalPages, setTotalPages] = useState(initialTotalPages);
@@ -113,24 +126,32 @@ export function AnggotaList({
   ]);
 
   // Filter state
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUser, setSelectedUser] = useState("ALL");
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+  const [selectedUser, setSelectedUser] = useState(initialSelectedUser);
 
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [optimisticHiddenIds, setOptimisticHiddenIds] = useState<string[]>([]);
   const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Sort state
-  type SortKey =
-    | "namaLengkap"
-    | "jabatan"
-    | "jenisKelamin"
-    | "noHp"
-    | "periode"
-    | "dibuatOleh";
-  type SortDir = "asc" | "desc";
-  const [sortKey, setSortKey] = useState<SortKey | null>("namaLengkap");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [sortKey, setSortKey] = useState<SortKey | null>(
+    (initialSortKey as SortKey) || "namaLengkap",
+  );
+  const [sortDir, setSortDir] = useState<SortDir>(
+    initialSortDir === "desc" ? "desc" : "asc",
+  );
+
+  useEffect(() => {
+    setSearchTerm(initialSearchTerm);
+    setSelectedUser(initialSelectedUser);
+    setSortKey((initialSortKey as SortKey) || "namaLengkap");
+    setSortDir(initialSortDir === "desc" ? "desc" : "asc");
+  }, [
+    initialSearchTerm,
+    initialSelectedUser,
+    initialSortKey,
+    initialSortDir,
+  ]);
 
   const handleSort = (key: SortKey) => {
     let nextDir: SortDir = "asc";
