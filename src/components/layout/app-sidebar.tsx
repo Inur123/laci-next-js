@@ -158,10 +158,7 @@ export function AppSidebar({
     menuItems.push({
       ...pengajuanItem,
       url: "/dashboard/pengajuan-berkas",
-      title:
-        user.role === "SEKRETARIS_CABANG"
-          ? "Verifikasi Pengajuan"
-          : "Pengajuan Berkas",
+      title: "Pengajuan Berkas",
     });
 
     if (user.role === "SEKRETARIS_PAC") {

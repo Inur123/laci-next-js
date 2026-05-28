@@ -31,6 +31,7 @@ export default async function PengajuanBerkasPage({
 
   const userRole = session.user.role;
   const isCabang = userRole === "SEKRETARIS_CABANG";
+  const pageTitle = "Pengajuan Berkas";
 
   return (
     <Suspense fallback={<PengajuanBerkasSkeleton isCabang={isCabang} />}>
@@ -38,7 +39,7 @@ export default async function PengajuanBerkasPage({
       <PengajuanBerkasPageContent
         searchParams={searchParams}
         userId={session.user.id}
-        pageTitle={isCabang ? "Verifikasi Pengajuan" : "Pengajuan Berkas"}
+        pageTitle={pageTitle}
       />
     </Suspense>
   );
