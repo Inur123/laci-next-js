@@ -72,21 +72,22 @@ async function getClientInfo(): Promise<{
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Helper: Ambil lokasi geografis berdasarkan IP (menggunakan ip-api.com gratis)
+// Helper: Ambil lokasi geografis berdasarkan IP (menggunakan freeipapi.com)
 // ─────────────────────────────────────────────────────────────────────────────
 async function getLocationFromIp(ip: string): Promise<string | undefined> {
   try {
-    const res = await fetch(
-      `http://ip-api.com/json/${ip}?fields=status,country,regionName,city`,
-      { signal: AbortSignal.timeout(3000) }, // timeout 3 detik
-    );
+    const res = await fetch(`https://freeipapi.com/api/json/${ip}`, {
+      signal: AbortSignal.timeout(3000), // timeout 3 detik
+    });
     if (!res.ok) return undefined;
     const data = await res.json();
-    if (data.status !== "success") return undefined;
-    return [data.city, data.regionName, data.country]
+    
+    // Format response FreeIPAPI: cityName, regionName, countryName
+    return [data.cityName, data.regionName, data.countryName]
       .filter(Boolean)
       .join(", ");
-  } catch {
+  } catch (error) {
+    console.error("[Logger] FreeIPAPI lookup failed:", error);
     return undefined;
   }
 }
