@@ -295,7 +295,7 @@ export function DashboardPersonal({
               className="h-[300px] w-full"
               style={{ height: "300px", minHeight: "300px" }}
             >
-              <ResponsiveContainer width="99%" height="100%">
+              <ResponsiveContainer width="99%" height={300}>
                 <BarChart
                   data={activityData}
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
@@ -343,7 +343,7 @@ export function DashboardPersonal({
               className="h-[300px] w-full"
               style={{ height: "300px", minHeight: "300px" }}
             >
-              <ResponsiveContainer width="99%" height="100%">
+              <ResponsiveContainer width="99%" height={300}>
                 <LineChart
                   data={trendData}
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}

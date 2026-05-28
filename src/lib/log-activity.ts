@@ -4,11 +4,97 @@ import prisma from "@/lib/prisma";
 import { LogAction, LogModule } from "@prisma/client";
 import { notifyRealtime } from "@/lib/realtime";
 import { getSession } from "@/lib/auth-session";
+import { headers } from "next/headers";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper: Parse Browser dari User-Agent string (tanpa library tambahan)
+// ─────────────────────────────────────────────────────────────────────────────
+function parseBrowser(ua: string): string {
+  if (!ua) return "Unknown";
+  if (/Edg\/|EdgA\/|Edge\//.test(ua)) return "Microsoft Edge";
+  if (/OPR\/|Opera\//.test(ua)) return "Opera";
+  if (/SamsungBrowser\//.test(ua)) return "Samsung Browser";
+  if (/UCBrowser\//.test(ua)) return "UC Browser";
+  if (/YaBrowser\//.test(ua)) return "Yandex Browser";
+  if (/Firefox\//.test(ua)) return "Mozilla Firefox";
+  if (/Chrome\//.test(ua) && !/Chromium\//.test(ua)) return "Google Chrome";
+  if (/Chromium\//.test(ua)) return "Chromium";
+  if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) return "Apple Safari";
+  return "Unknown Browser";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper: Parse Device dari User-Agent string
+// ─────────────────────────────────────────────────────────────────────────────
+function parseDevice(ua: string): string {
+  if (!ua) return "Unknown";
+  if (/iPhone/.test(ua)) return "Mobile – iPhone (iOS)";
+  if (/iPad/.test(ua)) return "Tablet – iPad (iOS)";
+  if (/iPod/.test(ua)) return "Mobile – iPod (iOS)";
+  if (/Android/.test(ua) && /Mobile/.test(ua)) return "Mobile – Android";
+  if (/Android/.test(ua)) return "Tablet – Android";
+  if (/Windows Phone/.test(ua)) return "Mobile – Windows Phone";
+  if (/Macintosh|Mac OS X/.test(ua)) return "Desktop – macOS";
+  if (/Windows NT/.test(ua)) return "Desktop – Windows";
+  if (/Linux/.test(ua)) return "Desktop – Linux";
+  if (/CrOS/.test(ua)) return "Desktop – ChromeOS";
+  return "Desktop";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper: Ambil info perangkat dari request headers
+// ─────────────────────────────────────────────────────────────────────────────
+async function getClientInfo(): Promise<{
+  ipAddress?: string;
+  userAgent?: string;
+  browser?: string;
+  device?: string;
+}> {
+  try {
+    const headersList = await headers();
+    const forwarded = headersList.get("x-forwarded-for");
+    const realIp = headersList.get("x-real-ip");
+    const ipRaw = forwarded ? forwarded.split(",")[0].trim() : (realIp ?? undefined);
+
+    // Abaikan localhost IP
+    const ipAddress =
+      ipRaw && ipRaw !== "::1" && ipRaw !== "127.0.0.1" ? ipRaw : undefined;
+
+    const userAgent = headersList.get("user-agent") ?? undefined;
+    const browser = userAgent ? parseBrowser(userAgent) : undefined;
+    const device = userAgent ? parseDevice(userAgent) : undefined;
+
+    return { ipAddress, userAgent, browser, device };
+  } catch {
+    // Konteks request tidak tersedia (misal: cron job, batch process)
+    return {};
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper: Ambil lokasi geografis berdasarkan IP (menggunakan ip-api.com gratis)
+// ─────────────────────────────────────────────────────────────────────────────
+async function getLocationFromIp(ip: string): Promise<string | undefined> {
+  try {
+    const res = await fetch(
+      `http://ip-api.com/json/${ip}?fields=status,country,regionName,city`,
+      { signal: AbortSignal.timeout(3000) }, // timeout 3 detik
+    );
+    if (!res.ok) return undefined;
+    const data = await res.json();
+    if (data.status !== "success") return undefined;
+    return [data.city, data.regionName, data.country]
+      .filter(Boolean)
+      .join(", ");
+  } catch {
+    return undefined;
+  }
+}
 
 /**
  * HIGH-PERFORMANCE NON-BLOCKING LOGGER
- * 
- * Fungsi ini didesain khusus untuk Vercel + Remote VPS agar proses utama 
+ *
+ * Fungsi ini didesain khusus untuk Vercel + Remote VPS agar proses utama
  * (Login, Register, CRUD) tetap instan meskipun jarak database jauh.
  */
 export async function createLog(
@@ -26,7 +112,10 @@ export async function createLog(
     return;
   }
 
-  // 2. JALANKAN DI BACKGROUND (Non-blocking)
+  // 2. Ambil info perangkat dari headers (cepat, dari request context)
+  const clientInfo = await getClientInfo();
+
+  // 3. JALANKAN DI BACKGROUND (Non-blocking)
   // Kita tidak menggunakan 'await' di sini agar fungsi langsung selesai (Return Fast)
   (async () => {
     try {
@@ -46,6 +135,12 @@ export async function createLog(
       const periodeId = user?.periodeAktifId || user?.periodes[0]?.id;
       if (!periodeId) return;
 
+      // Ambil lokasi geografis dari IP (opsional, tidak memblokir)
+      let location: string | undefined;
+      if (clientInfo.ipAddress) {
+        location = await getLocationFromIp(clientInfo.ipAddress);
+      }
+
       // Catat log ke database
       await prisma.logActivity.create({
         data: {
@@ -55,15 +150,26 @@ export async function createLog(
           module,
           description,
           entityId,
+          ipAddress: clientInfo.ipAddress,
+          userAgent: clientInfo.userAgent,
+          browser: clientInfo.browser,
+          device: clientInfo.device,
+          location,
         },
       });
 
       // Notifikasi realtime (Fire and forget)
-      notifyRealtime({ type: "log", action, module, description, entityId }).catch(() => {});
+      notifyRealtime({
+        type: "log",
+        action,
+        module,
+        description,
+        entityId,
+      }).catch(() => {});
     } catch (err) {
       console.error("[Logger] Background logging failed:", err);
     }
-  })(); 
+  })();
 
   // Fungsi akan langsung selesai di sini, tanpa menunggu proses di atas beres.
   return;
@@ -79,6 +185,9 @@ export async function createLogManual(
   description: string,
   entityId?: string,
 ) {
+  // Ambil info perangkat dari headers
+  const clientInfo = await getClientInfo();
+
   // Jalankan langsung di background
   (async () => {
     try {
@@ -111,6 +220,12 @@ export async function createLogManual(
         if (existing) return;
       }
 
+      // Ambil lokasi geografis dari IP
+      let location: string | undefined;
+      if (clientInfo.ipAddress) {
+        location = await getLocationFromIp(clientInfo.ipAddress);
+      }
+
       await prisma.logActivity.create({
         data: {
           userId,
@@ -119,10 +234,21 @@ export async function createLogManual(
           module,
           description,
           entityId,
+          ipAddress: clientInfo.ipAddress,
+          userAgent: clientInfo.userAgent,
+          browser: clientInfo.browser,
+          device: clientInfo.device,
+          location,
         },
       });
 
-      notifyRealtime({ type: "log", action, module, description, entityId }).catch(() => {});
+      notifyRealtime({
+        type: "log",
+        action,
+        module,
+        description,
+        entityId,
+      }).catch(() => {});
     } catch (err) {
       console.error("[Logger Manual] Background logging failed:", err);
     }
@@ -147,6 +273,9 @@ export async function createBatchLogs(
 
   if (!userId || logs.length === 0) return;
 
+  // Ambil info perangkat dari headers
+  const clientInfo = await getClientInfo();
+
   (async () => {
     try {
       const user = await prisma.user.findUnique({
@@ -160,6 +289,12 @@ export async function createBatchLogs(
       const periodeId = user?.periodeAktifId || user?.periodes[0]?.id;
       if (!periodeId) return;
 
+      // Ambil lokasi geografis dari IP (satu kali untuk semua batch)
+      let location: string | undefined;
+      if (clientInfo.ipAddress) {
+        location = await getLocationFromIp(clientInfo.ipAddress);
+      }
+
       await prisma.logActivity.createMany({
         data: logs.map((log) => ({
           userId,
@@ -168,6 +303,11 @@ export async function createBatchLogs(
           module: log.module,
           description: log.description,
           entityId: log.entityId,
+          ipAddress: clientInfo.ipAddress,
+          userAgent: clientInfo.userAgent,
+          browser: clientInfo.browser,
+          device: clientInfo.device,
+          location,
         })),
       });
 

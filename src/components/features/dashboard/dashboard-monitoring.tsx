@@ -285,7 +285,7 @@ export function DashboardMonitoring({
                 style={{ height: "280px", minHeight: "280px" }}
               >
                 {top5Pac.length > 0 && top5Pac.some((d) => d.score > 0) ? (
-                  <ResponsiveContainer width="99%" height="100%">
+                  <ResponsiveContainer width="99%" height={280}>
                     <BarChart
                       data={top5Pac}
                       layout="vertical"
@@ -361,7 +361,7 @@ export function DashboardMonitoring({
                 style={{ height: "200px", minHeight: "200px" }}
               >
                 {distributionData.some((d) => d.value > 0) ? (
-                  <ResponsiveContainer width="99%" height="100%">
+                  <ResponsiveContainer width="99%" height={200}>
                     <PieChart>
                       <Pie
                         data={distributionData}

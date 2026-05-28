@@ -61,7 +61,7 @@ export function LogActivityMonitoring({ data }: LogMonitoringProps) {
               className="h-[280px] w-full pr-2"
               style={{ width: "100%", height: "280px" }}
             >
-              <ResponsiveContainer width="99%" height="100%">
+              <ResponsiveContainer width="99%" height={280}>
                 <LineChart
                   data={data.timeline}
                   margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
@@ -125,7 +125,7 @@ export function LogActivityMonitoring({ data }: LogMonitoringProps) {
               className="h-[220px] w-full"
               style={{ width: "100%", height: "220px" }}
             >
-              <ResponsiveContainer width="99%" height="100%">
+              <ResponsiveContainer width="99%" height={220}>
                 <PieChart>
                   <Pie
                     data={data.distribution}

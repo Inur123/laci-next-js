@@ -3,7 +3,6 @@ generator client {
   binaryTargets = ["native", "linux-arm64-openssl-3.0.x"]
 }
 
-
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
@@ -24,31 +23,31 @@ model User {
   lastLogoutAt   DateTime?
 
   // Existing relations
-  arsipSurats             ArsipSurat[]
-  berkasPimpinans         BerkasPimpinan[]
-  berkasSPs               BerkasSP[]
-  pengajuanBerkass        PengajuanBerkas[]
-  periodes                Periode[]
-  anggota                 Anggota[]
-  agendaKegiatan          AgendaKegiatan[]
-  presensi                Presensi[]
-  logActivities           LogActivity[]
+  arsipSurats      ArsipSurat[]
+  berkasPimpinans  BerkasPimpinan[]
+  berkasSPs        BerkasSP[]
+  pengajuanBerkass PengajuanBerkas[]
+  periodes         Periode[]
+  anggota          Anggota[]
+  agendaKegiatan   AgendaKegiatan[]
+  presensi         Presensi[]
+  logActivities    LogActivity[]
 
   // Better Auth relations
   sessions Session[]
   accounts Account[]
- 
+
   @@index([role, isActive, emailVerified])
   @@index([createdAt])
 }
 
 model Periode {
-  id                String           @id @default(cuid())
+  id                String            @id @default(cuid())
   nama              String
   userId            String
-  isActive          Boolean          @default(false)
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  isActive          Boolean           @default(false)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
   arsipSurats       ArsipSurat[]
   berkasPimpinans   BerkasPimpinan[]
   berkasSPs         BerkasSP[]
@@ -58,7 +57,7 @@ model Periode {
   agendaKegiatan    AgendaKegiatan[]
   presensi          Presensi[]
   logActivities     LogActivity[]
-  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([nama, userId])
   @@index([userId])
@@ -145,23 +144,23 @@ model PengajuanBerkas {
 }
 
 model Presensi {
-  id              String         @id @default(cuid())
-  userId          String
-  periodeId       String
-  namaKegiatan    String
-  tempat          String
-  penyelenggara   String
-  tanggal         DateTime
-  jamMulai        String
-  jamSelesai      String
-  isActive        Boolean        @default(true)
-  isForcedOpen    Boolean        @default(false)
-  forcedOpenAt    DateTime?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  periode         Periode        @relation(fields: [periodeId], references: [id], onDelete: Cascade)
-  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  dataPresensi    PresensiData[]
+  id            String         @id @default(cuid())
+  userId        String
+  periodeId     String
+  namaKegiatan  String
+  tempat        String
+  penyelenggara String
+  tanggal       DateTime
+  jamMulai      String
+  jamSelesai    String
+  isActive      Boolean        @default(true)
+  isForcedOpen  Boolean        @default(false)
+  forcedOpenAt  DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  periode       Periode        @relation(fields: [periodeId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dataPresensi  PresensiData[]
 
   @@index([userId, periodeId])
 }
@@ -217,31 +216,31 @@ enum PenerimaSurat {
 }
 
 model Anggota {
-  id            String       @id @default(cuid())
-  userId        String
-  periodeId     String
-  nik           String?
-  nia           String?
-  email         String?
-  foto          String?
-  namaLengkap   String
-  tempatLahir   String?
-  tanggalLahir  DateTime?
-  jenisKelamin  JenisKelamin
-  alamatLengkap String?
-  noHp          String?
-  hobi          String?
-  jabatan       String?
-  noRfid        String?
-  pekerjaan     String?
+  id                     String       @id @default(cuid())
+  userId                 String
+  periodeId              String
+  nik                    String?
+  nia                    String?
+  email                  String?
+  foto                   String?
+  namaLengkap            String
+  tempatLahir            String?
+  tanggalLahir           DateTime?
+  jenisKelamin           JenisKelamin
+  alamatLengkap          String?
+  noHp                   String?
+  hobi                   String?
+  jabatan                String?
+  noRfid                 String?
+  pekerjaan              String?
   jenjangPendidikan      String?
   namaInstansiPendidikan String?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  periode       Periode      @relation(fields: [periodeId], references: [id], onDelete: Cascade)
-  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  perkaderans   Perkaderan[]
-  pendidikans   Pendidikan[]
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+  periode                Periode      @relation(fields: [periodeId], references: [id], onDelete: Cascade)
+  user                   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  perkaderans            Perkaderan[]
+  pendidikans            Pendidikan[]
 
   @@index([userId, periodeId])
 }
@@ -313,6 +312,13 @@ model LogActivity {
   module      LogModule
   description String
   entityId    String?
+
+  // Informasi perangkat & jaringanre
+  ipAddress String?
+  userAgent String?
+  browser   String?
+  device    String?
+  location  String?
 
   createdAt DateTime @default(now())
 
@@ -407,20 +413,20 @@ model Session {
 }
 
 model Account {
-  id           String    @id @default(cuid())
-  userId       String
-  accountId    String
-  providerId   String
-  accessToken  String?
-  refreshToken String?
-  idToken              String?
-  expiresAt            DateTime?
-  accessTokenExpiresAt DateTime?
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  expiresAt             DateTime?
+  accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
-  scope                String?
-  password             String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

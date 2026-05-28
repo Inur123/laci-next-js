@@ -13,6 +13,11 @@ import {
   Activity,
   Tag,
   Clock,
+  Globe,
+  Monitor,
+  Smartphone,
+  Wifi,
+  MapPin,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -144,6 +149,15 @@ async function LogDetailContent({
   const actionInfo = actionConfig[log.action];
   const moduleInfo = moduleConfig[log.module];
 
+  // Deteksi apakah device adalah mobile berdasarkan field device
+  const isMobile =
+    log.device?.toLowerCase().includes("mobile") ||
+    log.device?.toLowerCase().includes("iphone") ||
+    log.device?.toLowerCase().includes("android");
+
+  const hasDeviceInfo =
+    log.ipAddress || log.browser || log.device || log.location;
+
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
       {/* Header */}
@@ -247,7 +261,7 @@ async function LogDetailContent({
         <Card className="shadow-sm border-slate-200">
           <CardHeader className="border-b bg-slate-50/50">
             <CardTitle className="text-sm font-semibold text-slate-600 uppercase tracking-wider">
-              Pelaku & Waktu
+              Pelaku &amp; Waktu
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6 space-y-6">
@@ -298,6 +312,140 @@ async function LogDetailContent({
           </CardContent>
         </Card>
       </div>
+
+      {/* Card Informasi Perangkat & Jaringan */}
+      <Card className="shadow-sm border-slate-200 overflow-hidden">
+        <CardHeader className="border-b bg-slate-50/50">
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-6 rounded-md bg-violet-100 flex items-center justify-center">
+              <Globe className="w-3.5 h-3.5 text-violet-600" />
+            </div>
+            <CardTitle className="text-sm font-semibold text-slate-600 uppercase tracking-wider">
+              Informasi Perangkat &amp; Jaringan
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6">
+          {!hasDeviceInfo ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                <Monitor className="w-5 h-5 text-slate-400" />
+              </div>
+              <p className="text-sm text-slate-500 font-medium">
+                Data perangkat tidak tersedia
+              </p>
+              <p className="text-xs text-slate-400 mt-1">
+                Log ini dibuat sebelum fitur pencatatan perangkat ditambahkan
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Alamat IP */}
+              <div className="flex items-start gap-3">
+                <div className="h-9 w-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+                  <Wifi className="w-4 h-4 text-blue-600" />
+                </div>
+                <div className="space-y-1 min-w-0">
+                  <p className="text-xs text-muted-foreground uppercase font-bold tracking-tight">
+                    Alamat IP
+                  </p>
+                  {log.ipAddress ? (
+                    <code className="text-sm font-semibold text-slate-900 font-mono bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                      {log.ipAddress}
+                    </code>
+                  ) : (
+                    <p className="text-sm text-slate-400 italic">
+                      Tidak tersedia
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Browser */}
+              <div className="flex items-start gap-3">
+                <div className="h-9 w-9 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                  <Globe className="w-4 h-4 text-emerald-600" />
+                </div>
+                <div className="space-y-1 min-w-0">
+                  <p className="text-xs text-muted-foreground uppercase font-bold tracking-tight">
+                    Browser
+                  </p>
+                  {log.browser ? (
+                    <p className="text-sm font-semibold text-slate-900">
+                      {log.browser}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-slate-400 italic">
+                      Tidak tersedia
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Perangkat */}
+              <div className="flex items-start gap-3">
+                <div className="h-9 w-9 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0">
+                  {isMobile ? (
+                    <Smartphone className="w-4 h-4 text-amber-600" />
+                  ) : (
+                    <Monitor className="w-4 h-4 text-amber-600" />
+                  )}
+                </div>
+                <div className="space-y-1 min-w-0">
+                  <p className="text-xs text-muted-foreground uppercase font-bold tracking-tight">
+                    Perangkat
+                  </p>
+                  {log.device ? (
+                    <p className="text-sm font-semibold text-slate-900">
+                      {log.device}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-slate-400 italic">
+                      Tidak tersedia
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Lokasi */}
+              <div className="flex items-start gap-3">
+                <div className="h-9 w-9 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0">
+                  <MapPin className="w-4 h-4 text-rose-600" />
+                </div>
+                <div className="space-y-1 min-w-0">
+                  <p className="text-xs text-muted-foreground uppercase font-bold tracking-tight">
+                    Lokasi
+                  </p>
+                  {log.location ? (
+                    <p className="text-sm font-semibold text-slate-900">
+                      {log.location}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-slate-400 italic">
+                      Tidak tersedia
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* User Agent mentah — tersembunyi, hanya sebagai detail teknis */}
+          {log.userAgent && (
+            <details className="mt-6 group">
+              <summary className="cursor-pointer text-xs text-slate-400 hover:text-slate-600 transition-colors select-none flex items-center gap-1.5">
+                <span className="group-open:rotate-90 transition-transform inline-block">▶</span>
+                Lihat raw User-Agent string
+              </summary>
+              <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <code className="text-[11px] text-slate-500 font-mono break-all leading-relaxed">
+                  {log.userAgent}
+                </code>
+              </div>
+            </details>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
