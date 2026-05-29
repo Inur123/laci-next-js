@@ -309,15 +309,14 @@ export async function getUserDetail(userId: string) {
 
     // Pendidikan Counts
     const pendidikanCounts: { [key: string]: number } = {
-      "SD/MI": 0,
-      "SMP/MTs": 0,
-      "SMA/MA/SMK": 0,
-      D1: 0,
-      D2: 0,
-      D3: 0,
-      "D4/S1": 0,
-      S2: 0,
-      S3: 0,
+      SD: 0,
+      MI: 0,
+      SMP: 0,
+      MTs: 0,
+      SMA: 0,
+      SMK: 0,
+      MAN: 0,
+      KULIAH: 0,
     };
 
     (pendidikanStats as any[]).forEach((p: any) => {
@@ -361,15 +360,14 @@ export async function getUserDetail(userId: string) {
       Diklatmad: 0,
     },
     pendidikanCounts: (stats as any).pendidikanCounts || {
-      "SD/MI": 0,
-      "SMP/MTs": 0,
-      "SMA/MA/SMK": 0,
-      D1: 0,
-      D2: 0,
-      D3: 0,
-      "D4/S1": 0,
-      S2: 0,
-      S3: 0,
+      SD: 0,
+      MI: 0,
+      SMP: 0,
+      MTs: 0,
+      SMA: 0,
+      SMK: 0,
+      MAN: 0,
+      KULIAH: 0,
     },
     periodeAktif: activePeriod?.nama || "Tidak ada periode aktif",
     perkaderans: member?.perkaderans || [],

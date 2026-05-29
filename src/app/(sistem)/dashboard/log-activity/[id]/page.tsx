@@ -430,20 +430,7 @@ async function LogDetailContent({
             </div>
           )}
 
-          {/* User Agent mentah — tersembunyi, hanya sebagai detail teknis */}
-          {log.userAgent && (
-            <details className="mt-6 group">
-              <summary className="cursor-pointer text-xs text-slate-400 hover:text-slate-600 transition-colors select-none flex items-center gap-1.5">
-                <span className="group-open:rotate-90 transition-transform inline-block">▶</span>
-                Lihat raw User-Agent string
-              </summary>
-              <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-100">
-                <code className="text-[11px] text-slate-500 font-mono break-all leading-relaxed">
-                  {log.userAgent}
-                </code>
-              </div>
-            </details>
-          )}
+
         </CardContent>
       </Card>
     </div>

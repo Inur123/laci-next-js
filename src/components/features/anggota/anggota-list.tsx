@@ -342,14 +342,26 @@ export function AnggotaList({
         Email: item.email || "-",
         Jabatan: item.jabatan || "-",
         Pekerjaan: item.pekerjaan || "-",
-        "SD/MI":
-          item.pendidikans?.find((p) => p.jenjang === "SD/MI")?.namaSekolah ||
+        SD:
+          item.pendidikans?.find((p) => p.jenjang === "SD")?.namaSekolah ||
           "-",
-        "SMP/MTs":
-          item.pendidikans?.find((p) => p.jenjang === "SMP/MTs")?.namaSekolah ||
+        MI:
+          item.pendidikans?.find((p) => p.jenjang === "MI")?.namaSekolah ||
           "-",
-        "SMA/MA":
-          item.pendidikans?.find((p) => p.jenjang === "SMA/MA")?.namaSekolah ||
+        SMP:
+          item.pendidikans?.find((p) => p.jenjang === "SMP")?.namaSekolah ||
+          "-",
+        MTs:
+          item.pendidikans?.find((p) => p.jenjang === "MTs")?.namaSekolah ||
+          "-",
+        SMA:
+          item.pendidikans?.find((p) => p.jenjang === "SMA")?.namaSekolah ||
+          "-",
+        SMK:
+          item.pendidikans?.find((p) => p.jenjang === "SMK")?.namaSekolah ||
+          "-",
+        MAN:
+          item.pendidikans?.find((p) => p.jenjang === "MAN")?.namaSekolah ||
           "-",
         KULIAH:
           item.pendidikans?.find((p) => p.jenjang === "KULIAH")?.namaSekolah ||

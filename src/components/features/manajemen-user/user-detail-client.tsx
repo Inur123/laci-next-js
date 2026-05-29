@@ -61,15 +61,14 @@ type UserDetail = {
     Diklatmad: number;
   };
   pendidikanCounts?: {
-    "SD/MI": number;
-    "SMP/MTs": number;
-    "SMA/MA/SMK": number;
-    D1: number;
-    D2: number;
-    D3: number;
-    "D4/S1": number;
-    S2: number;
-    S3: number;
+    SD: number;
+    MI: number;
+    SMP: number;
+    MTs: number;
+    SMA: number;
+    SMK: number;
+    MAN: number;
+    KULIAH: number;
   };
   perkaderans?: Array<{
     id: string;
@@ -522,61 +521,55 @@ export default function UserDetailClient({
                   <School size={18} className="text-primary" />
                   Statistik Pendidikan
                 </h3>
-                <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 text-left">
+                <div className="grid gap-4 grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-8 text-left">
                   {[
                     {
-                      id: "SD/MI",
+                      id: "SD",
                       bg: "bg-slate-50/80",
                       border: "border-slate-200",
                       text: "text-slate-600",
                     },
                     {
-                      id: "SMP/MTs",
+                      id: "MI",
+                      bg: "bg-sky-50/80",
+                      border: "border-sky-200",
+                      text: "text-sky-600",
+                    },
+                    {
+                      id: "SMP",
                       bg: "bg-orange-50/80",
                       border: "border-orange-200",
                       text: "text-orange-600",
                     },
                     {
-                      id: "SMA/MA/SMK",
+                      id: "MTs",
                       bg: "bg-amber-50/80",
                       border: "border-amber-200",
                       text: "text-amber-600",
                     },
                     {
-                      id: "D1",
-                      bg: "bg-yellow-50/80",
-                      border: "border-yellow-200",
-                      text: "text-yellow-600",
-                    },
-                    {
-                      id: "D2",
+                      id: "SMA",
                       bg: "bg-lime-50/80",
                       border: "border-lime-200",
                       text: "text-lime-600",
                     },
                     {
-                      id: "D3",
+                      id: "SMK",
                       bg: "bg-emerald-50/80",
                       border: "border-emerald-200",
                       text: "text-emerald-600",
                     },
                     {
-                      id: "D4/S1",
+                      id: "MAN",
+                      bg: "bg-teal-50/80",
+                      border: "border-teal-200",
+                      text: "text-teal-600",
+                    },
+                    {
+                      id: "KULIAH",
                       bg: "bg-blue-50/80",
                       border: "border-blue-200",
                       text: "text-blue-600",
-                    },
-                    {
-                      id: "S2",
-                      bg: "bg-indigo-50/80",
-                      border: "border-indigo-200",
-                      text: "text-indigo-600",
-                    },
-                    {
-                      id: "S3",
-                      bg: "bg-purple-50/80",
-                      border: "border-purple-200",
-                      text: "text-purple-600",
                     },
                   ].map((item) => (
                     <div

@@ -191,10 +191,12 @@ export async function getDashboardStats() {
         namaPerkaderan: true,
       },
     }),
-    prisma.anggota.groupBy({
-      by: ["jenjangPendidikan"],
+    prisma.pendidikan.groupBy({
+      by: ["jenjang"],
       where: {
-        periode: { isActive: true },
+        anggota: {
+          periode: { isActive: true },
+        },
       },
       _count: {
         id: true,
@@ -262,37 +264,38 @@ export async function getDashboardStats() {
           ).length,
         },
         pendidikan: {
-          "SD/MI":
+          SD:
             (pendidikanStats as any[]).find(
-              (p) => p.jenjangPendidikan === "SD/MI",
+              (p) => p.jenjang === "SD",
             )?._count.id || 0,
-          "SMP/MTs":
+          MI:
             (pendidikanStats as any[]).find(
-              (p) => p.jenjangPendidikan === "SMP/MTs",
+              (p) => p.jenjang === "MI",
             )?._count.id || 0,
-          "SMA/MA/SMK":
+          SMP:
             (pendidikanStats as any[]).find(
-              (p) => p.jenjangPendidikan === "SMA/MA/SMK",
+              (p) => p.jenjang === "SMP",
             )?._count.id || 0,
-          D1:
-            (pendidikanStats as any[]).find((p) => p.jenjangPendidikan === "D1")
-              ?._count.id || 0,
-          D2:
-            (pendidikanStats as any[]).find((p) => p.jenjangPendidikan === "D2")
-              ?._count.id || 0,
-          D3:
-            (pendidikanStats as any[]).find((p) => p.jenjangPendidikan === "D3")
-              ?._count.id || 0,
-          "D4/S1":
+          MTs:
             (pendidikanStats as any[]).find(
-              (p) => p.jenjangPendidikan === "D4/S1",
+              (p) => p.jenjang === "MTs",
             )?._count.id || 0,
-          S2:
-            (pendidikanStats as any[]).find((p) => p.jenjangPendidikan === "S2")
-              ?._count.id || 0,
-          S3:
-            (pendidikanStats as any[]).find((p) => p.jenjangPendidikan === "S3")
-              ?._count.id || 0,
+          SMA:
+            (pendidikanStats as any[]).find(
+              (p) => p.jenjang === "SMA",
+            )?._count.id || 0,
+          SMK:
+            (pendidikanStats as any[]).find(
+              (p) => p.jenjang === "SMK",
+            )?._count.id || 0,
+          MAN:
+            (pendidikanStats as any[]).find(
+              (p) => p.jenjang === "MAN",
+            )?._count.id || 0,
+          KULIAH:
+            (pendidikanStats as any[]).find(
+              (p) => p.jenjang === "KULIAH",
+            )?._count.id || 0,
         },
       },
     },

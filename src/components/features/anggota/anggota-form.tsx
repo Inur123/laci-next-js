@@ -751,9 +751,13 @@ export function AnggotaForm({ anggota, userRole }: AnggotaFormProps) {
                             </SelectTrigger>
                             <SelectContent>
                               {[
-                                { id: "SD/MI", label: "SD/MI" },
-                                { id: "SMP/MTs", label: "SMP/MTs" },
-                                { id: "SMA/MA", label: "SMA/MA" },
+                                { id: "SD", label: "SD" },
+                                { id: "MI", label: "MI" },
+                                { id: "SMP", label: "SMP" },
+                                { id: "MTs", label: "MTs" },
+                                { id: "SMA", label: "SMA" },
+                                { id: "SMK", label: "SMK" },
+                                { id: "MAN", label: "MAN" },
                                 { id: "KULIAH", label: "KULIAH" },
                               ].map((opt) => {
                                 const isSelectedElsewhere = pendidikans.some(

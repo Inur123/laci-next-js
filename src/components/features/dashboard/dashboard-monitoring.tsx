@@ -57,15 +57,14 @@ interface MonitoringStats {
       Diklatmad: number;
     };
     pendidikan?: {
-      "SD/MI": number;
-      "SMP/MTs": number;
-      "SMA/MA/SMK": number;
-      D1: number;
-      D2: number;
-      D3: number;
-      "D4/S1": number;
-      S2: number;
-      S3: number;
+      SD: number;
+      MI: number;
+      SMP: number;
+      MTs: number;
+      SMA: number;
+      SMK: number;
+      MAN: number;
+      KULIAH: number;
     };
   };
   leaderboard: LeaderboardItem[];
@@ -233,17 +232,16 @@ export function DashboardMonitoring({
           <School size={18} className="text-primary" />
           Total Pendidikan Wilayah
         </h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-4">
           {[
-            { id: "SD/MI", color: "slate" },
-            { id: "SMP/MTs", color: "orange" },
-            { id: "SMA/MA/SMK", color: "amber" },
-            { id: "D1", color: "yellow" },
-            { id: "D2", color: "lime" },
-            { id: "D3", color: "emerald" },
-            { id: "D4/S1", color: "blue" },
-            { id: "S2", color: "indigo" },
-            { id: "S3", color: "purple" },
+            { id: "SD", color: "slate" },
+            { id: "MI", color: "sky" },
+            { id: "SMP", color: "orange" },
+            { id: "MTs", color: "amber" },
+            { id: "SMA", color: "lime" },
+            { id: "SMK", color: "emerald" },
+            { id: "MAN", color: "teal" },
+            { id: "KULIAH", color: "blue" },
           ].map((item) => (
             <div
               key={item.id}
