@@ -156,6 +156,26 @@ export function LogDetailSkeleton() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Device & Network Info Skeleton */}
+      <Card className="shadow-none border-slate-200 mt-6">
+        <CardHeader className="border-b bg-slate-50/40">
+          <Skeleton className="h-4 w-48" />
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <Skeleton className="h-9 w-9 rounded-lg shrink-0" />
+                <div className="space-y-2 w-full">
+                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-4 w-28" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

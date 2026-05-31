@@ -27,6 +27,216 @@ import { formatDate, formatTime } from "@/lib/date-utils";
 import { Suspense } from "react";
 import { LogDetailSkeleton } from "@/components/features/log-activity/log-activity-skeleton";
 
+async function parseLocation(locationStr: string | null) {
+  if (!locationStr) return null;
+  
+  // Try to parse format: "Address (Lat, Lng)"
+  const gpsRegex = /(.*?)\s*\((-?\d+\.\d+),\s*(-?\d+\.\d+)\)/;
+  const match = locationStr.match(gpsRegex);
+  
+  if (match) {
+    const [_, address, lat, lng] = match;
+    const parts = address.split(",").map(p => p.trim());
+    
+    let desa = "";
+    let kecamatan = "";
+    let kabupaten = "";
+    let provinsi = "";
+
+    if (parts.length >= 4) {
+      desa = parts[0];
+      kecamatan = parts[1];
+      kabupaten = parts[2];
+      provinsi = parts[3];
+    } else if (parts.length === 3) {
+      desa = parts[0];
+      kabupaten = parts[1];
+      provinsi = parts[2];
+    } else if (parts.length === 2) {
+      kabupaten = parts[0];
+      provinsi = parts[1];
+    } else if (parts.length === 1) {
+      kabupaten = parts[0];
+    }
+
+    if (provinsi === "Jawa") provinsi = "Jawa Timur";
+
+    // If kecamatan is empty, try to fetch from BigDataCloud to fill it
+    if (!kecamatan && lat && lng) {
+      try {
+        const bdcRes = await fetch(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=id`,
+          { signal: AbortSignal.timeout(2000) }
+        );
+        if (bdcRes.ok) {
+          const bdcData = await bdcRes.json();
+          if (bdcData && bdcData.localityInfo) {
+            const allItems = [
+              ...(bdcData.localityInfo.administrative || []),
+              ...(bdcData.localityInfo.informative || [])
+            ];
+            const kecItem = allItems.find(item => 
+              item.description && item.description.toLowerCase().includes("kecamatan")
+            );
+            if (kecItem) {
+              kecamatan = kecItem.name;
+            } else if (bdcData.locality && bdcData.locality !== bdcData.city) {
+              kecamatan = bdcData.locality;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("Fallback kecamatan fetch failed:", e);
+      }
+    }
+
+    return {
+      desa,
+      kecamatan,
+      kabupaten,
+      provinsi,
+      lat: parseFloat(lat).toFixed(6),
+      lng: parseFloat(lng).toFixed(6),
+      mapUrl: `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`,
+    };
+  }
+  
+  // Fallback for simple "lat, lng" format
+  const coordsRegex = /^(-?\d+\.\d+),\s*(-?\d+\.\d+)$/;
+  const coordsMatch = locationStr.match(coordsRegex);
+  if (coordsMatch) {
+    const [_, lat, lng] = coordsMatch;
+    
+    // Try Nominatim first (detailed for Indonesia)
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
+        {
+          headers: {
+            "Accept-Language": "id-ID,id;q=0.9,en;q=0.8",
+            "User-Agent": "LaciDigital/1.0",
+          },
+          signal: AbortSignal.timeout(3000),
+          next: { revalidate: 86400 }
+        }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.address) {
+          const addr = data.address;
+          const desa = addr.village || addr.suburb || addr.neighbourhood || addr.road || "";
+          let kecamatan = addr.city_district || addr.subdistrict || addr.municipality || "";
+          const kabupaten = addr.city || addr.regency || addr.town || addr.county || "";
+          let provinsi = addr.state || "";
+          if (provinsi === "Jawa") provinsi = "Jawa Timur";
+
+          // Try to fill in kecamatan if empty
+          if (!kecamatan) {
+            try {
+              const bdcRes = await fetch(
+                `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=id`,
+                { signal: AbortSignal.timeout(2000) }
+              );
+              if (bdcRes.ok) {
+                const bdcData = await bdcRes.json();
+                if (bdcData && bdcData.localityInfo) {
+                  const allItems = [
+                    ...(bdcData.localityInfo.administrative || []),
+                    ...(bdcData.localityInfo.informative || [])
+                  ];
+                  const kecItem = allItems.find(item => 
+                    item.description && item.description.toLowerCase().includes("kecamatan")
+                  );
+                  if (kecItem) {
+                    kecamatan = kecItem.name;
+                  } else if (bdcData.locality && bdcData.locality !== bdcData.city) {
+                    kecamatan = bdcData.locality;
+                  }
+                }
+              }
+            } catch (e) {
+              console.warn("Server-side BDC fallback for kecamatan failed:", e);
+            }
+          }
+
+          return {
+            desa,
+            kecamatan,
+            kabupaten,
+            provinsi,
+            lat: parseFloat(lat).toFixed(6),
+            lng: parseFloat(lng).toFixed(6),
+            mapUrl: `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`,
+          };
+        }
+      }
+    } catch (e) {
+      console.warn("Nominatim failed on server, trying BigDataCloud...", e);
+    }
+
+    // Fallback to BigDataCloud
+    try {
+      const res = await fetch(
+        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=id`,
+        {
+          signal: AbortSignal.timeout(3000),
+          next: { revalidate: 86400 }
+        }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        let prov = data.principalSubdivision || "";
+        if (prov === "Jawa") prov = "Jawa Timur";
+
+        let kecamatan = "";
+        if (data.localityInfo) {
+          const allItems = [
+            ...(data.localityInfo.administrative || []),
+            ...(data.localityInfo.informative || [])
+          ];
+          const kecItem = allItems.find(item => 
+            item.description && item.description.toLowerCase().includes("kecamatan")
+          );
+          if (kecItem) {
+            kecamatan = kecItem.name;
+          } else if (data.locality && data.locality !== data.city) {
+            kecamatan = data.locality;
+          }
+        }
+
+        return {
+          desa: "",
+          kecamatan,
+          kabupaten: data.city || "",
+          provinsi: prov,
+          lat: parseFloat(lat).toFixed(6),
+          lng: parseFloat(lng).toFixed(6),
+          mapUrl: `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`,
+        };
+      }
+    } catch (e) {
+      console.warn("Server-side fallback reverse geocoding warning:", e);
+    }
+
+    return {
+      desa: "",
+      kecamatan: "",
+      kabupaten: "Koordinat Presisi",
+      provinsi: "",
+      lat: parseFloat(lat).toFixed(6),
+      lng: parseFloat(lng).toFixed(6),
+      mapUrl: `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`,
+    };
+  }
+
+  return {
+    address: locationStr,
+    lat: null,
+    lng: null,
+    mapUrl: null,
+  };
+}
+
 const actionConfig: Record<
   LogAction,
   { label: string; className: string; icon: LucideIcon }
@@ -157,6 +367,8 @@ async function LogDetailContent({
 
   const hasDeviceInfo =
     log.ipAddress || log.browser || log.device || log.location;
+
+  const parsedLocation = await parseLocation(log.location);
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
@@ -416,11 +628,65 @@ async function LogDetailContent({
                   <p className="text-xs text-muted-foreground uppercase font-bold tracking-tight">
                     Lokasi
                   </p>
-                  {log.location ? (
-                    <p className="text-sm font-semibold text-slate-900">
-                      {log.location}
-                    </p>
-                  ) : (
+                  {log.location && parsedLocation ? (() => {
+                    const parts: string[] = [];
+                    if (parsedLocation.desa) {
+                      parts.push(parsedLocation.desa);
+                    }
+                    if (parsedLocation.kecamatan) {
+                      parts.push(`Kec. ${parsedLocation.kecamatan}`);
+                    }
+                    if (parsedLocation.kabupaten) {
+                      parts.push(`Kab. ${parsedLocation.kabupaten}`);
+                    }
+                    if (parsedLocation.provinsi) {
+                      parts.push(parsedLocation.provinsi);
+                    }
+
+                    if (parts.length === 0 && parsedLocation.address) {
+                      return (
+                        <p className="text-sm font-semibold text-slate-900 leading-tight">
+                          {parsedLocation.address}
+                        </p>
+                      );
+                    }
+
+                    // Split parts into 2 lines
+                    let line1 = "";
+                    let line2 = "";
+                    if (parts.length >= 3) {
+                      line1 = parts.slice(0, 2).join(", ");
+                      line2 = parts.slice(2).join(", ");
+                    } else {
+                      line1 = parts[0] || "";
+                      line2 = parts[1] || "";
+                    }
+
+                    return (
+                      <div className="space-y-0.5">
+                        <p className="text-sm font-semibold text-slate-800 leading-snug">
+                          {line1}
+                        </p>
+                        {line2 && (
+                          <p className="text-xs text-slate-500 font-medium">
+                            {line2}
+                          </p>
+                        )}
+                        {parsedLocation.mapUrl && (
+                          <div className="pt-0.5">
+                            <a
+                              href={parsedLocation.mapUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[11px] text-rose-600 hover:text-rose-700 hover:underline font-semibold inline-flex items-center gap-0.5"
+                            >
+                              Lihat di Google Maps &rarr;
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })() : (
                     <p className="text-sm text-slate-400 italic">
                       Tidak tersedia
                     </p>

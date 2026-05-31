@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import { LogAction, LogModule } from "@prisma/client";
 import { notifyRealtime } from "@/lib/realtime";
 import { getSession } from "@/lib/auth-session";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helper: Parse Browser dari User-Agent string (tanpa library tambahan)
@@ -49,9 +49,18 @@ async function getClientInfo(): Promise<{
   userAgent?: string;
   browser?: string;
   device?: string;
+  latitude?: string;
+  longitude?: string;
+  gpsAddress?: string;
 }> {
   try {
     const headersList = await headers();
+    const cookieStore = await cookies();
+
+    const lat = cookieStore.get("user_lat")?.value;
+    const lng = cookieStore.get("user_lng")?.value;
+    const addr = cookieStore.get("user_address")?.value;
+
     const forwarded = headersList.get("x-forwarded-for");
     const realIp = headersList.get("x-real-ip");
     const ipRaw = forwarded ? forwarded.split(",")[0].trim() : (realIp ?? undefined);
@@ -64,7 +73,15 @@ async function getClientInfo(): Promise<{
     const browser = userAgent ? parseBrowser(userAgent) : undefined;
     const device = userAgent ? parseDevice(userAgent) : undefined;
 
-    return { ipAddress, userAgent, browser, device };
+    return {
+      ipAddress,
+      userAgent,
+      browser,
+      device,
+      latitude: lat,
+      longitude: lng,
+      gpsAddress: addr ? decodeURIComponent(addr) : undefined,
+    };
   } catch {
     // Konteks request tidak tersedia (misal: cron job, batch process)
     return {};
@@ -136,9 +153,15 @@ export async function createLog(
       const periodeId = user?.periodeAktifId || user?.periodes[0]?.id;
       if (!periodeId) return;
 
-      // Ambil lokasi geografis dari IP (opsional, tidak memblokir)
+      // Ambil lokasi geografis dari GPS cookies / fallback ke IP
       let location: string | undefined;
-      if (clientInfo.ipAddress) {
+      if (clientInfo.latitude && clientInfo.longitude) {
+        if (clientInfo.gpsAddress) {
+          location = `${clientInfo.gpsAddress} (${clientInfo.latitude}, ${clientInfo.longitude})`;
+        } else {
+          location = `${clientInfo.latitude}, ${clientInfo.longitude}`;
+        }
+      } else if (clientInfo.ipAddress) {
         location = await getLocationFromIp(clientInfo.ipAddress);
       }
 
@@ -221,9 +244,15 @@ export async function createLogManual(
         if (existing) return;
       }
 
-      // Ambil lokasi geografis dari IP
+      // Ambil lokasi geografis dari GPS cookies / fallback ke IP
       let location: string | undefined;
-      if (clientInfo.ipAddress) {
+      if (clientInfo.latitude && clientInfo.longitude) {
+        if (clientInfo.gpsAddress) {
+          location = `${clientInfo.gpsAddress} (${clientInfo.latitude}, ${clientInfo.longitude})`;
+        } else {
+          location = `${clientInfo.latitude}, ${clientInfo.longitude}`;
+        }
+      } else if (clientInfo.ipAddress) {
         location = await getLocationFromIp(clientInfo.ipAddress);
       }
 
@@ -290,9 +319,15 @@ export async function createBatchLogs(
       const periodeId = user?.periodeAktifId || user?.periodes[0]?.id;
       if (!periodeId) return;
 
-      // Ambil lokasi geografis dari IP (satu kali untuk semua batch)
+      // Ambil lokasi geografis dari GPS cookies / fallback ke IP (satu kali untuk semua batch)
       let location: string | undefined;
-      if (clientInfo.ipAddress) {
+      if (clientInfo.latitude && clientInfo.longitude) {
+        if (clientInfo.gpsAddress) {
+          location = `${clientInfo.gpsAddress} (${clientInfo.latitude}, ${clientInfo.longitude})`;
+        } else {
+          location = `${clientInfo.latitude}, ${clientInfo.longitude}`;
+        }
+      } else if (clientInfo.ipAddress) {
         location = await getLocationFromIp(clientInfo.ipAddress);
       }
 
