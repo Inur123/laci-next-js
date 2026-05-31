@@ -99,7 +99,7 @@ export async function executeBackupLogic(isCron: boolean = false) {
   const dateStr = `${now.getFullYear()}-${format2Digits(now.getMonth() + 1)}-${format2Digits(now.getDate())}`;
   const timeStr = `${format2Digits(now.getHours())}${format2Digits(now.getMinutes())}${format2Digits(now.getSeconds())}`;
   
-  const prefix = isCron ? "cron_laci_db" : "laci_db";
+  const prefix = "laci_db";
   const filename = `${prefix}_${dateStr}_${timeStr}.sql.gz`;
   
   const tempDir = path.join(process.cwd(), "tmp");
