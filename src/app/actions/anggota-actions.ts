@@ -12,6 +12,7 @@ import { JenisKelamin, Prisma } from "@prisma/client";
 import { createLog } from "@/lib/log-activity";
 import { uploadToR2, deleteFromR2 } from "@/lib/storage-r2";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 
 /**
  * Get List of Members with Pagination and Search
@@ -28,9 +29,18 @@ export async function getAnggotaList(
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  const periodeAktif = await prisma.periode.findFirst({
-    where: { userId: session.user.id, isActive: true },
-  });
+  // Get active or selected view periode
+  const cookieStore = await cookies();
+  const viewPeriodeId = cookieStore.get("view_periode_id")?.value;
+  
+  let targetPeriodeId = viewPeriodeId;
+  
+  if (!targetPeriodeId) {
+    const periodeAktif = await prisma.periode.findFirst({
+      where: { userId: session.user.id, isActive: true },
+    });
+    targetPeriodeId = periodeAktif?.id;
+  }
 
   const currentUser = await prisma.user.findUnique({
     where: { id: session.user.id },
@@ -41,13 +51,14 @@ export async function getAnggotaList(
   let whereClause: Prisma.AnggotaWhereInput = {};
 
   if (!isCabang) {
-    const effectivePeriodeId = periodeId || periodeAktif?.id;
+    const effectivePeriodeId = periodeId || targetPeriodeId;
     if (!effectivePeriodeId) return { data: [], total: 0, totalPages: 0 };
     whereClause = { userId: session.user.id, periodeId: effectivePeriodeId };
   } else {
     if (userId && userId !== "ALL") whereClause.userId = userId;
-    if (periodeId) {
-      whereClause.periodeId = periodeId;
+    const finalPeriodeId = periodeId || targetPeriodeId;
+    if (finalPeriodeId) {
+      whereClause.periodeId = finalPeriodeId;
     } else {
       whereClause.periode = { isActive: true };
     }
@@ -524,16 +535,29 @@ export async function getAnggotaStats(userId?: string) {
   });
   const isCabang = user?.role === "SEKRETARIS_CABANG";
   let where: Prisma.AnggotaWhereInput = {};
-  const active = await prisma.periode.findFirst({
-    where: { userId: session.user.id, isActive: true },
-  });
+  // Get active or selected view periode
+  const cookieStore = await cookies();
+  const viewPeriodeId = cookieStore.get("view_periode_id")?.value;
+  
+  let targetPeriodeId = viewPeriodeId;
+  
+  if (!targetPeriodeId) {
+    const active = await prisma.periode.findFirst({
+      where: { userId: session.user.id, isActive: true },
+    });
+    targetPeriodeId = active?.id;
+  }
 
   if (isCabang) {
     if (userId && userId !== "ALL") where.userId = userId;
-    where.periode = { isActive: true };
+    if (targetPeriodeId) {
+      where.periodeId = targetPeriodeId;
+    } else {
+      where.periode = { isActive: true };
+    }
   } else {
-    if (!active) return null;
-    where = { userId: session.user.id, periodeId: active.id };
+    if (!targetPeriodeId) return null;
+    where = { userId: session.user.id, periodeId: targetPeriodeId };
   }
 
   const [total, lakiLaki, perempuan, perkaderans] = await Promise.all([

@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 import { encryptText, decryptText, generateHash } from "@/lib/encryption";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 
 import { createLog } from "@/lib/log-activity";
 import { isPresensiOpen as checkIsPresensiOpen } from "@/lib/presensi-utils";
@@ -23,14 +24,22 @@ export async function getPresensiList(
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  // Get active period
-  const activePeriode = await prisma.periode.findFirst({
-    where: { userId: session.user.id, isActive: true },
-  });
+  // Get active or selected view periode
+  const cookieStore = await cookies();
+  const viewPeriodeId = cookieStore.get("view_periode_id")?.value;
+  
+  let targetPeriodeId = viewPeriodeId;
+  
+  if (!targetPeriodeId) {
+    const activePeriode = await prisma.periode.findFirst({
+      where: { userId: session.user.id, isActive: true },
+    });
+    targetPeriodeId = activePeriode?.id;
+  }
 
   const whereClause: any = {
     userId: session.user.id,
-    periodeId: activePeriode?.id || undefined,
+    periodeId: targetPeriodeId || undefined,
   };
 
   const isCustomSortOrFilter =
@@ -76,7 +85,7 @@ export async function getPresensiList(
   const allPresensi = await prisma.presensi.findMany({
     where: {
       userId: session.user.id,
-      periodeId: activePeriode?.id || undefined,
+      periodeId: targetPeriodeId || undefined,
     },
     orderBy: {
       tanggal: "desc",

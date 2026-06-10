@@ -6,19 +6,29 @@ import {
   deletePeriode,
   getPeriodes,
 } from "@/app/actions/periode-actions";
+import { setViewPeriode } from "@/app/actions/view-periode-actions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useEffect, useRef, useState } from "react";
-import { Trash2, CheckCircle, Edit, Info, Loader2 } from "lucide-react";
+import { Trash2, CheckCircle, Edit, Info, Loader2, Eye } from "lucide-react";
 import Link from "next/link";
 import { ConfirmModal } from "@/components/shared/confirm-modal";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-export function PeriodeList({ periods }: { periods: Periode[] }) {
+export function PeriodeList({ 
+  periods, 
+  userRole,
+  activeViewId 
+}: { 
+  periods: Periode[]; 
+  userRole?: string;
+  activeViewId?: string;
+}) {
   const [data, setData] = useState<Periode[]>(periods);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [viewLoadingId, setViewLoadingId] = useState<string | null>(null);
   const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -38,6 +48,23 @@ export function PeriodeList({ periods }: { periods: Periode[] }) {
     else {
       toast.success("Periode berhasil diaktifkan!");
       refreshData();
+    }
+  }
+
+  async function handleView(id: string, name: string) {
+    setViewLoadingId(id);
+    try {
+      const result = await setViewPeriode(id);
+      if (result.success) {
+        toast.success(`Berhasil beralih ke periode data ${name}!`);
+        // Refresh halaman agar state server di-render ulang
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal beralih periode data");
+    } finally {
+      setViewLoadingId(null);
     }
   }
 
@@ -126,6 +153,33 @@ export function PeriodeList({ periods }: { periods: Periode[] }) {
           </div>
 
           <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant={
+                (activeViewId && activeViewId === periode.id) || (!activeViewId && periode.isActive)
+                  ? "default"
+                  : "outline"
+              }
+              className={
+                (activeViewId && activeViewId === periode.id) || (!activeViewId && periode.isActive)
+                  ? userRole === "SEKRETARIS_CABANG"
+                    ? "bg-blue-600 hover:bg-blue-700 text-white"
+                    : "bg-green-600 hover:bg-green-700 text-white"
+                  : ""
+              }
+              disabled={viewLoadingId === periode.id}
+              onClick={() => handleView(periode.id, periode.nama)}
+            >
+              {viewLoadingId === periode.id ? (
+                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+              ) : (
+                <Eye className="w-4 h-4 mr-1" />
+              )}
+              {(activeViewId && activeViewId === periode.id) || (!activeViewId && periode.isActive)
+                ? "Sedang Ditampilkan"
+                : "Tampilkan"}
+            </Button>
+
             {!periode.isActive && (
               <Button
                 size="sm"

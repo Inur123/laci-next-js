@@ -3,6 +3,7 @@
 import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import {
   encryptText,
   decryptText,
@@ -40,19 +41,27 @@ export async function getBerkasSPs(
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  // Get active periode
-  const periodeAktif = await prisma.periode.findFirst({
-    where: {
-      userId: session.user.id,
-      isActive: true,
-    },
-  });
+  // Get active or selected view periode
+  const cookieStore = await cookies();
+  const viewPeriodeId = cookieStore.get("view_periode_id")?.value;
+  
+  let targetPeriodeId = viewPeriodeId;
+  
+  if (!targetPeriodeId) {
+    const periodeAktif = await prisma.periode.findFirst({
+      where: {
+        userId: session.user.id,
+        isActive: true,
+      },
+    });
+    targetPeriodeId = periodeAktif?.id;
+  }
 
-  if (!periodeAktif) return { data: [], total: 0, totalPages: 0 };
+  if (!targetPeriodeId) return { data: [], total: 0, totalPages: 0 };
 
   const whereClause: Prisma.BerkasSPWhereInput = {
     userId: session.user.id,
-    periodeId: periodeAktif.id,
+    periodeId: targetPeriodeId,
   };
 
   // Add DB-level organisation filter if possible (unencrypted field)
@@ -174,15 +183,23 @@ export async function getBerkasSPStats() {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  // Get active periode
-  const periodeAktif = await prisma.periode.findFirst({
-    where: {
-      userId: session.user.id,
-      isActive: true,
-    },
-  });
+  // Get active or selected view periode
+  const cookieStore = await cookies();
+  const viewPeriodeId = cookieStore.get("view_periode_id")?.value;
+  
+  let targetPeriodeId = viewPeriodeId;
+  
+  if (!targetPeriodeId) {
+    const periodeAktif = await prisma.periode.findFirst({
+      where: {
+        userId: session.user.id,
+        isActive: true,
+      },
+    });
+    targetPeriodeId = periodeAktif?.id;
+  }
 
-  if (!periodeAktif) {
+  if (!targetPeriodeId) {
     return {
       total: 0,
       ipnu: 0,
@@ -194,20 +211,20 @@ export async function getBerkasSPStats() {
     prisma.berkasSP.count({
       where: {
         userId: session.user.id,
-        periodeId: periodeAktif.id,
+        periodeId: targetPeriodeId,
       },
     }),
     prisma.berkasSP.count({
       where: {
         userId: session.user.id,
-        periodeId: periodeAktif.id,
+        periodeId: targetPeriodeId,
         organisasi: "IPNU",
       },
     }),
     prisma.berkasSP.count({
       where: {
         userId: session.user.id,
-        periodeId: periodeAktif.id,
+        periodeId: targetPeriodeId,
         organisasi: "IPPNU",
       },
     }),

@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 import { encryptText, decryptText } from "@/lib/encryption";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { Prisma } from "@prisma/client";
 import { createLog } from "@/lib/log-activity";
 
@@ -53,19 +54,27 @@ export async function getAgendaKegiatanList(
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  // Get active periode
-  const periodeAktif = await prisma.periode.findFirst({
-    where: {
-      userId: session.user.id,
-      isActive: true,
-    },
-  });
+  // Get active or selected view periode
+  const cookieStore = await cookies();
+  const viewPeriodeId = cookieStore.get("view_periode_id")?.value;
+  
+  let targetPeriodeId = viewPeriodeId;
+  
+  if (!targetPeriodeId) {
+    const periodeAktif = await prisma.periode.findFirst({
+      where: {
+        userId: session.user.id,
+        isActive: true,
+      },
+    });
+    targetPeriodeId = periodeAktif?.id;
+  }
 
-  if (!periodeAktif) return { data: [], total: 0, totalPages: 0 };
+  if (!targetPeriodeId) return { data: [], total: 0, totalPages: 0 };
 
   const whereClause: Prisma.AgendaKegiatanWhereInput = {
     userId: session.user.id,
-    periodeId: periodeAktif.id,
+    periodeId: targetPeriodeId,
   };
 
   const isCustomSort =
@@ -334,15 +343,23 @@ export async function getAgendaKegiatanStats() {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  // Get active periode
-  const periodeAktif = await prisma.periode.findFirst({
-    where: {
-      userId: session.user.id,
-      isActive: true,
-    },
-  });
+  // Get active or selected view periode
+  const cookieStore = await cookies();
+  const viewPeriodeId = cookieStore.get("view_periode_id")?.value;
+  
+  let targetPeriodeId = viewPeriodeId;
+  
+  if (!targetPeriodeId) {
+    const periodeAktif = await prisma.periode.findFirst({
+      where: {
+        userId: session.user.id,
+        isActive: true,
+      },
+    });
+    targetPeriodeId = periodeAktif?.id;
+  }
 
-  if (!periodeAktif) return { total: 0, mendatang: 0, selesai: 0 };
+  if (!targetPeriodeId) return { total: 0, mendatang: 0, selesai: 0 };
 
   const now = new Date();
 
@@ -350,20 +367,20 @@ export async function getAgendaKegiatanStats() {
     prisma.agendaKegiatan.count({
       where: {
         userId: session.user.id,
-        periodeId: periodeAktif.id,
+        periodeId: targetPeriodeId,
       },
     }),
     prisma.agendaKegiatan.count({
       where: {
         userId: session.user.id,
-        periodeId: periodeAktif.id,
+        periodeId: targetPeriodeId,
         tanggalMulai: { gt: now },
       },
     }),
     prisma.agendaKegiatan.count({
       where: {
         userId: session.user.id,
-        periodeId: periodeAktif.id,
+        periodeId: targetPeriodeId,
         OR: [
           {
             tanggalSelesai: { lt: now }, // Case 1: has end date and it's past

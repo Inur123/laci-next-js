@@ -4,11 +4,11 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, AlertCircle } from "lucide-react";
+import { CalendarDays, AlertCircle, Eye } from "lucide-react";
 import { DateDisplay } from "@/components/ui/date-display";
 import Link from "next/link";
 
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import type { Session } from "next-auth";
 
 // Layout Dashboard Utama dengan Tema Role
@@ -69,6 +69,25 @@ export default async function DashboardLayout({
   // Extract active period from included data
   const activePeriode = dbUser.periodes[0] || null;
 
+  // Get selected view periode from cookies
+  const cookieStore = await cookies();
+  let viewPeriodeId = cookieStore.get("view_periode_id")?.value;
+
+  if (!activePeriode) {
+    viewPeriodeId = undefined;
+  } else if (!viewPeriodeId) {
+    viewPeriodeId = activePeriode.id;
+  }
+
+  let viewPeriode = null;
+
+  if (viewPeriodeId && activePeriode && viewPeriodeId !== activePeriode.id) {
+    viewPeriode = await prisma.periode.findUnique({
+      where: { id: viewPeriodeId },
+      select: { nama: true },
+    });
+  }
+
   // Read pathname from header
   const headerList = await headers();
   const pathname = headerList.get("x-pathname") || "";
@@ -115,24 +134,36 @@ export default async function DashboardLayout({
               <DateDisplay themeClass={themeClass} />
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-slate-400 uppercase tracking-wider hidden sm:block">
-                Periode Aktif:
-              </span>
-              {activePeriode ? (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 items-end justify-end">
+              <div className="flex items-center gap-1.5 justify-end">
+                <span className="text-[10px] sm:text-xs font-medium text-slate-400 uppercase tracking-wider hidden md:block">
+                  Periode Aktif:
+                </span>
+                {activePeriode ? (
+                  <Badge
+                    variant="outline"
+                    className="bg-white text-primary border-primary/20 flex items-center gap-1 py-0.5 px-2 text-[10px] sm:text-xs sm:py-1 sm:px-3 shadow-none whitespace-nowrap"
+                  >
+                    <CalendarDays className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    {activePeriode.nama}
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="bg-slate-50 text-slate-400 border-slate-200 flex items-center gap-1 py-0.5 px-2 text-[10px] sm:text-xs sm:py-1 sm:px-3 shadow-none"
+                  >
+                    <CalendarDays className="w-3 h-3 sm:w-3.5 sm:h-3.5" />-
+                  </Badge>
+                )}
+              </div>
+
+              {viewPeriode && (
                 <Badge
                   variant="outline"
-                  className="bg-white text-primary border-primary/20 flex items-center gap-1.5 py-1 px-3 shadow-none"
+                  className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1 py-0.5 px-2 text-[10px] sm:text-xs sm:py-1 sm:px-3 shadow-none animate-fadeIn whitespace-nowrap"
                 >
-                  <CalendarDays className="w-3.5 h-3.5" />
-                  {activePeriode.nama}
-                </Badge>
-              ) : (
-                <Badge
-                  variant="outline"
-                  className="bg-slate-50 text-slate-400 border-slate-200 flex items-center gap-1.5 py-1 px-3 shadow-none"
-                >
-                  <CalendarDays className="w-3.5 h-3.5" />-
+                  <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-600" />
+                  Melihat: {viewPeriode.nama}
                 </Badge>
               )}
             </div>

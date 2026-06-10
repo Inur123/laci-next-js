@@ -11,6 +11,7 @@ import {
   generateDownloadToken as createToken,
 } from "@/lib/encryption";
 import { revalidatePath, revalidateTag } from "next/cache";
+import { cookies } from "next/headers";
 
 // FS Imports Removed
 import { Organisasi, JenisSurat, ArsipSurat, Prisma } from "@prisma/client";
@@ -47,20 +48,28 @@ export async function getArsipSurats(
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  // Get active periode
-  const periodeAktif = await prisma.periode.findFirst({
-    where: {
-      userId: session.user.id,
-      isActive: true,
-    },
-  });
+  // Get active or selected view periode
+  const cookieStore = await cookies();
+  const viewPeriodeId = cookieStore.get("view_periode_id")?.value;
+  
+  let targetPeriodeId = viewPeriodeId;
+  
+  if (!targetPeriodeId) {
+    const periodeAktif = await prisma.periode.findFirst({
+      where: {
+        userId: session.user.id,
+        isActive: true,
+      },
+    });
+    targetPeriodeId = periodeAktif?.id;
+  }
 
-  if (!periodeAktif) return { data: [], total: 0, totalPages: 0 };
+  if (!targetPeriodeId) return { data: [], total: 0, totalPages: 0 };
 
   // Build DB filter for non-encrypted fields
   const whereClause: Prisma.ArsipSuratWhereInput = {
     userId: session.user.id,
-    periodeId: periodeAktif.id,
+    periodeId: targetPeriodeId,
   };
 
   if (
@@ -190,18 +199,27 @@ export async function getArsipStats() {
   const session = await auth();
   if (!session?.user?.id) return null;
 
-  const periodeAktif = await prisma.periode.findFirst({
-    where: {
-      userId: session.user.id,
-      isActive: true,
-    },
-  });
+  // Get active or selected view periode
+  const cookieStore = await cookies();
+  const viewPeriodeId = cookieStore.get("view_periode_id")?.value;
+  
+  let targetPeriodeId = viewPeriodeId;
+  
+  if (!targetPeriodeId) {
+    const periodeAktif = await prisma.periode.findFirst({
+      where: {
+        userId: session.user.id,
+        isActive: true,
+      },
+    });
+    targetPeriodeId = periodeAktif?.id;
+  }
 
-  if (!periodeAktif) return null;
+  if (!targetPeriodeId) return null;
 
   const whereBase = {
     userId: session.user.id,
-    periodeId: periodeAktif.id,
+    periodeId: targetPeriodeId,
   };
 
   const [total, masuk, keluar, ipnu, ippnu, bersama, cbpkpp] =

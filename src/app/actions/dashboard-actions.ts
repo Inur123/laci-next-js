@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
 import { decryptText } from "@/lib/encryption";
+import { cookies } from "next/headers";
 
 /**
  * HIGH-PERFORMANCE DASHBOARD STATS
@@ -18,19 +19,28 @@ export async function getDashboardStats() {
 
   const userId = session.user.id;
 
-  // 1. Parallel Fetch: User & Active Periode (Satu kali jalan)
-  const [user, activePeriode] = await Promise.all([
+  // Get active or selected view periode
+  const cookieStore = await cookies();
+  const viewPeriodeId = cookieStore.get("view_periode_id")?.value;
+  
+  let targetPeriodeId = viewPeriodeId;
+  
+  if (!targetPeriodeId) {
+    const activePeriode = await prisma.periode.findFirst({
+      where: { userId: userId, isActive: true },
+      select: { id: true, nama: true },
+    });
+    targetPeriodeId = activePeriode?.id || undefined;
+  }
+
+  const [user] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
       select: { role: true, id: true, emailVerified: true },
     }),
-    prisma.periode.findFirst({
-      where: { userId: userId, isActive: true },
-      select: { id: true, nama: true },
-    }),
   ]);
 
-  const periodeId = activePeriode?.id || null;
+  const periodeId = targetPeriodeId;
 
   // 2. Get Trend Data — OPTIMIZED: Database does the counting
   const now = new Date();

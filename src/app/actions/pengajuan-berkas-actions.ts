@@ -11,6 +11,7 @@ import {
   generateDownloadToken as createToken,
 } from "@/lib/encryption";
 import { revalidatePath, revalidateTag } from "next/cache";
+import { cookies } from "next/headers";
 
 import {
   PenerimaSurat,
@@ -117,19 +118,27 @@ export async function getPengajuanBerkass(
     throw new Error("Only PAC can access their submissions");
   }
 
-  // Get active period
-  const periodeAktif = await prisma.periode.findFirst({
-    where: {
-      userId: session.user.id,
-      isActive: true,
-    },
-  });
+  // Get active or selected view periode
+  const cookieStore = await cookies();
+  const viewPeriodeId = cookieStore.get("view_periode_id")?.value;
+  
+  let targetPeriodeId = viewPeriodeId;
+  
+  if (!targetPeriodeId) {
+    const periodeAktif = await prisma.periode.findFirst({
+      where: {
+        userId: session.user.id,
+        isActive: true,
+      },
+    });
+    targetPeriodeId = periodeAktif?.id;
+  }
 
-  if (!periodeAktif) return { data: [], total: 0, totalPages: 0 };
+  if (!targetPeriodeId) return { data: [], total: 0, totalPages: 0 };
 
   const whereClause: Prisma.PengajuanBerkasWhereInput = {
     userId: session.user.id,
-    periodeIdPac: periodeAktif.id,
+    periodeIdPac: targetPeriodeId,
   };
 
   if (

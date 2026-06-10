@@ -487,8 +487,9 @@ export function ArsipSuratList({
   return (
     <div className="flex flex-col">
       {/* Filter Section */}
-      <div className="shrink-0 grid grid-cols-1 md:grid-cols-10 gap-4 items-end mb-4">
-        <div className="md:col-span-4 relative">
+      <div className="flex flex-col md:flex-row gap-4 mb-4 items-end">
+        {/* Search */}
+        <div className="flex-1 relative w-full">
           <Label className="text-xs font-medium mb-1 block">Cari Arsip</Label>
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -501,7 +502,8 @@ export function ArsipSuratList({
           </div>
         </div>
 
-        <div className="md:col-span-2">
+        {/* Organisasi */}
+        <div className="w-full md:w-44">
           <Label className="text-xs font-medium mb-1 block">Organisasi</Label>
           <Select
             value={orgFilter}
@@ -520,7 +522,8 @@ export function ArsipSuratList({
           </Select>
         </div>
 
-        <div className="md:col-span-2">
+        {/* Jenis */}
+        <div className="w-full md:w-36">
           <Label className="text-xs font-medium mb-1 block">Jenis</Label>
           <Select
             value={jenisFilter}
@@ -537,7 +540,8 @@ export function ArsipSuratList({
           </Select>
         </div>
 
-        <div className="md:col-span-2 grid grid-cols-2 gap-2 w-full md:flex md:items-end md:justify-end md:gap-4 md:w-auto">
+        {/* Actions Button */}
+        <div className="grid grid-cols-2 gap-2 w-full md:flex md:w-auto md:items-center md:justify-end md:gap-4 lg:justify-start">
           {/* Hidden file input untuk Import */}
           <input
             ref={importInputRef}

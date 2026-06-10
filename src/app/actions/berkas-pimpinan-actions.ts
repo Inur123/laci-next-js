@@ -3,6 +3,7 @@
 import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { startOfMonth, endOfMonth } from "date-fns";
 import {
   encryptText,
@@ -30,19 +31,27 @@ export async function getBerkasPimpinans(
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  // Get active periode
-  const periodeAktif = await prisma.periode.findFirst({
-    where: {
-      userId: session.user.id,
-      isActive: true,
-    },
-  });
+  // Get active or selected view periode
+  const cookieStore = await cookies();
+  const viewPeriodeId = cookieStore.get("view_periode_id")?.value;
+  
+  let targetPeriodeId = viewPeriodeId;
+  
+  if (!targetPeriodeId) {
+    const periodeAktif = await prisma.periode.findFirst({
+      where: {
+        userId: session.user.id,
+        isActive: true,
+      },
+    });
+    targetPeriodeId = periodeAktif?.id;
+  }
 
-  if (!periodeAktif) return { data: [], total: 0, totalPages: 0 };
+  if (!targetPeriodeId) return { data: [], total: 0, totalPages: 0 };
 
   const whereClause = {
     userId: session.user.id,
-    periodeId: periodeAktif.id,
+    periodeId: targetPeriodeId,
   };
 
   const isEncryptedSort = sortKey === "nama" || sortKey === "catatan";
@@ -503,18 +512,27 @@ export async function getBerkasPimpinanStats() {
   const session = await auth();
   if (!session?.user?.id) return null;
 
-  const periodeAktif = await prisma.periode.findFirst({
-    where: {
-      userId: session.user.id,
-      isActive: true,
-    },
-  });
+  // Get active or selected view periode
+  const cookieStore = await cookies();
+  const viewPeriodeId = cookieStore.get("view_periode_id")?.value;
+  
+  let targetPeriodeId = viewPeriodeId;
+  
+  if (!targetPeriodeId) {
+    const periodeAktif = await prisma.periode.findFirst({
+      where: {
+        userId: session.user.id,
+        isActive: true,
+      },
+    });
+    targetPeriodeId = periodeAktif?.id;
+  }
 
-  if (!periodeAktif) return null;
+  if (!targetPeriodeId) return null;
 
   const whereBase = {
     userId: session.user.id,
-    periodeId: periodeAktif.id,
+    periodeId: targetPeriodeId,
   };
 
   const now = new Date();
