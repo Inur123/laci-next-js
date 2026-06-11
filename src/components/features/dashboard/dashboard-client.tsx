@@ -47,10 +47,8 @@ type DashboardClientData = {
       score: number;
       stats: {
         anggotas: number;
-        arsipSurats?: number;
-        kegiatans: number;
-        berkasSps?: number;
-        totalAdmin?: number;
+        arsipSurats: number;
+        pengajuanBerkass: number;
       };
     }[];
   } | null;
