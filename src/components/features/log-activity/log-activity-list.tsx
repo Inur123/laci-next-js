@@ -603,11 +603,11 @@ export function LogActivityList({
             <Table className="w-full [&_td]:py-3 [&_th]:py-3">
               <TableHeader className="sticky top-0 bg-white z-10 shadow-[0_1px_0_0_rgba(0,0,0,0.05)]">
                 <TableRow className="bg-slate-50/40 hover:bg-slate-50/40 border-b-slate-100">
-                  <TableHead className="w-[60px] text-center text-slate-500 font-semibold h-12 whitespace-nowrap">
+                  <TableHead className="w-[50px] text-center text-slate-500 font-semibold h-12 whitespace-nowrap">
                     No
                   </TableHead>
                   <TableHead
-                    className="w-[200px] whitespace-nowrap text-slate-500 font-semibold h-12 cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    className="w-[140px] whitespace-nowrap text-slate-500 font-semibold h-12 cursor-pointer select-none hover:bg-slate-100 transition-colors"
                     onClick={() => handleSort("createdAt")}
                   >
                     <span className="inline-flex items-center">
@@ -617,7 +617,7 @@ export function LogActivityList({
                   </TableHead>
                   {currentView === "global" && (
                     <TableHead
-                      className="w-[180px] whitespace-nowrap text-slate-500 font-semibold h-12 cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                      className="w-[130px] whitespace-nowrap text-slate-500 font-semibold h-12 cursor-pointer select-none hover:bg-slate-100 transition-colors"
                       onClick={() => handleSort("userName")}
                     >
                       <span className="inline-flex items-center">
@@ -627,7 +627,7 @@ export function LogActivityList({
                     </TableHead>
                   )}
                   <TableHead
-                    className="w-[130px] whitespace-nowrap text-slate-500 font-semibold h-12 cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    className="w-[100px] whitespace-nowrap text-slate-500 font-semibold h-12 cursor-pointer select-none hover:bg-slate-100 transition-colors"
                     onClick={() => handleSort("action")}
                   >
                     <span className="inline-flex items-center">
@@ -636,7 +636,7 @@ export function LogActivityList({
                     </span>
                   </TableHead>
                   <TableHead
-                    className="w-[160px] whitespace-nowrap text-slate-500 font-semibold h-12 cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    className="w-[110px] whitespace-nowrap text-slate-500 font-semibold h-12 cursor-pointer select-none hover:bg-slate-100 transition-colors"
                     onClick={() => handleSort("module")}
                   >
                     <span className="inline-flex items-center">
@@ -644,10 +644,10 @@ export function LogActivityList({
                       <LogSortIcon col="module" />
                     </span>
                   </TableHead>
-                  <TableHead className="whitespace-nowrap text-slate-500 font-semibold h-12">
+                  <TableHead className="text-slate-500 font-semibold h-12">
                     Aktivitas
                   </TableHead>
-                  <TableHead className="w-[80px] text-right whitespace-nowrap text-slate-500 font-semibold h-12">
+                  <TableHead className="w-[60px] text-right text-slate-500 font-semibold h-12">
                     Aksi
                   </TableHead>
                 </TableRow>
@@ -685,7 +685,7 @@ export function LogActivityList({
                         })}
                       </TableCell>
                       {currentView === "global" && (
-                        <TableCell className="whitespace-nowrap">
+                        <TableCell className="whitespace-nowrap max-w-[120px] truncate" title={log.user.name}>
                           {log.user.name}
                         </TableCell>
                       )}
@@ -713,7 +713,7 @@ export function LogActivityList({
                       </TableCell>
                       <TableCell className="text-slate-600 text-[13px] leading-relaxed">
                         <div
-                          className="max-w-[400px] truncate"
+                          className="max-w-[120px] sm:max-w-[180px] md:max-w-[240px] lg:max-w-[340px] xl:max-w-[480px] truncate"
                           title={log.description}
                         >
                           {log.description}

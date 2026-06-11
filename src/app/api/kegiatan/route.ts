@@ -19,21 +19,62 @@ export async function GET(request: Request) {
       },
     });
 
+    const localData = data.map((item) => ({
+      id: item.id,
+      judul: decryptText(item.judul),
+      deskripsi: item.deskripsi ? decryptText(item.deskripsi) : null,
+      lokasi: item.lokasi ? decryptText(item.lokasi) : null,
+      warna: item.warna,
+      tanggal_mulai: item.tanggalMulai,
+      tanggal_selesai: item.tanggalSelesai,
+      user: {
+        name: item.user.name,
+      },
+    }));
+
+    // Fetch PHBI data
+    let phbiEvents: any[] = [];
+    try {
+      const currentYear = new Date().getFullYear();
+      const yearsToFetch = [currentYear, currentYear + 1];
+      
+      const phbiPromises = yearsToFetch.map(async (year) => {
+        try {
+          const res = await fetch(`https://api-hari-libur.vercel.app/api?year=${year}`, {
+            next: { revalidate: 86400 }
+          });
+          if (res.ok) {
+            const json = await res.json();
+            return json?.data || [];
+          }
+        } catch (e) {
+          console.error(`Gagal fetch PHBI tahun ${year} di API public kegiatan`, e);
+        }
+        return [];
+      });
+
+      const phbiResults = await Promise.all(phbiPromises);
+      const phbiHolidays = phbiResults.flat();
+
+      phbiEvents = phbiHolidays.map((h: any) => ({
+        id: `phbi-${h.date}`,
+        judul: h.description,
+        deskripsi: "Hari Libur / Peringatan Nasional",
+        lokasi: "Seluruh Indonesia",
+        warna: "#7c3aed",
+        tanggal_mulai: h.date,
+        tanggal_selesai: null,
+        user: {
+          name: "PHBI Nasional",
+        },
+      }));
+    } catch (err) {
+      console.error("Gagal menggabungkan PHBI ke API public kegiatan", err);
+    }
+
     const response = NextResponse.json({
       success: true,
-      data: data.map((item) => ({
-        id: item.id,
-        // Dekripsi data menggunakan decryptText
-        judul: decryptText(item.judul),
-        deskripsi: item.deskripsi ? decryptText(item.deskripsi) : null,
-        lokasi: item.lokasi ? decryptText(item.lokasi) : null,
-        warna: item.warna,
-        tanggal_mulai: item.tanggalMulai,
-        tanggal_selesai: item.tanggalSelesai,
-        user: {
-          name: item.user.name,
-        },
-      })),
+      data: [...localData, ...phbiEvents],
     });
 
     // 4. Set Header CORS sesuai izin

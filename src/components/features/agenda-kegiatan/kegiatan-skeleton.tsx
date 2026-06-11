@@ -40,22 +40,38 @@ export function KegiatanListSkeleton() {
       </div>
 
       {/* Calendar Area Skeleton */}
-      <Card className="shadow-none border-slate-200">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <Skeleton className="h-8 w-48" />
-          <div className="flex gap-2">
-            <Skeleton className="h-9 w-24" />
-            <Skeleton className="h-9 w-24" />
+      <div className="border rounded-xl bg-white shadow-sm overflow-hidden">
+        {/* Custom Header */}
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b bg-slate-50/50">
+          <div className="flex flex-col min-w-0">
+            <h3 className="text-sm sm:text-lg font-bold text-slate-900 leading-tight truncate">
+              Kalender Kegiatan
+            </h3>
+            <p className="hidden xs:block text-[10px] sm:text-sm text-muted-foreground mt-0.5 truncate">
+              Lihat jadwal kegiatan organisasi
+            </p>
           </div>
-        </CardHeader>
-        <CardContent>
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0 ml-2">
+            <Skeleton className="h-7 w-7 sm:h-9 sm:w-9 rounded-md bg-slate-100" />
+            <Skeleton className="h-7 sm:h-9 w-16 sm:w-20 rounded-md bg-slate-100" />
+            <Skeleton className="h-7 w-7 sm:h-9 sm:w-9 rounded-md bg-slate-100" />
+          </div>
+        </div>
+
+        {/* Month Title */}
+        <div className="px-4 sm:px-6 pt-4 pb-2">
+          <Skeleton className="h-6 w-32 bg-slate-100" />
+        </div>
+
+        {/* Calendar Grid */}
+        <div className="px-2 sm:px-4 pb-4">
           <div className="grid grid-cols-7 gap-2 h-[350px]">
              {[...Array(35)].map((_, i) => (
-               <Skeleton key={i} className="h-full w-full rounded-lg bg-slate-50" />
+                <Skeleton key={i} className="h-full w-full rounded-lg bg-slate-50/50" />
              ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Filter Bar Skeleton */}
       <div className="flex flex-col md:flex-row gap-4">

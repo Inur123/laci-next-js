@@ -7,6 +7,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import type { EventClickArg, DatesSetArg } from "@fullcalendar/core";
 import { MapPin, Clock, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const capitalizeName = (name: string) => {
   if (!name) return "";
@@ -34,9 +35,62 @@ export function KegiatanCalendar({ kegiatanList }: KegiatanCalendarProps) {
   const calendarRef = useRef<FullCalendar>(null);
   const [selectedEvent, setSelectedEvent] = useState<KegiatanItem | null>(null);
   const [currentTitle, setCurrentTitle] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  const [phbiEvents, setPhbiEvents] = useState<any[]>([]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Fetch PHBI data from public API endpoint
+  useEffect(() => {
+    async function fetchPHBI() {
+      try {
+        const currentYear = new Date().getFullYear();
+        const yearsToFetch = [currentYear, currentYear + 1];
+        
+        const promises = yearsToFetch.map(year =>
+          fetch(`/api/public/phbi?year=${year}`).then(res => res.json())
+        );
+        
+        const results = await Promise.all(promises);
+        const holidays: any[] = [];
+        
+        results.forEach(res => {
+          if (res.success && res.holidays) {
+            res.holidays.forEach((h: any) => {
+              // Simpan data dalam format event FullCalendar
+              holidays.push({
+                id: `phbi-${h.date}`,
+                title: h.description, // Properti dari API adalah 'description' bukan 'holiday_name'
+                start: new Date(h.date),
+                allDay: true,
+                backgroundColor: "#7c3aed",
+                borderColor: "#7c3aed",
+                textColor: "#fff",
+                extendedProps: {
+                  deskripsi: "Hari Libur / Peringatan Nasional",
+                  lokasi: "Seluruh Indonesia",
+                  warna: "#7c3aed",
+                  tanggalMulai: h.date,
+                  tanggalSelesai: null,
+                }
+              });
+            });
+          }
+        });
+        
+        setPhbiEvents(holidays);
+      } catch (err) {
+        console.error("Gagal memuat kalender PHBI untuk kalender UI", err);
+      }
+    }
+    fetchPHBI();
+  }, []);
 
   // Convert kegiatan data to FullCalendar events
-  const events = kegiatanList.map((k) => {
+  const localEvents = kegiatanList.map((k) => {
     const start = new Date(k.tanggalMulai);
     let end: Date | undefined;
 
@@ -61,6 +115,9 @@ export function KegiatanCalendar({ kegiatanList }: KegiatanCalendarProps) {
       },
     };
   });
+
+  // Gabungkan Agenda Kegiatan Internal dengan Kalender PHBI Nasional
+  const events = [...localEvents, ...phbiEvents];
 
   const handleEventClick = (info: EventClickArg) => {
     const props = info.event.extendedProps;
@@ -142,6 +199,7 @@ export function KegiatanCalendar({ kegiatanList }: KegiatanCalendarProps) {
             size="icon"
             className="h-7 w-7 sm:h-9 sm:w-9 bg-white"
             onClick={handlePrev}
+            disabled={!mounted}
           >
             <ChevronLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </Button>
@@ -150,6 +208,7 @@ export function KegiatanCalendar({ kegiatanList }: KegiatanCalendarProps) {
             size="sm"
             className="h-7 sm:h-9 text-[10px] sm:text-xs font-bold px-2 sm:px-4 bg-white shadow-sm"
             onClick={handleToday}
+            disabled={!mounted}
           >
             Hari Ini
           </Button>
@@ -158,6 +217,7 @@ export function KegiatanCalendar({ kegiatanList }: KegiatanCalendarProps) {
             size="icon"
             className="h-7 w-7 sm:h-9 sm:w-9 bg-white"
             onClick={handleNext}
+            disabled={!mounted}
           >
             <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </Button>
@@ -166,42 +226,54 @@ export function KegiatanCalendar({ kegiatanList }: KegiatanCalendarProps) {
 
       {/* Month Title */}
       <div className="px-4 sm:px-6 pt-4 pb-2">
-        <h4 className="text-base font-semibold text-slate-800 capitalize">
-          {currentTitle}
-        </h4>
+        {mounted && currentTitle ? (
+          <h4 className="text-base font-semibold text-slate-800 capitalize animate-fade-in">
+            {currentTitle}
+          </h4>
+        ) : (
+          <Skeleton className="h-6 w-32 bg-slate-100" />
+        )}
       </div>
 
       {/* Calendar + Detail Panel */}
       <div className="flex flex-col lg:flex-row">
         {/* Calendar */}
         <div className="flex-1 px-2 sm:px-4 pb-4 kegiatan-fullcalendar">
-          <FullCalendar
-            ref={calendarRef}
-            plugins={[dayGridPlugin, interactionPlugin]}
-            initialView="dayGridMonth"
-            events={events}
-            locale="id"
-            headerToolbar={false}
-            height="auto"
-            dayMaxEvents={3}
-            eventClick={handleEventClick}
-            dateClick={handleDateClick}
-            datesSet={handleDatesSet}
-            eventDisplay="block"
-            dayHeaderFormat={{ weekday: "short" }}
-            moreLinkText={(n) => `+${n} lagi`}
-            moreLinkClick="popover"
-            eventClassNames="cursor-pointer text-[11px] sm:text-xs font-medium rounded-md shadow-sm px-1.5 py-0.5 border-0 transition-all hover:opacity-80"
-            dayCellClassNames={(arg) => {
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              const cellDate = new Date(arg.date);
-              cellDate.setHours(0, 0, 0, 0);
-              return cellDate.getTime() === today.getTime()
-                ? "fc-day-today-custom"
-                : "";
-            }}
-          />
+          {mounted ? (
+            <FullCalendar
+              ref={calendarRef}
+              plugins={[dayGridPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              events={events}
+              locale="id"
+              headerToolbar={false}
+              height="auto"
+              dayMaxEvents={3}
+              eventClick={handleEventClick}
+              dateClick={handleDateClick}
+              datesSet={handleDatesSet}
+              eventDisplay="block"
+              dayHeaderFormat={{ weekday: "short" }}
+              moreLinkText={(n) => `+${n} lagi`}
+              moreLinkClick="popover"
+              eventClassNames="cursor-pointer text-[11px] sm:text-xs font-medium rounded-md shadow-sm px-1.5 py-0.5 border-0 transition-all hover:opacity-80"
+              dayCellClassNames={(arg) => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const cellDate = new Date(arg.date);
+                cellDate.setHours(0, 0, 0, 0);
+                return cellDate.getTime() === today.getTime()
+                  ? "fc-day-today-custom"
+                  : "";
+              }}
+            />
+          ) : (
+            <div className="grid grid-cols-7 gap-2 h-[350px]">
+               {[...Array(35)].map((_, i) => (
+                  <Skeleton key={i} className="h-full w-full rounded-lg bg-slate-50/50" />
+               ))}
+            </div>
+          )}
         </div>
 
         {/* Detail Panel */}

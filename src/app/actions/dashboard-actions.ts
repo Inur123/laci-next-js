@@ -217,20 +217,17 @@ export async function getDashboardStats() {
   const leaderboard = activeUsers
     .map((u) => {
       const anggotas = u._count.anggota;
-      const totalAdmin =
-        u._count.arsipSurats +
-        u._count.berkasPimpinans +
-        u._count.pengajuanBerkass;
-      const kegiatans = u._count.agendaKegiatan;
+      const arsipSurats = u._count.arsipSurats;
+      const pengajuanBerkass = u._count.pengajuanBerkass;
 
-      // Scouring formula
-      const score = anggotas * 1 + totalAdmin * 2 + kegiatans * 3;
+      // New formula: anggotas + arsipSurats + pengajuanBerkass
+      const score = anggotas + arsipSurats + pengajuanBerkass;
 
       return {
         id: u.id,
         name: u.name || "Unknown",
         image: u.image,
-        stats: { anggotas, totalAdmin, kegiatans },
+        stats: { anggotas, arsipSurats, pengajuanBerkass },
         score,
       };
     })

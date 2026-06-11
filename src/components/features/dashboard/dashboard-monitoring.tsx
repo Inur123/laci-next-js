@@ -34,10 +34,8 @@ interface LeaderboardItem {
   score: number;
   stats: {
     anggotas: number;
-    arsipSurats?: number;
-    kegiatans: number;
-    berkasSps?: number;
-    totalAdmin?: number;
+    arsipSurats: number;
+    pengajuanBerkass: number;
   };
 }
 
@@ -430,7 +428,10 @@ export function DashboardMonitoring({
                   Anggota
                 </th>
                 <th className="px-4 py-3 text-center hidden sm:table-cell">
-                  Total Administrasi
+                  Arsip Surat
+                </th>
+                <th className="px-4 py-3 text-center hidden sm:table-cell">
+                  Pengajuan Diterima
                 </th>
                 <th className="px-4 py-3 text-center">Skor</th>
               </tr>
@@ -439,7 +440,7 @@ export function DashboardMonitoring({
               {data.leaderboard.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="px-6 py-8 text-center text-slate-500"
                   >
                     Belum ada data aktivitas.
@@ -473,7 +474,10 @@ export function DashboardMonitoring({
                       {pac.stats.anggotas}
                     </td>
                     <td className="px-4 py-3 text-center text-slate-500 hidden sm:table-cell">
-                      {pac.stats.totalAdmin ?? 0}
+                      {pac.stats.arsipSurats}
+                    </td>
+                    <td className="px-4 py-3 text-center text-slate-500 hidden sm:table-cell">
+                      {pac.stats.pengajuanBerkass}
                     </td>
                     <td className="px-4 py-3 text-center font-bold">
                       {pac.score}
