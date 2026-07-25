@@ -384,8 +384,14 @@ export function LogActivityList({
     fetchData,
   ]);
 
+  const isFirstRender = useRef(true);
+
   // Debounced effect for search and dates
   React.useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const timer = setTimeout(() => {
       const start = formatDateForInput(dateRange?.from);
       const end = formatDateForInput(dateRange?.to || dateRange?.from);

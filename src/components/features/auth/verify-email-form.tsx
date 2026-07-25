@@ -103,7 +103,14 @@ function VerifyEmailContent() {
 
       if (error) {
         let errorMessage = error.message || "Kode verifikasi salah.";
-        if (error.message?.includes("Invalid OTP")) {
+        if (
+          error.status === 429 ||
+          error.code === "TOO_MANY_REQUESTS" ||
+          error.message?.toLowerCase().includes("too many")
+        ) {
+          errorMessage =
+            "Terlalu banyak percobaaan verifikasi. Mohon tunggu beberapa saat sebelum mencoba kembali.";
+        } else if (error.message?.includes("Invalid OTP")) {
           errorMessage = "Kode OTP tidak valid atau sudah kedaluwarsa.";
         }
         toast.error(errorMessage);
@@ -132,7 +139,16 @@ function VerifyEmailContent() {
       });
 
       if (error) {
-        toast.error(error.message);
+        let errorMessage = error.message || "Gagal mengirim ulang kode.";
+        if (
+          error.status === 429 ||
+          error.code === "TOO_MANY_REQUESTS" ||
+          error.message?.toLowerCase().includes("too many")
+        ) {
+          errorMessage =
+            "Terlalu banyak permintaan pengiriman OTP. Mohon tunggu 1-2 menit sebelum mencoba lagi.";
+        }
+        toast.error(errorMessage);
       } else {
         toast.success("Kode baru telah dikirim.");
         setResendTimer(60);

@@ -172,6 +172,8 @@ export function ReferensiPengajuanList({
   const [sortKey, setSortKey] = useState<SortKey | null>("tanggal");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
+  const isFirstRender = useRef(true);
+
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
       setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -223,7 +225,13 @@ export function ReferensiPengajuanList({
         setTotalItems(result.total);
       } catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
-        toast.error(`Gagal memuat data: ${errMsg}`);
+        if (
+          !errMsg.includes("unexpected response") &&
+          !errMsg.includes("NEXT_REDIRECT") &&
+          !errMsg.includes("abort")
+        ) {
+          toast.error(`Gagal memuat data: ${errMsg}`);
+        }
       }
     },
     [sortKey, sortDir],
@@ -238,10 +246,15 @@ export function ReferensiPengajuanList({
 
   // ── Debounced filter effect ───────────────────────────────────────────────
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const timer = setTimeout(() => {
       setCurrentPage(1);
       fetchData(searchTerm, statusFilter, penerimaFilter, pacFilter, 1);
     }, 500);
+
     return () => clearTimeout(timer);
   }, [searchTerm, statusFilter, penerimaFilter, pacFilter, fetchData]);
 

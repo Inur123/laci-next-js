@@ -107,6 +107,8 @@ export function UserList({
 
   const sortedData = data;
 
+  const isFirstRender = useRef(true);
+
   const fetchData = useCallback(
     async (
       query: string,
@@ -132,7 +134,13 @@ export function UserList({
         setTotalItems(result.total);
       } catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
-        toast.error(`Gagal memuat data user: ${errMsg}`);
+        if (
+          !errMsg.includes("unexpected response") &&
+          !errMsg.includes("NEXT_REDIRECT") &&
+          !errMsg.includes("abort")
+        ) {
+          toast.error(`Gagal memuat data user: ${errMsg}`);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -141,6 +149,10 @@ export function UserList({
   );
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const timer = setTimeout(() => {
       setCurrentPage(1);
       fetchData(searchTerm, statusFilter, emailStatusFilter, 1);

@@ -1,5 +1,21 @@
 import { NextResponse } from "next/server";
 
+/**
+ * @swagger
+ * /api/public/phbi:
+ *   get:
+ *     summary: Ambil data Hari Libur Nasional (PHBI) berdasarkan tahun
+ *     tags: [PHBI]
+ *     parameters:
+ *       - in: query
+ *         name: year
+ *         schema:
+ *           type: string
+ *         description: Tahun data libur yang ingin diambil (default tahun saat ini)
+ *     responses:
+ *       200:
+ *         description: OK
+ */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);

@@ -278,10 +278,17 @@ function LoginWithRecaptcha() {
         if (error) {
           let errorMessage = "Email atau password salah.";
           if (
+            error.status === 429 ||
+            error.code === "TOO_MANY_REQUESTS" ||
+            error.message?.toLowerCase().includes("too many")
+          ) {
+            errorMessage =
+              "Terlalu banyak percobaan login. Mohon tunggu beberapa saat sebelum mencoba kembali.";
+          } else if (
             error.status === 401 ||
             error.code === "INVALID_EMAIL_OR_PASSWORD"
           ) {
-            errorMessage = "Email atau password salah.";
+            errorMessage = "Email atau password salah. Silakan periksa kembali.";
           } else {
             errorMessage = error.message || "Terjadi kesalahan saat login.";
           }

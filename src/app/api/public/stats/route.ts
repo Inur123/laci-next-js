@@ -2,6 +2,16 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { decryptText } from "@/lib/encryption";
 
+/**
+ * @swagger
+ * /api/public/stats:
+ *   get:
+ *     summary: Ambil data statistik publik agregat per-PAC & event mendatang
+ *     tags: [Public Data]
+ *     responses:
+ *       200:
+ *         description: OK
+ */
 export async function GET(request: Request) {
   try {
     const origin = request.headers.get("origin") || "";

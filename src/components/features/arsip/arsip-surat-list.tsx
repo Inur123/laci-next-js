@@ -103,6 +103,8 @@ export function ArsipSuratList({
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   // Function to fetch data with sorting parameters
+  const isFirstRender = useRef(true);
+
   const fetchData = async (
     query: string,
     org: string,
@@ -128,7 +130,13 @@ export function ArsipSuratList({
     } catch (error) {
       console.error("Error fetching data:", error);
       const errMsg = error instanceof Error ? error.message : String(error);
-      toast.error(`Gagal memuat data: ${errMsg}`);
+      if (
+        !errMsg.includes("unexpected response") &&
+        !errMsg.includes("NEXT_REDIRECT") &&
+        !errMsg.includes("abort")
+      ) {
+        toast.error(`Gagal memuat data: ${errMsg}`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -168,6 +176,10 @@ export function ArsipSuratList({
 
   // Debounced Search Update
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const timer = setTimeout(() => {
       setCurrentPage(1);
       fetchData(searchTerm, orgFilter, jenisFilter, 1);

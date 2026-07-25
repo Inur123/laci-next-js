@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import ProfilePageClient from "@/components/features/profile/profile-page-client";
 import prisma from "@/lib/prisma";
-import type { Session } from "next-auth";
+import type { Session } from "@/lib/auth";
 
 export const metadata = {
   title: "Profile | Laci Digital",
@@ -23,10 +23,10 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  const userForProfile: Session["user"] = {
+  const userForProfile = {
     id: dbUser.id,
-    name: dbUser.name || null,
-    email: dbUser.email || null,
+    name: dbUser.name,
+    email: dbUser.email,
     role: dbUser.role,
     isActive: dbUser.isActive,
     periodeAktifId: dbUser.periodeAktifId,

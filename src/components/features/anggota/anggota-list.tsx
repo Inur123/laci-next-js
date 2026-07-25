@@ -181,6 +181,8 @@ export function AnggotaList({
   // Data sudah diurutkan secara global dari server
   const sortedData = data;
 
+  const isFirstRender = useRef(true);
+
   // Function to fetch data
   const fetchData = useCallback(
     async (
@@ -206,7 +208,13 @@ export function AnggotaList({
       } catch (error) {
         console.error("Error fetching data:", error);
         const errMsg = error instanceof Error ? error.message : String(error);
-        toast.error(`Gagal memuat data: ${errMsg}`);
+        if (
+          !errMsg.includes("unexpected response") &&
+          !errMsg.includes("NEXT_REDIRECT") &&
+          !errMsg.includes("abort")
+        ) {
+          toast.error(`Gagal memuat data: ${errMsg}`);
+        }
       }
     },
     [],
@@ -214,6 +222,10 @@ export function AnggotaList({
 
   // Debounced Search Update
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const timer = setTimeout(() => {
       setCurrentPage(1);
       fetchData(searchTerm, 1, selectedUser, sortKey, sortDir);

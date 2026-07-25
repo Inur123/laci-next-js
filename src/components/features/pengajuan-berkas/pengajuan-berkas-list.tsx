@@ -256,6 +256,8 @@ export function PengajuanBerkasList({
     viewMode || (userRole === "SEKRETARIS_CABANG" ? "cabang" : "pac");
   const isCabangView = resolvedViewMode !== "pac";
 
+  const isFirstRender = useRef(true);
+
   const fetchData = useCallback(
     async (
       query: string,
@@ -308,13 +310,23 @@ export function PengajuanBerkasList({
       } catch (error) {
         console.error("Error fetching data:", error);
         const errMsg = error instanceof Error ? error.message : String(error);
-        toast.error(`Gagal memuat data: ${errMsg}`);
+        if (
+          !errMsg.includes("unexpected response") &&
+          !errMsg.includes("NEXT_REDIRECT") &&
+          !errMsg.includes("abort")
+        ) {
+          toast.error(`Gagal memuat data: ${errMsg}`);
+        }
       }
     },
     [resolvedViewMode, sortKey, sortDir],
   );
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const timer = setTimeout(() => {
       setCurrentPage(1);
       fetchData(searchTerm, statusFilter, penerimaFilter, pacFilter, 1);

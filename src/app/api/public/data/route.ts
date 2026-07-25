@@ -3,6 +3,18 @@ import prisma from "@/lib/prisma";
 import { decryptText } from "@/lib/encryption";
 import { validateApiKey } from "@/lib/api-key";
 
+/**
+ * @swagger
+ * /api/public/data:
+ *   get:
+ *     summary: Ambil seluruh data terenkripsi yang didekripsi di server (Keperluan Sinkronisasi Bot)
+ *     tags: [Public Data]
+ *     security:
+ *       - apiKeyAuth: []
+ *     responses:
+ *       200:
+ *         description: OK
+ */
 export async function GET(request: Request) {
   // 1. Validasi API Key demi keamanan
   if (!validateApiKey(request)) {

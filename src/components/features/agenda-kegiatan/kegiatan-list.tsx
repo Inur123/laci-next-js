@@ -157,6 +157,8 @@ export function KegiatanList({
   // Data sudah diurutkan secara global dari server
   const sortedData = data;
 
+  const isFirstRender = useRef(true);
+
   // Function to fetch data
   const fetchData = useCallback(
     async (
@@ -182,7 +184,13 @@ export function KegiatanList({
       } catch (error) {
         console.error("Error fetching data:", error);
         const errMsg = error instanceof Error ? error.message : String(error);
-        toast.error(`Gagal memuat data: ${errMsg}`);
+        if (
+          !errMsg.includes("unexpected response") &&
+          !errMsg.includes("NEXT_REDIRECT") &&
+          !errMsg.includes("abort")
+        ) {
+          toast.error(`Gagal memuat data: ${errMsg}`);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -192,6 +200,10 @@ export function KegiatanList({
 
   // Debounce search
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const timer = setTimeout(() => {
       setCurrentPage(1);
       fetchData(searchTerm, statusFilter, 1);

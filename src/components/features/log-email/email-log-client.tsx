@@ -293,6 +293,8 @@ export function EmailLogClient({
   const [sortKey, setSortKey] = useState<SortKey | null>("createdAt");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
+  const isFirstRender = useRef(true);
+
   const fetchData = useCallback(
     async (
       search: string,
@@ -321,7 +323,13 @@ export function EmailLogClient({
         setStats(newStats);
       } catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
-        toast.error(`Gagal memuat data email: ${errMsg}`);
+        if (
+          !errMsg.includes("unexpected response") &&
+          !errMsg.includes("NEXT_REDIRECT") &&
+          !errMsg.includes("abort")
+        ) {
+          toast.error(`Gagal memuat data email: ${errMsg}`);
+        }
       }
     },
     [sortKey, sortDir],
@@ -351,6 +359,10 @@ export function EmailLogClient({
 
   // Debounced search for keyword only
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const timer = setTimeout(() => {
       setCurrentPage(1);
       fetchData(searchTerm, typeFilter, statusFilter, 1);

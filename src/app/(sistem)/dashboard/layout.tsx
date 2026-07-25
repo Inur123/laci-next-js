@@ -9,7 +9,6 @@ import { DateDisplay } from "@/components/ui/date-display";
 import Link from "next/link";
 
 import { headers, cookies } from "next/headers";
-import type { Session } from "next-auth";
 
 // Layout Dashboard Utama dengan Tema Role
 export const dynamic = "force-dynamic";
@@ -107,11 +106,10 @@ export default async function DashboardLayout({
     redirect("/dashboard");
   }
 
-  const role = dbUser.role;
-  const userForSidebar: Session["user"] = {
+  const userForSidebar = {
     id: dbUser.id,
-    name: dbUser.name || null,
-    email: dbUser.email || null,
+    name: dbUser.name,
+    email: dbUser.email,
     role: dbUser.role,
     isActive: dbUser.isActive,
     periodeAktifId: dbUser.periodeAktifId,
@@ -119,6 +117,7 @@ export default async function DashboardLayout({
     image: dbUser.image,
   };
 
+  const role = dbUser.role;
   // Theme class based on role
   const themeClass =
     role === "SEKRETARIS_CABANG" ? "theme-cabang" : "theme-pac";

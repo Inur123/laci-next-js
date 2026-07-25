@@ -97,6 +97,13 @@ export default function RegisterForm({
         if (signUpError) {
           let errorMessage = "Gagal mendaftar. Silakan coba lagi.";
           if (
+            signUpError.status === 429 ||
+            signUpError.code === "TOO_MANY_REQUESTS" ||
+            signUpError.message?.toLowerCase().includes("too many")
+          ) {
+            errorMessage =
+              "Terlalu banyak permintaan pendaftaran. Mohon tunggu beberapa saat sebelum mencoba kembali.";
+          } else if (
             signUpError.code === "USER_ALREADY_EXISTS" ||
             signUpError.message?.includes("User already exists")
           ) {

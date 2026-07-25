@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Session } from "next-auth";
+import type { Session } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
 import {
@@ -35,7 +35,7 @@ const capitalizeName = (name: string) => {
     .join(" ");
 };
 
-export default function ProfilePage({ user }: { user: Session["user"] }) {
+export default function ProfilePage({ user }: { user: any }) {
   const [loading, setLoading] = useState(false);
   const [verifyingEmail, setVerifyingEmail] = useState(false);
   const [newPassword, setNewPassword] = useState("");

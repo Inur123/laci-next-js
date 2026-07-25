@@ -2,6 +2,47 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { decryptText } from "@/lib/encryption"; // Gunakan nama fungsi yang benar
 
+/**
+ * @swagger
+ * /api/kegiatan:
+ *   get:
+ *     summary: Ambil data kegiatan lokal yang digabungkan dengan PHBI Nasional (Public API)
+ *     tags: [Kegiatan]
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       judul:
+ *                         type: string
+ *                       deskripsi:
+ *                         type: string
+ *                       lokasi:
+ *                         type: string
+ *                       warna:
+ *                         type: string
+ *                       tanggal_mulai:
+ *                         type: string
+ *                       tanggal_selesai:
+ *                         type: string
+ *                       user:
+ *                         type: object
+ *                         properties:
+ *                           name:
+ *                             type: string
+ */
 export async function GET(request: Request) {
   try {
     const origin = request.headers.get("origin") || "";

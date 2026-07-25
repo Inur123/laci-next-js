@@ -110,6 +110,8 @@ export function PresensiList({
   const [sortKey, setSortKey] = useState<SortKey | null>("tanggal");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
+  const isFirstRender = React.useRef(true);
+
   const fetchData = async (
     query: string,
     status: string,
@@ -132,7 +134,13 @@ export function PresensiList({
     } catch (error) {
       console.error("Error fetching data:", error);
       const errMsg = error instanceof Error ? error.message : String(error);
-      toast.error(`Gagal memuat data: ${errMsg}`);
+      if (
+        !errMsg.includes("unexpected response") &&
+        !errMsg.includes("NEXT_REDIRECT") &&
+        !errMsg.includes("abort")
+      ) {
+        toast.error(`Gagal memuat data: ${errMsg}`);
+      }
     }
   };
 
@@ -193,10 +201,13 @@ export function PresensiList({
     };
 
     window.addEventListener("laci-realtime", handleRealtime);
-    return () => window.removeEventListener("laci-realtime", handleRealtime);
+    return () => {
+      window.removeEventListener("laci-realtime", handleRealtime);
+      if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
+    };
   }, [searchTerm, statusFilter, currentPage]);
 
-  const handleStatusUpdate = async (
+  const handleToggleStatus = async (
     id: string,
     mode: "AUTO" | "MANUAL_CLOSE",
   ) => {
@@ -239,6 +250,10 @@ export function PresensiList({
   const visibleData = data.filter((item) => !optimisticHiddenIds.includes(item.id));
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const timer = setTimeout(() => {
       setCurrentPage(1);
       fetchData(searchTerm, statusFilter, 1);
