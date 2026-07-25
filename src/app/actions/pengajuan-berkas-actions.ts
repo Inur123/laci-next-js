@@ -282,18 +282,26 @@ export async function getVerifikasiPengajuanForCabang(
     throw new Error("Only Cabang can access all submissions");
   }
 
-  // Get active periode of Cabang
-  const periodeAktif = await prisma.periode.findFirst({
-    where: {
-      userId: session.user.id,
-      isActive: true,
-    },
-  });
+  // Get active or selected view periode of Cabang
+  const cookieStore = await cookies();
+  const viewPeriodeId = cookieStore.get("view_periode_id")?.value;
 
-  if (!periodeAktif) return { data: [], total: 0, totalPages: 0 };
+  let targetPeriodeId = viewPeriodeId;
+
+  if (!targetPeriodeId) {
+    const periodeAktif = await prisma.periode.findFirst({
+      where: {
+        userId: session.user.id,
+        isActive: true,
+      },
+    });
+    targetPeriodeId = periodeAktif?.id;
+  }
+
+  if (!targetPeriodeId) return { data: [], total: 0, totalPages: 0 };
 
   const whereClause: Prisma.PengajuanBerkasWhereInput = {
-    periodeId: periodeAktif.id,
+    periodeId: targetPeriodeId,
   };
 
   if (
@@ -1222,16 +1230,23 @@ export async function getPengajuanBerkasStats(userId?: string) {
       whereClause.userId = userId;
     }
 
-    // Get Cabang's active periode to filter pengajuans
-    const periodeAktifCabang = await prisma.periode.findFirst({
-      where: {
-        userId: session.user.id,
-        isActive: true,
-      },
-    });
+    // Get Cabang's active or selected view periode to filter pengajuans
+    const cookieStore = await cookies();
+    const viewPeriodeId = cookieStore.get("view_periode_id")?.value;
 
-    if (periodeAktifCabang) {
-      whereClause.periodeId = periodeAktifCabang.id;
+    let targetPeriodeId = viewPeriodeId;
+    if (!targetPeriodeId) {
+      const periodeAktifCabang = await prisma.periode.findFirst({
+        where: {
+          userId: session.user.id,
+          isActive: true,
+        },
+      });
+      targetPeriodeId = periodeAktifCabang?.id;
+    }
+
+    if (targetPeriodeId) {
+      whereClause.periodeId = targetPeriodeId;
     }
   }
 

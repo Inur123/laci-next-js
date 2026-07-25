@@ -55,12 +55,33 @@ export async function getAnggotaList(
     if (!effectivePeriodeId) return { data: [], total: 0, totalPages: 0 };
     whereClause = { userId: session.user.id, periodeId: effectivePeriodeId };
   } else {
-    if (userId && userId !== "ALL") whereClause.userId = userId;
     const finalPeriodeId = periodeId || targetPeriodeId;
+    let targetPeriodeNama: string | undefined;
+
     if (finalPeriodeId) {
-      whereClause.periodeId = finalPeriodeId;
+      const selectedPeriode = await prisma.periode.findUnique({
+        where: { id: finalPeriodeId },
+        select: { nama: true },
+      });
+      targetPeriodeNama = selectedPeriode?.nama;
+    }
+
+    if (userId && userId !== "ALL") {
+      whereClause.userId = userId;
+      if (userId === session.user.id) {
+        if (finalPeriodeId) whereClause.periodeId = finalPeriodeId;
+      } else if (targetPeriodeNama) {
+        whereClause.periode = { nama: targetPeriodeNama };
+      }
     } else {
-      whereClause.periode = { isActive: true };
+      if (finalPeriodeId && targetPeriodeNama) {
+        whereClause.OR = [
+          { periodeId: finalPeriodeId },
+          { periode: { nama: targetPeriodeNama } },
+        ];
+      } else if (finalPeriodeId) {
+        whereClause.periodeId = finalPeriodeId;
+      }
     }
   }
 
@@ -549,11 +570,32 @@ export async function getAnggotaStats(userId?: string) {
   }
 
   if (isCabang) {
-    if (userId && userId !== "ALL") where.userId = userId;
+    let targetPeriodeNama: string | undefined;
+
     if (targetPeriodeId) {
-      where.periodeId = targetPeriodeId;
+      const selectedPeriode = await prisma.periode.findUnique({
+        where: { id: targetPeriodeId },
+        select: { nama: true },
+      });
+      targetPeriodeNama = selectedPeriode?.nama;
+    }
+
+    if (userId && userId !== "ALL") {
+      where.userId = userId;
+      if (userId === session.user.id) {
+        if (targetPeriodeId) where.periodeId = targetPeriodeId;
+      } else if (targetPeriodeNama) {
+        where.periode = { nama: targetPeriodeNama };
+      }
     } else {
-      where.periode = { isActive: true };
+      if (targetPeriodeId && targetPeriodeNama) {
+        where.OR = [
+          { periodeId: targetPeriodeId },
+          { periode: { nama: targetPeriodeNama } },
+        ];
+      } else if (targetPeriodeId) {
+        where.periodeId = targetPeriodeId;
+      }
     }
   } else {
     if (!targetPeriodeId) return null;

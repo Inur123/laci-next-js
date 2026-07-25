@@ -22,6 +22,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Eye,
   Pencil,
@@ -106,6 +107,9 @@ export function AnggotaList({
   initialSortKey?: string;
   initialSortDir?: string;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   // Local data state
   const [data, setData] = useState<AnggotaItem[]>(initialAnggotaList);
   const [totalPages, setTotalPages] = useState(initialTotalPages);
@@ -261,6 +265,16 @@ export function AnggotaList({
   const handleUserFilterChange = (value: string) => {
     setSelectedUser(value);
     setCurrentPage(1);
+
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === "ALL") {
+      params.delete("userId");
+    } else {
+      params.set("userId", value);
+    }
+    params.set("page", "1");
+    router.push(`?${params.toString()}`, { scroll: false });
+
     fetchData(searchTerm, 1, value, sortKey, sortDir);
   };
 
@@ -268,6 +282,13 @@ export function AnggotaList({
     setSearchTerm("");
     setSelectedUser("ALL");
     setCurrentPage(1);
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("userId");
+    params.delete("q");
+    params.set("page", "1");
+    router.push(`?${params.toString()}`, { scroll: false });
+
     fetchData("", 1, "ALL", sortKey, sortDir);
   };
 
