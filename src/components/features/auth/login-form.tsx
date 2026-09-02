@@ -11,10 +11,18 @@ import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { verifyRecaptchaAction } from "@/app/actions/recaptcha-actions";
 
+const clearLocationCookies = () => {
+  if (typeof document !== "undefined") {
+    document.cookie = "user_lat=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+    document.cookie = "user_lng=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+  }
+};
+
 const requestLocation = (onSuccess?: () => void, onError?: () => void) => {
   if (typeof window === "undefined") return;
 
   if (!navigator.geolocation) {
+    clearLocationCookies();
     toast.error("Browser Anda tidak mendukung deteksi lokasi (Geolocation). Silakan gunakan browser lain.");
     if (onError) onError();
     return;
@@ -22,6 +30,9 @@ const requestLocation = (onSuccess?: () => void, onError?: () => void) => {
 
   // Toast info instead of blocking alert
   toast.info("Sistem mendeteksi lokasi Anda untuk keamanan. Mohon izinkan akses lokasi jika diminta.");
+  
+  // Hapus cookie lama agar tidak bisa bypass jika proses ini gagal atau sedang berjalan
+  clearLocationCookies();
 
   navigator.geolocation.getCurrentPosition(
     async (position) => {
@@ -96,6 +107,7 @@ const requestLocation = (onSuccess?: () => void, onError?: () => void) => {
       if (onSuccess) onSuccess();
     },
     (error) => {
+      clearLocationCookies();
       console.warn("Geolocation warning:", error.message || `Code: ${error.code}`);
       toast.error("Akses Lokasi Ditolak/Gagal. Anda wajib mengizinkan akses lokasi di browser untuk login.");
       if (onError) onError();
@@ -123,6 +135,9 @@ export default function LoginForm() {
               const { latitude, longitude } = pos.coords;
               document.cookie = `user_lat=${latitude}; path=/; max-age=86400; SameSite=Lax`;
               document.cookie = `user_lng=${longitude}; path=/; max-age=86400; SameSite=Lax`;
+            }, () => {
+              clearLocationCookies();
+              requestLocation();
             });
           }
         })

@@ -522,10 +522,16 @@ export function ReferensiPengajuanList({
                         <TableCell className="text-center text-muted-foreground font-medium">
                           {(currentPage - 1) * 10 + index + 1}
                         </TableCell>
-                        <TableCell className="font-medium whitespace-nowrap">
+                        <TableCell
+                          className="max-w-[160px] truncate font-medium"
+                          title={item.noSurat}
+                        >
                           {item.noSurat}
                         </TableCell>
-                        <TableCell className="whitespace-nowrap pr-6">
+                        <TableCell
+                          className="max-w-[160px] truncate pr-6"
+                          title={item.user?.name ? capitalizeName(item.user.name) : ""}
+                        >
                           {item.user?.name
                             ? capitalizeName(item.user.name)
                             : "-"}
