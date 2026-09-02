@@ -52,7 +52,11 @@ export async function GET(
       const isCabang = user?.role === "SEKRETARIS_CABANG";
       const isPacReference = user?.role === "SEKRETARIS_PAC";
 
-      if (!isOwner && !isCabang && !isPacReference) {
+      if (
+        pengajuan.userId !== session.user.id &&
+        user?.role !== "SEKRETARIS_CABANG" &&
+        user?.role !== "SEKRETARIS_PAC"
+      ) {
         return new NextResponse("Unauthorized", { status: 403 });
       }
       isAuthorized = true;
