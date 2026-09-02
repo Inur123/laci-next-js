@@ -1303,7 +1303,7 @@ export async function downloadPengajuanFile(id: string) {
 
   const isOwner = pengajuan.userId === session.user.id;
   const isCabang = user?.role === "SEKRETARIS_CABANG";
-  const isPacReference = user?.role === "SEKRETARIS_PAC" && pengajuan.status === "DITERIMA";
+  const isPacReference = user?.role === "SEKRETARIS_PAC";
 
   if (!isOwner && !isCabang && !isPacReference) {
     throw new Error("Unauthorized");
@@ -1340,7 +1340,7 @@ export async function getPengajuanDownloadToken(id: string) {
 
   const isOwner = pengajuan.userId === session.user.id;
   const isCabang = user?.role === "SEKRETARIS_CABANG";
-  const isPacReference = user?.role === "SEKRETARIS_PAC" && pengajuan.status === "DITERIMA";
+  const isPacReference = user?.role === "SEKRETARIS_PAC";
 
   if (!isOwner && !isCabang && !isPacReference) {
     throw new Error("Unauthorized");

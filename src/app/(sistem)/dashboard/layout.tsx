@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { CalendarDays, AlertCircle, Eye } from "lucide-react";
 import { DateDisplay } from "@/components/ui/date-display";
 import Link from "next/link";
+import { CookieCleaner } from "@/components/layout/cookie-cleaner";
 
 import { headers, cookies } from "next/headers";
 
@@ -79,12 +80,20 @@ export default async function DashboardLayout({
   }
 
   let viewPeriode = null;
+  let isCookieInvalid = false;
 
   if (viewPeriodeId && activePeriode && viewPeriodeId !== activePeriode.id) {
     viewPeriode = await prisma.periode.findUnique({
       where: { id: viewPeriodeId },
-      select: { nama: true },
+      select: { nama: true, userId: true },
     });
+
+    // Validasi apakah periode yang dilihat benar-benar milik user ini
+    if (!viewPeriode || viewPeriode.userId !== session.user.id) {
+      isCookieInvalid = true;
+      viewPeriodeId = activePeriode.id;
+      viewPeriode = null;
+    }
   }
 
   // Read pathname from header
@@ -125,6 +134,7 @@ export default async function DashboardLayout({
   return (
     <SidebarProvider className={themeClass}>
       <div className={`flex h-screen w-full ${themeClass}`}>
+        <CookieCleaner invalid={isCookieInvalid} />
         <AppSidebar user={userForSidebar} themeClass={themeClass} />
         <main className="flex-1 flex flex-col overflow-hidden">
           <div className="flex items-center justify-between p-6 border-b flex-shrink-0">
