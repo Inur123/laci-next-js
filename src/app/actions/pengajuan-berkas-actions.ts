@@ -1295,16 +1295,17 @@ export async function downloadPengajuanFile(id: string) {
 
   if (!pengajuan || !pengajuan.file) throw new Error("File tidak ditemukan");
 
-  // Check access: either owner or Cabang
+  // Check access: owner, Cabang, or PAC referencing approved pengajuan
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: { role: true },
   });
 
-  if (
-    pengajuan.userId !== session.user.id &&
-    user?.role !== "SEKRETARIS_CABANG"
-  ) {
+  const isOwner = pengajuan.userId === session.user.id;
+  const isCabang = user?.role === "SEKRETARIS_CABANG";
+  const isPacReference = user?.role === "SEKRETARIS_PAC" && pengajuan.status === "DITERIMA";
+
+  if (!isOwner && !isCabang && !isPacReference) {
     throw new Error("Unauthorized");
   }
 
@@ -1337,10 +1338,11 @@ export async function getPengajuanDownloadToken(id: string) {
     select: { role: true },
   });
 
-  if (
-    pengajuan.userId !== session.user.id &&
-    user?.role !== "SEKRETARIS_CABANG"
-  ) {
+  const isOwner = pengajuan.userId === session.user.id;
+  const isCabang = user?.role === "SEKRETARIS_CABANG";
+  const isPacReference = user?.role === "SEKRETARIS_PAC" && pengajuan.status === "DITERIMA";
+
+  if (!isOwner && !isCabang && !isPacReference) {
     throw new Error("Unauthorized");
   }
 

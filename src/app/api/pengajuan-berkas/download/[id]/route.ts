@@ -47,10 +47,12 @@ export async function GET(
         select: { role: true },
       });
 
-      if (
-        pengajuan.userId !== session.user.id &&
-        user?.role !== "SEKRETARIS_CABANG"
-      ) {
+      // Check access: Owner can access, Cabang can access any, PAC can access any (for reference)
+      const isOwner = pengajuan.userId === session.user.id;
+      const isCabang = user?.role === "SEKRETARIS_CABANG";
+      const isPacReference = user?.role === "SEKRETARIS_PAC";
+
+      if (!isOwner && !isCabang && !isPacReference) {
         return new NextResponse("Unauthorized", { status: 403 });
       }
       isAuthorized = true;
